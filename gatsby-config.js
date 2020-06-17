@@ -1,23 +1,23 @@
 module.exports = {
   // Customize me!
   siteMetadata: {
-    company: "Fox and Geese",
-    domain: "https://foxandgeese.com",
-    defaultTitle:
-      "Fox and Geese: Digital Agency Providing Serverless + React.js Engineering",
-    preamble:
-      "We're a Portland, Oregon-based team of data scientists and software engineers.",
-    defaultDescription: "We develop exceptional products that meet real needs.",
-    postamble: "Think we can help your project? We'd love to hear from you:",
-    contact: {
-      email: "hi@foxandgeese.com",
-    },
-    menuLinks: [],
+    company: "人工無脳は考える",
+    domain: "",
+    site:"",
+    title:
+      "FairyBiome",
+    // preamble:
+    //   "",
+    // defaultDescription: "",
+    // postamble: "",
+    // contact: {
+    //   email: "",
+    // },
+    // menuLinks: [],
   },
-  pathPrefix: "/tiny-agency",
+  pathPrefix: "/",
   plugins: [
     "gatsby-plugin-top-layout",
-    "gatsby-transformer-remark",
     "gatsby-plugin-react-helmet",
     "gatsby-plugin-remove-serviceworker",
     {
@@ -26,8 +26,8 @@ module.exports = {
     {
       resolve: `gatsby-plugin-manifest`,
       options: {
-        name: "FoxAndGeese",
-        short_name: "FoxAndGeese",
+        name: "FairyBiome",
+        short_name: "FairyBiome",
         start_url: "/",
         background_color: "#eeeeee",
         //theme_color: "#6b37bf",
@@ -52,22 +52,49 @@ module.exports = {
     {
       resolve: "gatsby-source-filesystem",
       options: {
-        path: `${__dirname}/src/data`,
-        name: "data",
+        path: `${__dirname}/docs`,
+        name: "docs",
         ignore: [`**/\.*`],
       },
     },
+
+    {
+      resolve: `gatsby-transformer-remark`,
+      options: {
+        plugins: [
+          {
+            resolve: `gatsby-remark-images`,
+            options: {
+              maxWidth: 590,
+            },
+          },
+          // {
+          //   resolve: `gatsby-remark-responsive-iframe`,
+          //   options: {
+          //     wrapperStyle: `margin-bottom: 1.0725rem`,
+          //   },
+          // },
+          `gatsby-remark-prismjs`,
+          `gatsby-remark-copy-linked-files`,
+          `gatsby-remark-smartypants`,
+        ],
+      },
+    },
+    `gatsby-transformer-sharp`,
+    `gatsby-plugin-sharp`,
+    // {
+    //   resolve: `gatsby-plugin-google-analytics`,
+    //   options: {
+    //     //trackingId: `ADD YOUR TRACKING ID HERE`,
+    //   },
+    // },
+
     {
       resolve: `gatsby-plugin-favicon`,
       options: {
         logo: "./images/logo.png",
       },
     },
-    {
-      resolve: `gatsby-plugin-google-analytics`,
-      options: {
-        trackingId: "UA-120162676-1",
-      },
-    },
+    
   ],
 };
