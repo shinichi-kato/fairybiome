@@ -1,4 +1,4 @@
-require("dotenv").require()
+require("dotenv").config()
 module.exports = {
   // Customize me!
   siteMetadata: {
@@ -109,6 +109,13 @@ module.exports = {
         logo: "./images/logo.png",
       },
     },
-    
+    {
+      resolve: "gatsby-plugin-react-svg",
+      options: {
+        rule: {
+          include: /images\/svg/ // See below to configure properly
+        }
+      }
+    },
   ],
 };
