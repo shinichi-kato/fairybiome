@@ -9,7 +9,7 @@ const theme = createMuiTheme({
       '@global':{
         html: {
           width: '100%',
-          height: '100vh',
+          height: '100%',
           margin: 0,
           padding: 0,
           webkitFontSmoothing: 'antialiased',
@@ -20,7 +20,7 @@ const theme = createMuiTheme({
         body:{
           position: "fixed",
           width: 480,
-          height: "100vh",
+          height: "100%",
           marginLeft: "calc((100% - 480px)  * 0.7)",
           marginRight : "calc((100% - 480px) * 0.3)",
         }

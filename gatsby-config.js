@@ -1,4 +1,5 @@
 require("dotenv").config()
+
 module.exports = {
   // Customize me!
   siteMetadata: {
@@ -18,20 +19,7 @@ module.exports = {
   },
   pathPrefix: "/",
   plugins: [
-    {
-      resolve: "gatsby-plugin-firebase",
-      options: {
-        features: {
-          auth: true,
-          database: false,
-          firestore: true,
-          storage: false,
-          messaging: false,
-          functions: true,
-        }
-      }
-    },
-    "gatsby-plugin-top-layout",
+     "gatsby-plugin-top-layout",
     "gatsby-plugin-react-helmet",
     "gatsby-plugin-remove-serviceworker",
     {

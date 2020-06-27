@@ -1,15 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
-<svg id="SVGRoot" width="86.526" height="29.634" version="1.1" viewBox="0 0 86.526 29.634" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
- <metadata>
-  <rdf:RDF>
-   <cc:Work rdf:about="">
-    <dc:format>image/svg+xml</dc:format>
-    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:title/>
-   </cc:Work>
-  </rdf:RDF>
- </metadata>
+<svg id="SVGRoot" width="86.526" height="29.634" version="1.1" viewBox="0 0 86.526 29.634" >
  <g transform="translate(4.5205 3.1443)">
   <path d="m12.88 1.5884c-4.1144 0.88259-9.5041 12.618-11.34 16.864 1.5226-1.5988 3.3232-3.2984 5.2566-4.9549 1.598-1.3691 3.3079-2.6489 5.0088-3.8745l0.50654-3.252s0.79357-2.0502 0.85141-2.8695c0.05784-0.81924-0.28291-1.913-0.28291-1.913z" fill="#70ad47"/>
   <path d="m0.75288 20.192c6.0904-6.3956 16.608-14.424 22.429-14.705 0.50619 0.85307 0.21261 2.941 0.21261 2.941s-2.9 4.6874-3.9331 5.2796c-0.74965 1.4427-8.3623 4.9607-8.3623 4.9607s2.9047-0.69859 6.4134-0.56693c-0.60146 0.76946-6.059 2.5335-6.059 2.5335s0.53149-0.17717 2.4803 0.12402c4e-3 1.1423-4.571 0.99214-4.571 0.99214-3.1181-0.04725-3.4507-0.39688-8.8229-0.07087z" fill="#229622"/>
