@@ -2,13 +2,11 @@ import React from 'react';
 import {
   fade,
   withStyles,
-  makeStyles,
 } from '@material-ui/core/styles';
 import InputBase from '@material-ui/core/InputBase';
 import InputLabel from '@material-ui/core/InputLabel';
-import TextField from '@material-ui/core/TextField';
 import FormControl from '@material-ui/core/FormControl';
-
+import InputAdornment from '@material-ui/core/InputAdornment';
 
 const BootstrapInput = withStyles((theme) => ({
   root: {
@@ -34,18 +32,26 @@ const BootstrapInput = withStyles((theme) => ({
 
 export default function TextInput(props){
     return (
-      <FormControl>
-        <InputLabel shrink htmlFor="bootstrap-input">
-          {props.label}
-        </InputLabel>
-        <BootstrapInput 
-          fullWidth={props.fullWidth}
-          defaultValue={props.defaultValue} 
-          size={props.size}
-          value={props.value}
-          type={props.type}
-          onChange={props.onChange}
-        />
-      </FormControl>
+        <FormControl fullWidth={props.fullWidth}>
+          <InputLabel shrink htmlFor="bootstrap-input">
+            {props.label}
+          </InputLabel>
+          <BootstrapInput 
+
+            id="bootstrap-input"
+            startAdornment={
+              <InputAdornment position="start">
+                {props.icon}
+              </InputAdornment>
+            }
+            fullWidth={props.fullWidth}
+            defaultValue={props.defaultValue} 
+            required={props.required}
+            size={props.size}
+            value={props.value}
+            type={props.type}
+            onChange={props.handleChange}
+          />
+        </FormControl>
     )
 }

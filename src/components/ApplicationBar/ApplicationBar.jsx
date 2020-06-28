@@ -1,19 +1,21 @@
-import React from "react";
+import React,{useState} from "react";
+
+import {navigate} from 'gatsby';
+
 import { makeStyles } from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import IconButton from '@material-ui/core/IconButton';
+
 import NavigateBeforeIcon from '@material-ui/icons/NavigateBefore';
 import NavigateNextIcon from '@material-ui/icons/NavigateNext';
-import AccountCircleIcon from '@material-ui/icons/AccountCircle';
+import SettingsOutlinedIcon from '@material-ui/icons/SettingsOutlined';
+import MenuBookIcon from '@material-ui/icons/MenuBook';
 
-
+import SettingsMenu from './SettingsMenu';
 
 const useStyles = makeStyles((theme) => ({
-  root: {
-    flexGrow: 1,
-  },
   menuButton: {
     marginRight: theme.spacing(2),
   },
@@ -25,12 +27,22 @@ const useStyles = makeStyles((theme) => ({
 
 export default function ApplicationBar(props){
   const classes = useStyles();
+  const [anchorEl,setAnchorEl] = useState(null);
+  
+  const handleClickSettingsMenu = (e) => {
+    setAnchorEl(e.currentTarget);
+  }
+
+  function handleCloseSettingMenu(){
+    setAnchorEl(null);
+  }
   
   return (
-    <AppBar position="static" className={classes.root}>
+    <AppBar position="static">
       <Toolbar>
-        <IconButton edge="start"className={classes.menuButton}>
+        <IconButton edge="start">
           <NavigateBeforeIcon />
+
         </IconButton>
         <IconButton>
           <NavigateNextIcon />
@@ -40,8 +52,21 @@ export default function ApplicationBar(props){
           {props.title}
         </Typography>
         <IconButton >
-          <AccountCircleIcon />
+          <MenuBookIcon />
         </IconButton>
+        <IconButton 
+          edge="end"
+          aria-controls="settings-menu" 
+          aria-haspopup="true" 
+          onClick={handleClickSettingsMenu}
+        >
+          <SettingsOutlinedIcon />
+        </IconButton>
+        <SettingsMenu 
+          anchorEl={anchorEl}
+          open={Boolean(anchorEl)}
+          handleClose={handleCloseSettingsMenu}
+        />
       </Toolbar>
     </AppBar>
   )

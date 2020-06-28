@@ -10,13 +10,10 @@ const useStyles = makeStyles((theme) => ({
   root: {
     width: "100%",
     height: "100vh",
-    backgroundImage: "url(static/images/landing-bg.png)",
-    backgroundPosition: "center bottom",
-    backgroundRepeat: "no-repeat",
-    backgroundSize: "100% auto",
   },
   logoBox: {
     margin: "10% 5% 10px 5%",
+    height: "100%",
   },
   logo: {
     width: "calc(100% - 10%)"
@@ -27,7 +24,7 @@ export default function AuthDialog(props){
   const user=props.user;
   const classes = useStyles();
   const [email,setEmail] = useState(user.email);
-  const [password,setPassword] = useState(user.password);
+  const [password,setPassword] = useState("");
   const [page,setPage] = useState("entry"); // entry-login-signUp
 
   function handleChangeEmail(value){
@@ -74,6 +71,7 @@ export default function AuthDialog(props){
             page={page}
             email={email}
             password={password}
+            message={props.message}
             handleChangeEmail={handleChangeEmail}
             handleChangePassword={handleChangePassword}
             handleLogin={handleLogin}

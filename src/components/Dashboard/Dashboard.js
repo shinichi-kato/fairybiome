@@ -1,4 +1,4 @@
-import React,{useEffect} from "react";
+import React from "react";
 import { makeStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
@@ -6,11 +6,13 @@ import Box from '@material-ui/core/Box';
 import LogoSvg from "../../../images/svg/logo.svg";
 import HomeIcon from "../../icons/Home";
 import HubIcon from "../../icons/HubFairies";
+import ApplicationBar from '../ApplicationBar/ApplicationBar';
 
 
 const useStyles = makeStyles((theme) => ({
   root: {
     width: "100%",
+    height: "100vh",
     backgroundImage: "url(../images/landing-bg.png)",
     backgroundPosition: "center bottom",
   },
@@ -52,6 +54,11 @@ export default function Dashboard(props){
       flexDirection="column"
       flexWrap="nowrap"
     >
+      <Box>
+        <ApplicationBar
+          title="Dashboard"
+        />
+      </Box>
       <Box className={classes.logoBox}>
         <LogoSvg className={classes.logo} height="100%"/>
       </Box>

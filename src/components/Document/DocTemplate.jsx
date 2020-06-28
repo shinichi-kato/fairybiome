@@ -10,6 +10,9 @@ import Box from '@material-ui/core/Box';
 import FairyBiomeIcon from '../../icons/FairyBiome';
 
 const useStyles = makeStyles((theme) => ({
+  root:{
+    overFlowY: "auto",
+  },
   article: {
     color:theme.palette.text.primary,
     fontSize:theme.typography.fontSize,
@@ -68,7 +71,9 @@ const DocumentTemplate = ({ data, pageContext, location }) => {
   const { previous, next } = pageContext;
 
   return(
-    <Box display="flex" flexDirection="column">
+    <Box display="flex" flexDirection="column"
+      className={classes.root}
+    >
       <Box>
         <AppBar>
           <Toolbar>

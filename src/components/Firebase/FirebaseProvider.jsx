@@ -1,6 +1,7 @@
 import React,{useEffect,useReducer,createContext} from 'react';
 import Landing from '../Landing/Landing';
 import AuthDialog from './AuthDialog';
+import {localStorageIO} from '../../utils/localStorageIO';
 
 import * as firebase from 'firebase/app';
 import 'firebase/auth';
@@ -12,7 +13,7 @@ export const FirebaseContext = createContext();
 const initialState={
   user: {
     displayName: null,
-    email: null,
+    email: "",
     photoURL: null,
     uid: null,
     emailVerified: null,
@@ -112,6 +113,7 @@ export default function FirebaseProvider(props){
 
   function authenticate(email,password){
     dispatch({type:'run'});
+    console.log("auth",email,password)
 
     firebase.auth().signInWithEmailAndPassword(email,password)
     .then(()=>{

@@ -4,6 +4,8 @@ import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
 import Box from '@material-ui/core/Box';
 import TextInput from '../TextInput.jsx';
+import MailOutlineIcon from '@material-ui/icons/MailOutline';
+import VpnKeyIcon from '@material-ui/icons/VpnKey';
 
 const useStyles = makeStyles((theme) => ({
   caption:{
@@ -29,26 +31,11 @@ const useStyles = makeStyles((theme) => ({
 export default function Signing(props){
   const classes = useStyles();
 
-  const [email,setEmail] = useState(props.email);
-  const [password,setPassword] = useState(props.password);
-  const [page,setPage] = useState("entry"); // entry-login-signup
-
-  function handleChangeEmail(value){
-    setEmail(value);
-  }
-
-  function handleChangePassword(value){
-    setPassword(value);
-  }
-
-  function handleChangePage(value){
-    setPage(value);
-  }
   function handleClick(){
-    if(page === 'login'){
-      props.handleLogin(email,password);
+    if(props.page === 'login'){
+      props.handleLogin();
     } else {
-      props.handleSignUp(email,password);
+      props.handleSignUp();
     }
   }
 
@@ -63,8 +50,10 @@ export default function Signing(props){
           size="large"
           fullWidth
           label="メールアドレス"
-          value={email}
-          handleChange={e=>handleChangeEmail(e.target.value)}
+          icon={<MailOutlineIcon />}
+          value={props.email}
+          required
+          handleChange={e=>props.handleChangeEmail(e.target.value)}
         />
       </Box>
       <Box className={classes.inputContainer}>
@@ -72,9 +61,11 @@ export default function Signing(props){
           size="large"
           fullWidth
           label="パスワード"
-          value={password}
+          icon={<VpnKeyIcon />}
+          value={props.password}
           type="password"
-          handleChange={e=>handleChangePassword(e.target.value)}
+          required
+          handleChange={e=>props.handleChangePassword(e.target.value)}
         />
       </Box>
       <Box className={classes.buttonContainer}>
