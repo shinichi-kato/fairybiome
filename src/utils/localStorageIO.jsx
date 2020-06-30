@@ -13,5 +13,23 @@ export const localStorageIO = {
     if(isBrowser()){
       localStorage.setItem(name,value);
     }
+  },
+
+  readJson: (name) => {
+    if(isBrowser()){
+      const payload = localStorage.getItem(name) || null;
+      if(payload){
+        return JSON.parse(payload)
+      }
+    }
+    return undefined;
+  },
+
+  setJson: (name,value) =>{
+    if(isBrowser()){
+      const payload = JSON.stringify(value);
+      localStorage.setItem(name,payload);
+    }
   }
+
 }

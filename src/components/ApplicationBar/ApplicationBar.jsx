@@ -33,7 +33,7 @@ export default function ApplicationBar(props){
     setAnchorEl(e.currentTarget);
   }
 
-  function handleCloseSettingMenu(){
+  function handleCloseSettingsMenu(){
     setAnchorEl(null);
   }
   

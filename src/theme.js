@@ -21,8 +21,8 @@ const theme = createMuiTheme({
           position: "fixed",
           width: 480,
           height: "100%",
-          marginLeft: "calc((100% - 480px)  * 0.7)",
-          marginRight : "calc((100% - 480px) * 0.3)",
+          marginLeft: "calc((100% - 480px)  * 0.3)",
+          marginRight : "calc((100% - 480px) * 0.7)",
         }
       }
     }

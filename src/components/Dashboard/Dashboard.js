@@ -7,6 +7,9 @@ import LogoSvg from "../../../images/svg/logo.svg";
 import HomeIcon from "../../icons/Home";
 import HubIcon from "../../icons/HubFairies";
 import ApplicationBar from '../ApplicationBar/ApplicationBar';
+import User from './User.jsx';
+import Bot from './Bot.jsx';
+
 
 
 const useStyles = makeStyles((theme) => ({
@@ -53,6 +56,7 @@ export default function Dashboard(props){
       display="flex"
       flexDirection="column"
       flexWrap="nowrap"
+      justifyContent="flex-start"
     >
       <Box>
         <ApplicationBar
@@ -63,7 +67,17 @@ export default function Dashboard(props){
         <LogoSvg className={classes.logo} height="100%"/>
       </Box>
 
-      <Box flexGrow={1}>
+      <Box flexGrow={1}
+        display="flex"
+        flexDirection="row"
+        justifyContent="space-evenly"
+      >
+        <Box>
+          <User />
+        </Box>
+        <Box>
+          <Bot />
+        </Box>
 
       </Box>
       <Box
