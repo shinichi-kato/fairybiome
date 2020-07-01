@@ -1,16 +1,27 @@
-import React from "react";
+import React ,{useState,useContext} from "react";
+import {navigate} from 'gatsby';
+
 import { makeStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
 import Box from '@material-ui/core/Box';
+
 import LogoSvg from "../../../images/svg/logo.svg";
 import HomeIcon from "../../icons/Home";
 import HubIcon from "../../icons/HubFairies";
 import ApplicationBar from '../ApplicationBar/ApplicationBar';
-import User from './User.jsx';
-import Bot from './Bot.jsx';
+import ChatAvatar from './ChatAvatar.jsx';
+
+import {FirebaseContext} from '../Firebase/FirebaseProvider';
 
 
+const botIconSrc=[
+  'svg/bot/fairy-blank.svg',
+];
+
+const userIconSrc=[
+  'svg/user/user-blank.svg',
+];
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -20,8 +31,7 @@ const useStyles = makeStyles((theme) => ({
     backgroundPosition: "center bottom",
   },
   logoBox: {
-    margin: "2% 5% 10px 5%",
-    height: "100%",
+    margin: "50px 5%",
   },
   logo: {
     width: "calc(100% - 10%)"
@@ -51,12 +61,22 @@ const useStyles = makeStyles((theme) => ({
 
 export default function Dashboard(props){
   const classes = useStyles();
+  const fb = useContext(FirebaseContext);
+
+  const user = fb.user;
+  const userName = user.displayName || "ユーザ設定";
+  const userIcon = user.photoURL || userIconSrc[0];
+  const botName = "ダウンロード";
+  const botIcon = botIconSrc[0];
+
+
   return (
     <Box className={classes.root}
       display="flex"
       flexDirection="column"
       flexWrap="nowrap"
       justifyContent="flex-start"
+      alignContent="flex-start"
     >
       <Box>
         <ApplicationBar
@@ -71,12 +91,21 @@ export default function Dashboard(props){
         display="flex"
         flexDirection="row"
         justifyContent="space-evenly"
+
       >
         <Box>
-          <User />
+          <ChatAvatar 
+            displayName={userName}
+            icon={userIcon}
+            handleClick={()=>navigate('/fairybiome/UserSettings/')}
+          />
         </Box>
         <Box>
-          <Bot />
+          <ChatAvatar 
+            displayName={botName}
+            icon={botIcon}
+            handleClick={()=>navigate('/fairybiome/BotDownload/')}
+          />
         </Box>
 
       </Box>
