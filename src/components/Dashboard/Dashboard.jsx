@@ -57,9 +57,9 @@ export default function Dashboard(props){
 
   const user = fb.user;
   const userName = user.displayName || "ユーザ設定";
-  const userIcon = user.photoURL || 'user-blank.svg';
+  const userIcon = `../../svg/${user.photoURL || "user-blank.svg"}`;
   const botName = "ダウンロード";
-  const botIcon = 'fairy-blank.svg';
+  const botIcon = '../../svg/fairy-blank.svg';
 
 
   return (
@@ -96,8 +96,8 @@ export default function Dashboard(props){
         </Box>
         <Box>
           <ChatAvatar 
-            displayName={userName}
-            icon={userIcon}
+            displayName={botName}
+            icon={botIcon}
             handleClick={()=>
               navigate(
                 '/fairybiome/BotDownload/',

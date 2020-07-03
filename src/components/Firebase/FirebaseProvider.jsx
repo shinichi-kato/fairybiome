@@ -152,8 +152,8 @@ export default function FirebaseProvider(props){
 		let user = firebase.auth().currentUser;
 		if(user){
 			user.updateProfile({
-				displayName:displayName,
-				photoURL: photoURL
+				displayName:displayName || user.displayName,
+				photoURL: photoURL || user.photoURL
 			}).then(()=>{
 				// userの更新はonAuthStateChangedで検出
 			}).catch(error=>{
@@ -177,7 +177,8 @@ export default function FirebaseProvider(props){
       value={{
         firebaseApp:state.firebaseApp,
         firestore:state.firestore,
-        user:state.user,
+        user:{...state.user},
+        changeUserInfo:changeUserInfo,
       }}
     >
       { state.firebaseApp === null 
