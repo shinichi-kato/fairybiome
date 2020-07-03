@@ -59,7 +59,14 @@ module.exports = {
         ignore: [`**/\.*`],
       },
     },
-
+    {
+      resolve: "gatsby-source-filesystem",
+      options: {
+        path: `${__dirname}/static/svg`,
+        name: "staticimages",
+        ignore: [`**/\.*`],
+      },
+    },
     {
       resolve: `gatsby-transformer-remark`,
       options: {

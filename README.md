@@ -32,6 +32,9 @@ GATSBY_FIREBASE_STORAGE_BUCKET=<YOUR_FIREBASE_STORAGE_BUCKET>
 GATSBY_FIREBASE_MESSAGING_SENDER_ID=<YOUR_FIREBASE_MESSAGING_SENDER_ID>
 GATSBY_FIREBASE_APP_ID=<YOUR_FIREBASE_APP_ID>
 ```
+## アバターの追加
+
+ユーザのアバターは `static/svg/user`ディレクトリにsvg形式で保存してください。チャットボットのアバターは`static/svg/bot`にsvg形式で保存してください。それぞれのディレクトリに格納されたsvgファイルは自動的に反映されます。
 
 ## Test
 

@@ -15,14 +15,6 @@ import ChatAvatar from './ChatAvatar.jsx';
 import {FirebaseContext} from '../Firebase/FirebaseProvider';
 
 
-const botIconSrc=[
-  'svg/bot/fairy-blank.svg',
-];
-
-const userIconSrc=[
-  'svg/user/user-blank.svg',
-];
-
 const useStyles = makeStyles((theme) => ({
   root: {
     width: "100%",
@@ -65,9 +57,9 @@ export default function Dashboard(props){
 
   const user = fb.user;
   const userName = user.displayName || "ユーザ設定";
-  const userIcon = user.photoURL || userIconSrc[0];
+  const userIcon = user.photoURL || 'user-blank.svg';
   const botName = "ダウンロード";
-  const botIcon = botIconSrc[0];
+  const botIcon = 'fairy-blank.svg';
 
 
   return (
@@ -97,14 +89,19 @@ export default function Dashboard(props){
           <ChatAvatar 
             displayName={userName}
             icon={userIcon}
-            handleClick={()=>navigate('/fairybiome/UserSettings/')}
+            handleClick={()=>
+              navigate('/fairybiome/UserSettings/'
+            )}
           />
         </Box>
         <Box>
           <ChatAvatar 
-            displayName={botName}
-            icon={botIcon}
-            handleClick={()=>navigate('/fairybiome/BotDownload/')}
+            displayName={userName}
+            icon={userIcon}
+            handleClick={()=>
+              navigate(
+                '/fairybiome/BotDownload/',
+              )}
           />
         </Box>
 
@@ -125,6 +122,5 @@ export default function Dashboard(props){
           </Button>
         </Box>
       </Box>   
-    </Box>
-  )
+    </Box>)
 }
