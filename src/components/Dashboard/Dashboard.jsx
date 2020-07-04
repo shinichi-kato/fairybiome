@@ -51,13 +51,23 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 
-export default function Dashboard(props){
+export default function Dashboard({location}){
   const classes = useStyles();
   const fb = useContext(FirebaseContext);
 
   const user = fb.user;
-  const userName = user.displayName || "ユーザ設定";
-  const userIcon = `../../svg/${user.photoURL || "user-blank.svg"}`;
+  let location_user=[null,null];
+  if(location.state !== null && typeof location.state.user ==="string"){
+    /*location.stateに複数の値を格納しようとしたらエラーになった。
+    そのためuser=`${avatar} ${name}`というパッキングをして渡した。
+    それをuserNameとuserIconに復元する
+    */
+    location_user=location.state.user.split(' ',2)
+    fb.changeUserInfo(location_user[1],location_user[0]);
+   }
+
+  const userName = location_user[1] || user.displayName;
+  const userIcon = location_user[0] || user.photoURL || "user-blank.svg";
   const botName = "ダウンロード";
   const botIcon = '../../svg/fairy-blank.svg';
 
@@ -89,8 +99,9 @@ export default function Dashboard(props){
           <ChatAvatar 
             displayName={userName}
             icon={userIcon}
-            handleClick={()=>
-              navigate('/fairybiome/UserSettings/'
+            handleToChangeAvatar={()=>
+              navigate('/fairybiome/UserSettings/',
+              {state:{name:userName,avatar:userIcon}}
             )}
           />
         </Box>

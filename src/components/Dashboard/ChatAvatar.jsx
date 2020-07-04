@@ -1,8 +1,9 @@
-import React from "react";
+import React ,{useState} from "react";
 import { makeStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
 import IconButton from '@material-ui/core/IconButton';
 import Box from '@material-ui/core/Box';
+
 
 const useStyles = makeStyles((theme) => ({
   iconContainer: {
@@ -26,6 +27,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 
+
 export default function ChatAvatar(props){
   const classes = useStyles();
 
@@ -38,13 +40,13 @@ export default function ChatAvatar(props){
       <Box className={classes.iconContainer}>
         <IconButton 
           className={classes.icon}
-          onClick={props.handleClick}>
-          <img src={props.icon} className={classes.icon} />
+          onClick={props.handleToChangeAvatar}>
+          <img src={`../../svg/${props.icon}`} className={classes.icon} />
         </IconButton>
       </Box>
       <Box className={classes.nameContainer}>
         <Typography className={classes.name}>
-          {props.displayName}
+          {  props.displayName || "ユーザ名"　}
         </Typography>
       </Box>
     </Box>

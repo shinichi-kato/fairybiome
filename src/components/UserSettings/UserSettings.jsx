@@ -1,14 +1,13 @@
-import React ,{useState,useContext,useRef} from "react";
-import { StaticQuery,graphql,navigate } from "gatsby"
+import React ,{useState,useRef} from "react";
+import { StaticQuery,graphql,navigate,Link } from "gatsby"
 import { makeStyles } from '@material-ui/core/styles';
 import Box from '@material-ui/core/Box';
 import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
-
+import TextField from '@material-ui/core/TextField';
 import ApplicationBar from '../ApplicationBar/ApplicationBar';
-import InputBase from '@material-ui/core/InputBase';
-import {FirebaseContext} from '../Firebase/FirebaseProvider';
+
 
 const useStyles = makeStyles((theme) => ({
   content:{
@@ -55,13 +54,30 @@ query {
 `
 ;
 
-export default function UserSettings(props){
+export default function UserSettings({location}){
   const classes = useStyles();
-  const fb = useContext(FirebaseContext);
-  const user = fb.user;
-  const [name,setName] = useState(user.displayName || "");
-  const [avatar,setAvatar] = useState(user.photoURL);
+  const nameRef = useRef(location.state && location.state.name);
+  const [avatar,setAvatar] = useState(location.state && location.state.avatar);
   const avatarListRef = useRef(null);
+  console.log("state",location.state)
+  function AvatarButton(props){
+    return(
+        <Button
+          className={classes.iconContainer}
+          color={avatar === props.path ? "primary" : "default" }
+          variant="contained"
+          disableRipple
+          disableElevation={avatar !== props.path}
+          onClick={()=>setAvatar(props.path)}
+        >
+          <Avatar 
+            src={`../../svg/${props.path}`} 
+            className={classes.icon}/>
+        </Button>
+
+      )
+    
+  }
 
   function AvatarList(props) {
     // avatarListをuseStateで構成すると、「render内でのsetState」
@@ -78,35 +94,26 @@ export default function UserSettings(props){
       return <></>;
     }
 
-    return al.map(node=>{
-      const path=node.node.relativePath;
+    return al.map((node,index)=>(
+          <AvatarButton key={index} path={node.node.relativePath} />
 
-      return(
-          <Button
-            key={path}
-            className={classes.iconContainer}
-            color={avatar === path ? "primary" : "default" }
-            variant="contained"
-            disableElevation={avatar !== path}
-            onClick={()=>setAvatar(path)}
-          >
-            <Avatar 
-              src={`../../svg/${path}`} 
-              className={classes.icon}/>
-          </Button>
-
-        )})
+        ))
     
   }
   
    function handleClick(){
-    fb.changeUserInfo(null,avatar);
-    navigate('/fairybiome/Dashboard/');
+    navigate('/fairybiome/Dashboard/',
+    
+      {state:{user:`${avatar} ${nameRef.current.value}`}});
   }
+
+  
 
   function handleCancel(){
     navigate('/fairybiome/Dashboard/');
   }
+  
+  console.log("nameRef",nameRef)
 
   return(
 
@@ -142,17 +149,25 @@ export default function UserSettings(props){
     }
      
      </Box>
+     <Box>
+       名前
+     </Box>
+     <Box>
+       <TextField 
+        required
+        inputRef={nameRef}
+        variant="outlined"
+        defaultValue={nameRef.current}
+       />
+     </Box>
 
      <Box>
        <Button
-         className={classes.button}
-         variant="contained"
-         color="primary"
-         fullWidth
-         size="large"
-         onClick={handleClick}
-       >
-         アイコンを変更
+        className={classes.button}
+        color="primary"
+        size="large"
+        onClick={handleClick}>
+         ユーザ設定を変更
        </Button>
      </Box>
      <Box>
