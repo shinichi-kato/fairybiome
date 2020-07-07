@@ -2,7 +2,7 @@ const isBrowser = () => typeof window !== "undefined";
 
 export const localStorageIO = {
   
-  getItem: (name,defaultValue) => {
+  getItem: (name,defaultValue=null) => {
     if(isBrowser()){
       return localStorage.getItem(name) || defaultValue;
     }
@@ -15,21 +15,5 @@ export const localStorageIO = {
     }
   },
 
-  readJson: (name) => {
-    if(isBrowser()){
-      const payload = localStorage.getItem(name) || null;
-      if(payload){
-        return JSON.parse(payload)
-      }
-    }
-    return undefined;
-  },
-
-  setJson: (name,value) =>{
-    if(isBrowser()){
-      const payload = JSON.stringify(value);
-      localStorage.setItem(name,payload);
-    }
-  }
 
 }

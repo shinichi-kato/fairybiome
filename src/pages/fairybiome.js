@@ -2,6 +2,7 @@ import React, {useEffect} from "react"
 import { Router } from "@reach/router";
 
 import FirebaseProvider from '../components/Firebase/FirebaseProvider';
+import BotProvider from '../components/ChatBot/BotProvider';
 import Dashboard from '../components/Dashboard/Dashboard';
 import BotDownload from '../components/BotDownload/BotDownload';
 import UserSettings from '../components/UserSettings/UserSettings';
@@ -36,11 +37,14 @@ export default function index(props){
 
   return (
     <FirebaseProvider>
-      <Router basepath="/fairybiome">
-        <Dashboard path="/Dashboard" default/> 
-        <UserSettings path="/UserSettings" />
-        <BotDownload path="/BotDownload" />
-      </Router>
+      <BotProvider>
+        <Router basepath="/fairybiome">
+          <Dashboard path="/Dashboard" default/> 
+          <UserSettings path="/UserSettings" />
+          <BotDownload path="/BotDownload" />
+          <ConfigEditor path="/ConfigEditor" />
+        </Router>
+      </BotProvider>
     </FirebaseProvider>
     
   )
