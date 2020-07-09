@@ -1,5 +1,5 @@
 import InternalRepr from './internalRepr.jsx';
-import textRetriever from './textRetriever.jsx';
+
 import {randomInt} from 'mathjs';
 
 const internalRepr = new InternalRepr();

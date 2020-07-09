@@ -1,4 +1,3 @@
-import { null } from "mathjs";
 
 const isBrowser = () => typeof window !== "undefined";
 
@@ -20,15 +19,15 @@ export const localStorageIO = {
   getJson: (name) => {
     if(isBrowser()){
       const payload = localStorage.getItem(name) || null;
+      let data = null;
       if(payload){
         try{
-          payload =JSON.parse(payload);
+          data =JSON.parse(payload);
         }
         catch (e){
-          console.log("localStorageIO.getJson failed",e)
           return null;
         }
-        return payload
+        return data
       }
     }
     return null;

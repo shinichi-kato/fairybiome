@@ -3,6 +3,9 @@ import {localStorageIO} from './localStorageIO';
 
 export default class BiomeBot {
   constructor(){
+    const isLoaded = this.readLocalStorage();
+    if(isLoaded) { return; }
+    
     // 書誌的事項(会話中に変化しない)
     this.config = {
       id : "",
@@ -31,10 +34,16 @@ export default class BiomeBot {
     };
   }
 
+  ifLoaded(){
+    return this.config === "";
+  }
+
   readObj(obj){
     this.setConfig(obj.config);
     this.wordDict={...obj.wordDict};
-    for(part of obj.parts){
+
+    const partNames = Object.keys(obj.parts);
+    for(let part of partNames){
       this.parts[part] = new Part(obj.parts[part]);
     }
     delete this.parts['empty'];
@@ -43,10 +52,10 @@ export default class BiomeBot {
 
   }
 
-  setConfig(obj){
-    const b = obj.config.hubBehavior;
+  setConfig(config){
+    const b = config.hubBehavior;
     this.config = {
-      ...obj.config,
+      ...config,
       hubBehavior:{
         availability: parseFloat(b.availability),
         generosity: parseFloat(b.generosity),
@@ -57,23 +66,23 @@ export default class BiomeBot {
 
 
   readLocalStorage(){
-    const state = localStorage.getItem('Biomebot.state');
+    const state = localStorageIO.getJson('Biomebot.state');
     if(state === null){return false};
-
+    
     const config = localStorageIO.getJson('Biomebot.config');
     this.config = {
       ...config,
       hubBehavior:{
-        availability: parseFloat(config.availability),
-        generosity: parseFloat(config.generosity),
-        retention: parseFloat(config.retention),       
+        availability: parseFloat(config.hubBehavior.availability),
+        generosity: parseFloat(config.hubBehavior.generosity),
+        retention: parseFloat(config.hubBehavior.retention),       
       }
     };
     
     this.wordDict = localStorageIO.getJson('Biomebot.wordDict');
-    
+    this.parts = {empty:false};
     for(let partName of state.partOrder){
-      let part = localStorageIO.getJson(`Biomebot.part[$partName]`);
+      let part = localStorageIO.getJson(`Biomebot.part[${partName}]`);
       this.parts[partName] = new Part(part);
     }
     

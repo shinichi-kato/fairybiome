@@ -6,6 +6,8 @@ import BotProvider from '../components/ChatBot/BotProvider';
 import Dashboard from '../components/Dashboard/Dashboard';
 import BotDownload from '../components/BotDownload/BotDownload';
 import UserSettings from '../components/UserSettings/UserSettings';
+import ConfigEditor from '../components/Editor/ConfigEditor';
+
 
 const isBrowser = () => typeof window !== "undefined";
 

@@ -13,7 +13,7 @@ import ApplicationBar from '../ApplicationBar/ApplicationBar';
 import ChatAvatar from './ChatAvatar.jsx';
 
 import {FirebaseContext} from '../Firebase/FirebaseProvider';
-
+import {BotContext} from '../ChatBot/BotProvider';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -54,6 +54,7 @@ const useStyles = makeStyles((theme) => ({
 export default function Dashboard({location}){
   const classes = useStyles();
   const fb = useContext(FirebaseContext);
+  const bot = useContext(BotContext);
 
   const user = fb.user;
   let location_user=[null,null];
@@ -68,8 +69,8 @@ export default function Dashboard({location}){
 
   const userName = location_user[1] || user.displayName;
   const userIcon = location_user[0] || user.photoURL || "user-blank.svg";
-  const botName = "ダウンロード";
-  const botIcon = '../../svg/fairy-blank.svg';
+  const botName = bot.displayName === "" ? "名前がありません" : bot.displayName;
+  const botIcon = bot.photoURL !== "" ? bot.photoURL :'../../svg/fairy-blank.svg';
 
 
   return (

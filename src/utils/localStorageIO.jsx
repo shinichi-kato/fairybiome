@@ -11,6 +11,7 @@ export const localStorageIO = {
 
   setItem: (name,value) => {
     if(isBrowser()){
+      console.log("setItem-",name,value)
       localStorage.setItem(name,value);
     }
   },

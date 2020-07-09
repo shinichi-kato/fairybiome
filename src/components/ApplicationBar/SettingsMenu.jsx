@@ -7,7 +7,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 export default function SettingsMenu(props){
   function ToConfig(){
     props.handleClose();
-    navigate(to='/fairybiome/ConfigEditor');
+    navigate('/fairybiome/ConfigEditor');
   }
 
   return (

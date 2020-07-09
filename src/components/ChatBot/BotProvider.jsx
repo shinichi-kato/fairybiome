@@ -1,27 +1,33 @@
-import React ,{createContext,useContext } from "react";
+import React ,{createContext,useContext,useEffect } from "react";
+
 import {FirebaseContext} from '../Firebase/FirebaseProvider';
 import BiomeBot from '../../biomebot/biomebot.jsx';
-import {exampleBot} from '../../biomebot/example';
+
 
 export const BotContext = createContext();
 
 const bot = new BiomeBot();
 
 
-
 export default function BotProvider(props){
   const fb = useContext(FirebaseContext);
 
+
   useEffect(()=>{
      
-    const isLoaded = bot.readLocalStorage();
-    if(!isLoaded){
-      bot.readObj(exampleBot);
+    if(!bot.isLoaded){
+      // チャットボットがいなければ、ランダムに初期用のチャットボットをロード
+      fetch('/chatbot/example.json')
+      .then(res=>res.json())
+      .then(data=>{
+        bot.readObj(data);
+        bot.dumpToLocalStorage();
+      })
     }
 
   },[]);
 
-    return (
+  return (
     <BotContext.Provider
       value={{
         displayName:bot.config.displayName,

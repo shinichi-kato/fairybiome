@@ -11,11 +11,11 @@ import AccountCircleIcon from '@material-ui/icons/AccountCircle';　// creator
 import FaceIcon from '@material-ui/icons/Face';　// photoURL
 import DescriptionIcon from '@material-ui/icons/Description';　// description
 import CheckCircleOutlineIcon from '@material-ui/icons/CheckCircleOutline';　// availability
-import Icon from '@material-ui/icons/';　// generosity
-import Icon from '@material-ui/icons/';　// retention
+import BlurOnIcon from '@material-ui/icons/BlurOn';　// generosity
+import AllInclusiveIcon from '@material-ui/icons/AllInclusive';　// retention
 
 import {FirebaseContext} from "../Firebase/FirebaseProvider";
-import {BiomeBotContext} from "../Chatbot/BiomeBotContext";
+import {BotContext} from "../ChatBot/BotProvider";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -34,7 +34,7 @@ const useStyles = makeStyles((theme) => ({
 
 export default function ConfigEditor({location}){
   const fb = useContext(FirebaseContext);
-  const bot = useContext(BiomeBotContext);
+  const bot = useContext(BotContext);
 
   function TextInput(props){
     return(

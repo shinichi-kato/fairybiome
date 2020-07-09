@@ -1,21 +1,16 @@
 ---
-title: Hello World
+title: FairyBiome
 date: "2015-05-01T22:12:03.284Z"
 description: "Hello World"
 ---
 
-This is my first post on my new fake blog! How exciting!
+## 妖精
 
-I'm sure I'll write a lot more interesting things in the future.
+FairyBiomeに初めてログインしたとき、ユーザはまず自分の名前とアバターを選択します。次にランダムに選ばれた妖精がユーザの近くで生まれ、バディになります。ユーザはこの妖精に名前を与え、言葉をいろいろ教えていきます。
 
-Oh, and here's a great quote from this Wikipedia on
+妖精は最初に名前を与えたユーザの名前は忘れません。このユーザは「名前をくれた人」と呼ばれ、その人につけられた名前は真の名前として記憶されます。
 
+妖精のデータはブラウザに保存されますが、これをクラウドにも保存することができます。保存された妖精は他のユーザがダウンロードしてバディにすることができます。
 
-> A salted duck egg is a Chinese preserved food product made by soaking duck
-> eggs in brine, or packing each egg in damp, salted charcoal. In Asian
-> supermarkets, these eggs are sometimes sold covered in a thick layer of salted
-> charcoal paste. The eggs may also be sold with the salted paste removed,
-> wrapped in plastic, and vacuum packed. From the salt curing process, the
-> salted duck eggs have a briny aroma, a gelatin-like egg white and a
-> firm-textured, round yolk that is bright orange-red in color.
+バディになっている妖精とお別れし、別の妖精を選ぶことができます。お別れした妖精はすぐに消滅することはなく、クラウド上に保存されて他の人のバディになることができます。
 
