@@ -12,9 +12,9 @@ export const FirebaseContext = createContext();
 
 const initialState={
   user: {
-    displayName: null,
+    displayName: "",
     email: "",
-    photoURL: null,
+    photoURL: "",
     uid: null,
     emailVerified: null,
     providerData: null,

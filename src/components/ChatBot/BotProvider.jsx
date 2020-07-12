@@ -1,4 +1,4 @@
-import React ,{createContext,useContext,useEffect } from "react";
+import React ,{createContext,useContext,useState } from "react";
 
 import {FirebaseContext} from '../Firebase/FirebaseProvider';
 import BiomeBot from '../../biomebot/biomebot.jsx';
@@ -12,21 +12,15 @@ const bot = new BiomeBot();
 export default function BotProvider(props){
   const fb = useContext(FirebaseContext);
 
+  function loadGuestFromObj(obj){
+    bot.readObj(obj)
+  }
 
-  useEffect(()=>{
-     
-    if(!bot.isLoaded){
-      // チャットボットがいなければ、ランダムに初期用のチャットボットをロード
-      fetch('/chatbot/example.json')
-      .then(res=>res.json())
-      .then(data=>{
-        bot.readObj(data);
-        bot.dumpToLocalStorage();
-      })
-    }
-
-  },[]);
-
+  function loadBuddyFromObj(obj){
+    bot.readObj(obj);
+    bot.dumpToLocalStorage();
+  }
+ 
   return (
     <BotContext.Provider
       value={{
@@ -35,6 +29,9 @@ export default function BotProvider(props){
         config:bot.config,
         setConfig:bot.setConfig,
         upkeep:bot.upkeepToLocalStorage,
+        isVacantInLocalStorage:bot.isVacantInLocalStorage,
+        loadGuestFromObj:loadGuestFromObj,
+        loadBuddyFromObj:loadBuddyFromObj,
       }}
     >
       {props.children}

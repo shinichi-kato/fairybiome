@@ -4,8 +4,6 @@ import { Router } from "@reach/router";
 import FirebaseProvider from '../components/Firebase/FirebaseProvider';
 import BotProvider from '../components/ChatBot/BotProvider';
 import Dashboard from '../components/Dashboard/Dashboard';
-import BotDownload from '../components/BotDownload/BotDownload';
-import UserSettings from '../components/UserSettings/UserSettings';
 import ConfigEditor from '../components/Editor/ConfigEditor';
 
 
@@ -42,8 +40,6 @@ export default function index(props){
       <BotProvider>
         <Router basepath="/fairybiome">
           <Dashboard path="/Dashboard" default/> 
-          <UserSettings path="/UserSettings" />
-          <BotDownload path="/BotDownload" />
           <ConfigEditor path="/ConfigEditor" />
         </Router>
       </BotProvider>
@@ -51,3 +47,6 @@ export default function index(props){
     
   )
 }
+
+/* {location}経由でclient-only-routeにパラメータを渡す場合、
+state:{data:{x:12,y:12}}のように一つのデータにパッキングしないとエラーになる場合がある */

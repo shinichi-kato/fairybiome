@@ -63,6 +63,14 @@ module.exports = {
     {
       resolve: "gatsby-source-filesystem",
       options: {
+        path: `${__dirname}/static/youngfairy`,
+        name: "youngfairy",
+        ignore: [`**/\.*`],
+      },
+    },
+    {
+      resolve: "gatsby-source-filesystem",
+      options: {
         path: `${__dirname}/static/svg`,
         name: "staticimages",
         ignore: [`**/\.*`],

@@ -2,7 +2,7 @@
     "config": {
         "trueName": "", 
         "firstUser": "", 
-        "currentUser": "",
+        "buddyUser": "",
         "displayName": "", 
         "updatedAt": "Sun Jul 12 2020 13:50:23 GMT+0900",
         "photoURL": "bot/blueCrystal.svg",
@@ -15,7 +15,10 @@
     },
     "wordDict":{
         "{animal}":["犬","猫","ユニコーン"],
-        "{me}":["わたし","私","{botName}"]       
+        "{me}":["わたし","私","{botName}"],
+        "{!HELLO_NAME_ME}":["はじめまして！私に名前をつけてください！"],
+        "{!DISBAND}":["またね！"],
+        "{!ELIMINATE}":["・・・　・・・"]      
     },
     "parts":{
         "greeting": {
@@ -45,7 +48,9 @@
     },
     "state":{
         "partOrder":["greeting","parrot"],
-        "activeInHub": false
+        "activeInHub": false,
+        "hp":10,
+        "queue":[]
+       
       }
-
 }

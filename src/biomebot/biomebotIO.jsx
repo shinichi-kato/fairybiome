@@ -8,10 +8,11 @@ export default class BiomeBot {
     
     // 書誌的事項(会話中に変化しない)
     this.config = {
-      id : "",
+      trueName : "",
+      firstUser: "",
+      buddyUser: "",
       displayName: "",
       updatedAt : null,
-      creator: null,
       photoURL : null,
       description : null,
       hubBehavior: {
@@ -34,11 +35,29 @@ export default class BiomeBot {
     };
   }
 
-  ifLoaded(){
+  isLoaded = () => {
     return this.config === "";
-  }
+  };
 
-  readObj(obj){
+  isVacantInLocalStorage = () => {
+    return localStorageIO.getItem('Biomebot.state',false) === false;
+  };
+
+
+
+  setConfig = (config) => {
+    const b = config.hubBehavior;
+    this.config = {
+      ...config,
+      hubBehavior:{
+        availability: parseFloat(b.availability),
+        generosity: parseFloat(b.generosity),
+        retention: parseFloat(b.retention),
+      }
+    };
+  };
+
+  readObj = (obj) => {
     this.setConfig(obj.config);
     this.wordDict={...obj.wordDict};
 
@@ -50,22 +69,9 @@ export default class BiomeBot {
 
     this.state={...obj.state};
 
-  }
+  };
 
-  setConfig(config){
-    const b = config.hubBehavior;
-    this.config = {
-      ...config,
-      hubBehavior:{
-        availability: parseFloat(b.availability),
-        generosity: parseFloat(b.generosity),
-        retention: parseFloat(b.retention),
-      }
-    };
-  }
-
-
-  readLocalStorage(){
+  readLocalStorage = () => {
     const state = localStorageIO.getJson('Biomebot.state');
     if(state === null){return false};
     
@@ -89,14 +95,14 @@ export default class BiomeBot {
     this.state = {...state};
     return true;
 
-  }
+  };
   
-  upkeepToLocalStorage(){
+  upkeepToLocalStorage = () => {
     // this.stateのみ更新
     localStorageIO.setItem('Biomebot.state',JSON.stringify(this.state));
-  }  
+  };
   
-  dumpToLocalStorage(){
+  dumpToLocalStorage = () => {
     // 全データの保存
     localStorageIO.setItem('Biomebot.config',JSON.stringify(this.config));
     localStorageIO.setItem('Biomebot.wordDict',JSON.stringify(this.wordDict));
@@ -107,7 +113,7 @@ export default class BiomeBot {
     }
 
     this.upkeepToLocalStorage();
-  }
+  };
 
   
 }
