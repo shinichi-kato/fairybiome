@@ -1,4 +1,4 @@
-import React ,{createContext,useContext,useState } from "react";
+import React ,{createContext,useContext,useEffect } from "react";
 
 import {FirebaseContext} from '../Firebase/FirebaseProvider';
 import BiomeBot from '../../biomebot/biomebot.jsx';
@@ -11,6 +11,11 @@ const bot = new BiomeBot();
 
 export default function BotProvider(props){
   const fb = useContext(FirebaseContext);
+
+  useEffect(()=>{
+    // ローカルに保存されているデータがあればロード
+    bot.readLocalStorage();
+  },[]);
 
   function loadGuestFromObj(obj){
     bot.readObj(obj)

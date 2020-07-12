@@ -33,6 +33,9 @@ export default class BiomeBot {
       partOrder:[],
       activeInHub: false,
     };
+
+    // home/habitat/void
+    this.whereabouts="void";
   }
 
   isLoaded = () => {
@@ -68,6 +71,7 @@ export default class BiomeBot {
     delete this.parts['empty'];
 
     this.state={...obj.state};
+    this.whereabouts=`${obj.whereabouts}`;
 
   };
 
@@ -93,13 +97,16 @@ export default class BiomeBot {
     }
     
     this.state = {...state};
+    this.whereabouts = localStorageIO.getItem('Biomebot.whereabouts');
+
     return true;
 
   };
   
   upkeepToLocalStorage = () => {
-    // this.stateのみ更新
+    // this.stateとthis.whereaboutsのみ更新
     localStorageIO.setItem('Biomebot.state',JSON.stringify(this.state));
+    localStorageIO.setItem('Biomebot.whereabouts','home');
   };
   
   dumpToLocalStorage = () => {
@@ -113,6 +120,7 @@ export default class BiomeBot {
     }
 
     this.upkeepToLocalStorage();
+    localStorageIO.setItem('Biomebot.whereabouts',this.whereabouts);
   };
 
   

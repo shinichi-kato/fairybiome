@@ -5,7 +5,9 @@ import FirebaseProvider from '../components/Firebase/FirebaseProvider';
 import BotProvider from '../components/ChatBot/BotProvider';
 import Dashboard from '../components/Dashboard/Dashboard';
 import ConfigEditor from '../components/Editor/ConfigEditor';
-
+import Home from '../components/ChatRoom/Home';
+import Hub from '../components/ChatRoom/Hub';
+import Habitat from '../components/ChatRoom/Habitat';
 
 const isBrowser = () => typeof window !== "undefined";
 
@@ -41,6 +43,9 @@ export default function index(props){
         <Router basepath="/fairybiome">
           <Dashboard path="/Dashboard" default/> 
           <ConfigEditor path="/ConfigEditor" />
+          <Home path="/Home" />
+          <Hub path="/Hub" />
+          <Habitat path="/Habitat" />
         </Router>
       </BotProvider>
     </FirebaseProvider>

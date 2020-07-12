@@ -1,19 +1,19 @@
 import React ,{useState} from "react";
 import { makeStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
-import IconButton from '@material-ui/core/IconButton';
+import Avatar from '@material-ui/core/Avatar';
 import Box from '@material-ui/core/Box';
 
 
 const useStyles = makeStyles((theme) => ({
   iconContainer: {
-    width: 140,
-    height: 140,
+    width: 120,
+    height: 120,
     margin: "auto",
   },
   icon: {
-    width: 140,
-    height: 140,
+    width: 120,
+    height: 120,
     margin: "auto",
   },
   nameContainer: {
@@ -36,13 +36,12 @@ export default function ChatAvatar(props){
       display="flex"
       flexDirection="column"
       alignItems="center"
-      >
+    >
       <Box className={classes.iconContainer}>
-        <IconButton 
+        <Avatar 
           className={classes.icon}
-          onClick={props.handleToChangeAvatar}>
-          <img src={`../../svg/${props.icon}`} className={classes.icon} />
-        </IconButton>
+          src={`../../svg/${props.icon}`}
+        />
       </Box>
       <Box className={classes.nameContainer}>
         <Typography className={classes.name}>
