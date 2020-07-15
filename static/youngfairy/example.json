@@ -18,11 +18,13 @@
         "{me}":["わたし","私","{botName}"],
         "{!HELLO_NAME_ME}":["はじめまして！私に名前をつけてください！"],
         "{!DISBAND}":["またね！"],
-        "{!ELIMINATE}":["・・・　・・・"]      
+        "{!ELIMINATE}":["・・・　・・・"],
+        "{!I_AM_COMMING_BACK}":["ただいまー"],
+        "{NOT_FOUND}":["？","そうなんだ"]
     },
     "parts":{
         "greeting": {
-            "type": "dic",
+            "type": "recaller",
             "behavior": {
               "availability": 0.3,
               "generosity": 0.8,
@@ -34,7 +36,7 @@
             ]
           },
           "parrot": {
-            "type": "parrot",
+            "type": "learner",
             "behavior": {
               "availability": 0.3,
               "generosity": 0.8,
