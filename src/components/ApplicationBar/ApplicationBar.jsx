@@ -12,6 +12,7 @@ import NavigateBeforeIcon from '@material-ui/icons/NavigateBefore';
 import NavigateNextIcon from '@material-ui/icons/NavigateNext';
 import SettingsOutlinedIcon from '@material-ui/icons/SettingsOutlined';
 import MenuBookIcon from '@material-ui/icons/MenuBook';
+import TextsmsIcon from '@material-ui/icons/Textsms';
 
 import SettingsMenu from './SettingsMenu';
 
@@ -24,7 +25,8 @@ const useStyles = makeStyles((theme) => ({
   },
   color:{
     
-  }
+  },
+  
 }));
 
 
@@ -54,6 +56,7 @@ export default function ApplicationBar(props){
           {props.icon}
           {props.title}
         </Typography>
+        {props.busy && <TextsmsIcon />}
         <IconButton >
           <MenuBookIcon />
         </IconButton>

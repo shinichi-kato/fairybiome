@@ -21,8 +21,8 @@ module.exports = {
   plugins: [
      "gatsby-plugin-top-layout",
     "gatsby-plugin-react-helmet",
+    // 'gatsby-plugin-workerize-loader',
     "gatsby-plugin-remove-serviceworker",
-    'gatsby-plugin-workerize-loader',
     {
       resolve: "gatsby-plugin-material-ui",
     },

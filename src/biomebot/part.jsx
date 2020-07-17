@@ -1,7 +1,7 @@
 import {randomInt} from 'mathjs';
 import PartIO from './partIO';
 import {textToInternalRepr,dictToInternalRepr} from './internalReprWorker.js';
-import {matrixize,retrieve} from './textRetrieverWorker.js';
+import {matrixize,retrieve} from './textRetrieverWorker';
 import {botTagDict,botTagDictKeys} from './tagdict';
 
 

@@ -17,10 +17,11 @@
   ["{_Mother_}","<{_Mother_}:が>","怒ら","れ","た"]
 */
 
-import {TinySegmenter} from './tinysegmenter.js';
+import {TinySegmenter} from '../tinysegmenter.js';
  // note: [<>{}+-]がアルファベットに分類されるよう変更の必要あり
 
 
+const segmenter = new TinySegmenter();
 
 
 export function TextToInternalRepr(text){
@@ -39,7 +40,6 @@ export function DictToInternalRepr(dict){
 
 
 
-const segmenter = TinySegmenter();
 
 
 

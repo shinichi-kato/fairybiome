@@ -1,7 +1,7 @@
 import {zeros,divide,apply,sum,dot,dotMultiply,
   diag,multiply,isPositive,map,norm,randomInt,matrix} from 'mathjs';
 
-export async function matrixize(dict){
+export async function Matrixize(dict){
   // indexの生成とdictのsqeeze
 
   let index=[];
@@ -82,7 +82,7 @@ export async function matrixize(dict){
 }
 
 
-export function retrieve(text,inDict){
+export function Retrieve(text,inDict){
   // 内部表現のリストとして与えられたtextを使ってテキスト検索
   // tfidf,df,vocabを利用してtextに一番似ているdictの行番号を返す
   // wv

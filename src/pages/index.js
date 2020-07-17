@@ -3,7 +3,7 @@ import {navigate} from "gatsby";
 
 export default function index(props){
   useEffect(()=>{
-    navigate('/fairybiome')
+    navigate('/fairybiome/')
   },[]);
   return (
     <div>
