@@ -16,7 +16,7 @@ export const  localStorageIO = {
     }
   },
 
-  getJson: (name) => {
+  getJson: (name,defaultValue) => {
     if(isBrowser()){
       const payload = localStorage.getItem(name) || null;
       let data = null;
@@ -30,7 +30,7 @@ export const  localStorageIO = {
         return data
       }
     }
-    return null;
+    return defaultValue;
   },
 
   setJson: (name,value) =>{

@@ -17,20 +17,20 @@
   ["{_Mother_}","<{_Mother_}:が>","怒ら","れ","た"]
 */
 
-import {TinySegmenter} from '../tinysegmenter.js';
+import {TinySegmenter} from './tinysegmenter.js';
  // note: [<>{}+-]がアルファベットに分類されるよう変更の必要あり
 
 
 const segmenter = new TinySegmenter();
 
 
-export function TextToInternalRepr(text){
+export function textToInternalRepr(text){
   // テキストを内部表現に変換
   let nodes = segmenter.segment(text);
   return parse(nodes);
 }
 
-export function DictToInternalRepr(dict){
+export function dictToInternalRepr(dict){
   // 文字列のリストを内部表現のリストに変換
   return dict.map(text=>{
     const nodes = segmenter.segment(text);

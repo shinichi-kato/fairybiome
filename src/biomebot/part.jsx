@@ -1,7 +1,8 @@
 import {randomInt} from 'mathjs';
 import PartIO from './partIO';
-import {textToInternalRepr,dictToInternalRepr} from './internalReprWorker.js';
-import {matrixize,retrieve} from './textRetrieverWorker';
+import {textToInternalRepr,dictToInternalRepr} from './internalRepr.js';
+import matrixizeWorker from  './matrixizeWorker';
+import {retrieve} from './retrieve';
 import {botTagDict,botTagDictKeys} from './tagdict';
 
 
@@ -21,7 +22,7 @@ export default class Part extends PartIO{
     inDict = inDict.map(l=> dictToInternalRepr(l));
 
     // 正規化tfidf行列,vocab,indexの生成
-    this.inDict = await matrixize(inDict);
+    this.inDict = await matrixizeWorker.matrixize(inDict);
 
 
 

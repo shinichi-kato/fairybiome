@@ -37,6 +37,7 @@ export default function BotProvider(props){
         isVacantInLocalStorage:bot.isVacantInLocalStorage,
         loadGuestFromObj:loadGuestFromObj,
         loadBuddyFromObj:loadBuddyFromObj,
+        deployLocal:bot.deployLocal,
       }}
     >
       {props.children}

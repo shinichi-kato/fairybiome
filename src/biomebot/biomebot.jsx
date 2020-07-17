@@ -12,99 +12,102 @@ export default class BiomeBot extends BiomeBotIO {
 
 
   deployLocal = () => {
-    /* homeまはたhub用のモードの起動
-      localStorageにある妖精データを読み込む。
-      データがない場合、またはwhereaboutsがvoidであればbotは一切反応しない。
-      whereaboutsがhabitatであれば「呼んだら来る」モードで起動。
-      homeであれば通常の起動。
-    */ 
-    this.readLocalStorage();
-    switch(this.whereabouts){
-      case 'home':{
-        // homeにbuddyがいる・・・通常起動
-        // 各パートのコンパイル
-        this.tagKeys= Object.keys(this.wordDict);
+    return new Promise(resolve => {
 
-        for (let partName of this.parts) {
-          this.parts[partName].compile()
-        }
-        this.wordDict['{PREV_USER_INPUT}'] ="・・・";
-        this.wordDict['{RESPONSE}'] = "・・・";
+      /* homeまはたhub用のモードの起動
+        localStorageにある妖精データを読み込む。
+        データがない場合、またはwhereaboutsがvoidであればbotは一切反応しない。
+        whereaboutsがhabitatであれば「呼んだら来る」モードで起動。
+        homeであれば通常の起動。
+      */ 
+      this.readLocalStorage();
+      switch(this.whereabouts){
+        case 'home':{
+          // homeにbuddyがいる・・・通常起動
+          // 各パートのコンパイル
+          this.tagKeys= Object.keys(this.wordDict);
 
-
-        this.reply = (userName,userInput) => {
-          let reply ;
-
-          for(let i in this.state.partOrder){
-            let partName = this.state.partOrder[i];
-
-            //返答の生成を試みる
-            reply = this.part[partName].replier(userInput,userName,this.state)
-            
-            if(reply.text === "") { continue }
+          for (let partName of this.parts) {
+            console.log("dict",this.aprts[partName].dict)
+            this.parts[partName].compile()
+          }
+          this.wordDict['{PREV_USER_INPUT}'] ="・・・";
+          this.wordDict['{RESPONSE}'] = "・・・";
 
 
-            // queueに追加
-            this.state.queue = [this.state.queue,...reply.queue];
+          this.reply = (userName,userInput) => {
+            let reply ;
+
+            for(let i in this.state.partOrder){
+              let partName = this.state.partOrder[i];
+
+              //返答の生成を試みる
+              reply = this.part[partName].replier(userInput,userName,this.state)
+              
+              if(reply.text === "") { continue }
 
 
-            if(reply.ordering === "top"){
-              // このパートを先頭に
-              this.state.partOrder.slice(i,1);
-              this.state.partOrder.unshift(partName);
-              // partOrderの順番を破壊したのでループを抜ける
+              // queueに追加
+              this.state.queue = [this.state.queue,...reply.queue];
+
+
+              if(reply.ordering === "top"){
+                // このパートを先頭に
+                this.state.partOrder.slice(i,1);
+                this.state.partOrder.unshift(partName);
+                // partOrderの順番を破壊したのでループを抜ける
+                break;
+              }
+
+              if(reply.ordering === 'bottom'){
+                // このパートを末尾に
+                this.state.partOrder.slice(i,1);
+                this.state.partOrder.push(partName);
+                // partOrderの順番を破壊したのでループを抜ける
+                break;
+              }
+
               break;
             }
 
-            if(reply.ordering === 'bottom'){
-              // このパートを末尾に
-              this.state.partOrder.slice(i,1);
-              this.state.partOrder.push(partName);
-              // partOrderの順番を破壊したのでループを抜ける
-              break;
-            }
 
-            break;
-          }
+            reply.text = untagifyNames(reply.text,userName);
+            reply.text = untagify(reply.text);
 
-
-          reply.text = untagifyNames(reply.text,userName);
-          reply.text = untagify(reply.text);
-
-          this.upkeepToLocalStorage();
-          this.wordDict['{RESPONSE}'] = reply.text;
-          this.wordDict['{PREV_USER_INPUT}'] = userInput;
-
-          return {
-            botName:this.config.botName,
-            text:reply.text
-          }
-        }
-      }
-      case 'habitat':{
-        // buddyがhabitatにいる・・・「呼んだら来る」モード
-        this.reply = (name,text) => {
-          if(this.config.hubBehavior.availability > random()){
-            // ここで名前の呼びかけとかだけキャッチしたい
-            //
-            // 帰ってくる
-            this.state.queue=['{!I_AM_COMMING_BACK}'];
             this.upkeepToLocalStorage();
-            // クラウド上の妖精データのwhereaboutsも書き換える
-            this.deployHome();
+            this.wordDict['{RESPONSE}'] = reply.text;
+            this.wordDict['{PREV_USER_INPUT}'] = userInput;
 
+            return {
+              botName:this.config.botName,
+              text:reply.text
+            }
           }
         }
+        case 'habitat':{
+          // buddyがhabitatにいる・・・「呼んだら来る」モード
+          this.reply = (name,text) => {
+            if(this.config.hubBehavior.availability > random()){
+              // ここで名前の呼びかけとかだけキャッチしたい
+              //
+              // 帰ってくる
+              this.state.queue=['{!I_AM_COMMING_BACK}'];
+              this.upkeepToLocalStorage();
+              // クラウド上の妖精データのwhereaboutsも書き換える
+              this.deployHome();
 
-      }
-      default :{
-        // buddyがいない・・・無反応
-        this.reply = (name,text)=>({displayName:"",text:""})
+            }
+          }
 
-      }
-    } 
-    
-  };
+        }
+        default :{
+          // buddyがいない・・・無反応
+          this.reply = (name,text)=>({displayName:"",text:""})
+
+        }
+      } 
+    return resolve();
+  })};
 
   deployHabitat = () =>{
     /* habitatモードの起動

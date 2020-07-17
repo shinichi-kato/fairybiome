@@ -1,4 +1,4 @@
-import React ,{useContext,useEffect } from "react";
+import React ,{useContext,useEffect,useState,useCallback } from "react";
 import { makeStyles } from '@material-ui/core/styles';
 
 import {localStorageIO} from '../../utils/localStorageIO';
@@ -37,7 +37,7 @@ export default function Home(props){
   const classes = useStyles();
   const fb = useContext(FirebaseContext);
   const bot = useContext(BotContext);
-  const [log,setLog] = useState(localStorageIO.getJson('homeLog'));
+  const [log,setLog] = useState(localStorageIO.getJson('homeLog',[]));
   const [botBusy,setBotBusy] = useState(false);
 
   const userDisplayName=fb.user.displayName;
@@ -138,7 +138,7 @@ export default function Home(props){
       </Box>
       <Box order={0} justifyContent="center">
         <Console
-          position={0}
+          position={"0"}
           handleWriteMessage={handleWriteMessage}/>
       </Box>
     </Box>
