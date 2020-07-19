@@ -6,6 +6,7 @@ export function retrieve(text,inDict){
   // 内部表現のリストとして与えられたtextを使ってテキスト検索
   // tfidf,df,vocabを利用してtextに一番似ているdictの行番号を返す
   // wv
+  console.log("indict",inDict)
   const vocabLength = inDict.vocab.length;
   if(vocabLength === 0){
     return {index:0,score:0}

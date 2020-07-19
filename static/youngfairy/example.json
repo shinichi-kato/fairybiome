@@ -54,5 +54,5 @@
         "hp":10,
         "queue":[]
     },
-    "whereabouts":""
+    "currentSite":""
 }

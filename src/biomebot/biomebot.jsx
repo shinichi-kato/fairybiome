@@ -1,109 +1,66 @@
-import {random} from 'mathjs';
+import {random, re} from 'mathjs';
 import BiomeBotIO from './biomebotIO.jsx';
-import Part from './part.jsx';
 
 
 export default class BiomeBot extends BiomeBotIO {
   constructor(){
     super();
-    this.reply = (name,text)=>({displayName:"",text:""})
+
+    
+  
   }
 
+  
+  reply = (x,y) => {
+    switch(this.currentSite){
+      case 'home': 
+        return this.homeReply(x,y);
+      case 'habitat':
+        return this.habitatReply(x,y);
+      case 'hub':
+        return this.hubReply(x,y);
+      default:
+        return this.defaultReply(x,y);
+    }
+  }
 
-
-  deployLocal = () => {
+  deployLocal = (userName) => {
     return new Promise(resolve => {
 
       /* homeまはたhub用のモードの起動
         localStorageにある妖精データを読み込む。
-        データがない場合、またはwhereaboutsがvoidであればbotは一切反応しない。
-        whereaboutsがhabitatであれば「呼んだら来る」モードで起動。
+        データがない場合、またはcurrentSiteがvoidであればbotは一切反応しない。
+        currentSiteがhabitatであれば「呼んだら来る」モードで起動。
         homeであれば通常の起動。
       */ 
       this.readLocalStorage();
-      switch(this.whereabouts){
+
+      switch(this.currentSite){
         case 'home':{
           // homeにbuddyがいる・・・通常起動
           // 各パートのコンパイル
           this.tagKeys= Object.keys(this.wordDict);
 
-          for (let partName of this.parts) {
-            console.log("dict",this.aprts[partName].dict)
-            this.parts[partName].compile()
+          for (let partName of this.state.partOrder) {
+            let currentPart = this.parts[partName];
+            currentPart.compile();
           }
+
+
           this.wordDict['{PREV_USER_INPUT}'] ="・・・";
           this.wordDict['{RESPONSE}'] = "・・・";
 
-
-          this.reply = (userName,userInput) => {
-            let reply ;
-
-            for(let i in this.state.partOrder){
-              let partName = this.state.partOrder[i];
-
-              //返答の生成を試みる
-              reply = this.part[partName].replier(userInput,userName,this.state)
-              
-              if(reply.text === "") { continue }
-
-
-              // queueに追加
-              this.state.queue = [this.state.queue,...reply.queue];
-
-
-              if(reply.ordering === "top"){
-                // このパートを先頭に
-                this.state.partOrder.slice(i,1);
-                this.state.partOrder.unshift(partName);
-                // partOrderの順番を破壊したのでループを抜ける
-                break;
-              }
-
-              if(reply.ordering === 'bottom'){
-                // このパートを末尾に
-                this.state.partOrder.slice(i,1);
-                this.state.partOrder.push(partName);
-                // partOrderの順番を破壊したのでループを抜ける
-                break;
-              }
-
-              break;
-            }
-
-
-            reply.text = untagifyNames(reply.text,userName);
-            reply.text = untagify(reply.text);
-
-            this.upkeepToLocalStorage();
-            this.wordDict['{RESPONSE}'] = reply.text;
-            this.wordDict['{PREV_USER_INPUT}'] = userInput;
-
-            return {
-              botName:this.config.botName,
-              text:reply.text
-            }
-          }
+          console.log("home used")
+          
         }
         case 'habitat':{
           // buddyがhabitatにいる・・・「呼んだら来る」モード
-          this.reply = (name,text) => {
-            if(this.config.hubBehavior.availability > random()){
-              // ここで名前の呼びかけとかだけキャッチしたい
-              //
-              // 帰ってくる
-              this.state.queue=['{!I_AM_COMMING_BACK}'];
-              this.upkeepToLocalStorage();
-              // クラウド上の妖精データのwhereaboutsも書き換える
-              this.deployHome();
-
-            }
-          }
+          
 
         }
         default :{
           // buddyがいない・・・無反応
-          this.reply = (name,text)=>({displayName:"",text:""})
-
+          
         }
       } 
     return resolve();
@@ -113,13 +70,99 @@ export default class BiomeBot extends BiomeBotIO {
     /* habitatモードの起動
       habitatのデータはcloud上からメモリにダウンロードし、localStorageには
       保存しない。
-      妖精の選択時、whereaboutsがhabitatな妖精しか選べない。
+      妖精の選択時、currentSiteがhabitatな妖精しか選べない。
      */
   };
 
 
+  homeReply = (userName,userInput) => {
+    return new Promise(resolve => {
 
 
+      let reply ;
+
+      for(let partName of this.state.partOrder){
+        console.log(partName)
+        //返答の生成を試みる
+        reply = this.parts[partName].replier(userName,userInput,this.state)
+        console.log(reply)
+        if(reply.text === "") { continue }
+
+
+        // queueに追加
+        this.state.queue = [this.state.queue,...reply.queue];
+
+
+        if(reply.ordering === "top"){
+          // このパートを先頭に
+          this.state.partOrder.slice(i,1);
+          this.state.partOrder.unshift(partName);
+          // partOrderの順番を破壊したのでループを抜ける
+          break;
+        }
+
+        if(reply.ordering === 'bottom'){
+          // このパートを末尾に
+          this.state.partOrder.slice(i,1);
+          this.state.partOrder.push(partName);
+          // partOrderの順番を破壊したのでループを抜ける
+          break;
+        }
+
+        break;
+      }
+
+      if(reply.text === ""){
+        reply.text ="{NotFound}"
+      }
+
+      reply.text = this.untagifyNames(reply.text,userName);
+      reply.text = this.untagify(reply.text,userName);
+
+      this.upkeepToLocalStorage();
+      this.wordDict['{RESPONSE}'] = reply.text;
+      this.wordDict['{PREV_USER_INPUT}'] = userInput;
+
+      return resolve({
+        displayName:this.config.botName,
+        photoURL:this.config.photoURL,
+        text:reply.text,
+      })
+    })
+  }
+
+  
+  
+  
+  habitatReply = (name,text) => {
+    return new Promise((resolve,reject)=>{
+      if(this.config.hubBehavior.availability > random()){
+        // ここで名前の呼びかけとかだけキャッチしたい
+        //
+        // 帰ってくる
+        this.state.queue=['{!I_AM_COMMING_BACK}'];
+        this.upkeepToLocalStorage();
+        // クラウド上の妖精データのcurrentSiteも書き換える
+        this.deployHome();
+    }
+    resolve();
+  })}
+
+
+
+
+
+  hubReply = (name,text)=>{
+    return new Promise(resolve => {
+      resolve({displayName:"",text:""});})
+  }
+
+
+
+
+
+
+  
   tagifyNames = (text,userName) => {
     /* ユーザ発言に含まれるユーザ名、ボット名を{userName},{botName}に置き換える */
     text = text.replace(new RegExp(`${this.displayName}ちゃん`,"g"),"{botName}");
@@ -130,10 +173,10 @@ export default class BiomeBot extends BiomeBotIO {
     return text;
   }
 
-  untagifyNames = (text,usrName,botName) => {
+  untagifyNames = (text,userName) => {
     /* ユーザ発言やボットの発言に含まれる{userName},{botName}を戻す */
     text = text.replace(/{botName}/g,this.displayName);
-    text = text.replace(/{userName}/g,message.displayName);
+    text = text.replace(/{userName}/g,userName);
     return text;
 
   }
@@ -164,3 +207,23 @@ export default class BiomeBot extends BiomeBotIO {
 
  
 }  
+
+// export const biomebotPostCompile = (currentBot) => {
+//   switch(currentBot.currentSite){
+//     case 'home' :{
+//       currentBot.reply = (x,y) => currentBot.homeReply(x,y);
+//       break;
+//     }
+//     case 'habitat' :{
+//       currentBot.reply = (x,y) => currentBot.habitatReply(x,y);
+//       break;
+//     }
+//     case 'hub' :{
+//       currentBot.reply = (x,y) => currentBot.hubReply(x,y);
+//       break;
+//     }
+//     default : {
+//       currentBot.reply = (x,y) => currentbot.homeReply(x,y);
+//     }
+//   }
+// }

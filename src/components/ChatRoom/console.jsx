@@ -54,11 +54,10 @@ export default function Console(props) {
     <Paper className={classes.root}>
       <InputBase
         className={classes.input}
-        placeholder={props.position}
         value={text}
         onChange={handleChangeText}
         onKeyPress={handleKeyPress}
-        inputProps={{ 'aria-label': 'search google maps' }}
+        inputProps={{ 'aria-label': 'console' }}
       />
       <Divider className={classes.divider} />
       <IconButton

@@ -35,7 +35,7 @@ export default class BiomeBot {
     };
 
     // home/habitat/void
-    this.whereabouts="void";
+    this.currentSite="home";
   }
 
   isLoaded = () => {
@@ -71,7 +71,7 @@ export default class BiomeBot {
     delete this.parts['empty'];
 
     this.state={...obj.state};
-    this.whereabouts=`${obj.whereabouts}`;
+    this.currentSite=`${obj.currentSite}`;
 
   };
 
@@ -97,16 +97,16 @@ export default class BiomeBot {
     }
     
     this.state = {...state};
-    this.whereabouts = localStorageIO.getItem('Biomebot.whereabouts');
+    this.currentSite = localStorageIO.getItem('Biomebot.currentSite');
 
     return true;
 
   };
   
   upkeepToLocalStorage = () => {
-    // this.stateとthis.whereaboutsのみ更新
+    // this.stateとthis.currentSiteのみ更新
     localStorageIO.setItem('Biomebot.state',JSON.stringify(this.state));
-    localStorageIO.setItem('Biomebot.whereabouts','home');
+    localStorageIO.setItem('Biomebot.currentSite','home');
   };
   
   dumpToLocalStorage = () => {
@@ -120,7 +120,7 @@ export default class BiomeBot {
     }
 
     this.upkeepToLocalStorage();
-    localStorageIO.setItem('Biomebot.whereabouts',this.whereabouts);
+    localStorageIO.setItem('Biomebot.currentSite',this.currentSite);
   };
 
   

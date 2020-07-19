@@ -1,7 +1,7 @@
 import React ,{createContext,useContext,useEffect } from "react";
 
 import {FirebaseContext} from '../Firebase/FirebaseProvider';
-import BiomeBot from '../../biomebot/biomebot.jsx';
+import BiomeBot,{biomebotPostCompile} from '../../biomebot/biomebot.jsx';
 
 
 export const BotContext = createContext();
@@ -25,6 +25,13 @@ export default function BotProvider(props){
     bot.readObj(obj);
     bot.dumpToLocalStorage();
   }
+
+  function handleDeployLocal(){
+    return new Promise(resolve => {
+      bot.deployLocal();
+      resolve();
+    })
+  }
  
   return (
     <BotContext.Provider
@@ -37,7 +44,8 @@ export default function BotProvider(props){
         isVacantInLocalStorage:bot.isVacantInLocalStorage,
         loadGuestFromObj:loadGuestFromObj,
         loadBuddyFromObj:loadBuddyFromObj,
-        deployLocal:bot.deployLocal,
+        deployLocal:handleDeployLocal,
+        reply:bot.reply,
       }}
     >
       {props.children}

@@ -4,7 +4,7 @@ import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
 import Box from '@material-ui/core/Box';
 import HomeIcon from "../../icons/Home";
-import HubIcon from "../../icons/HubFairies";
+import HabitatIcon from "../../icons/Habitat";
 import HubFairiesIcon from "../../icons/HubFairies";
 
 const useStyles = makeStyles((theme) => ({
@@ -51,7 +51,23 @@ export default function Entry(props){
         </Typography>
                    
       </Box>
+
       <Box className={classes.captions}>
+        <Box 
+          display="flex" 
+          flexDirection="row" 
+          alignItems="center"
+        >
+          <Box className={classes.iconContainer}>
+            <HabitatIcon style={{fontSize:60}}/>
+          </Box>
+          <Box className={classes.captionContainer}>
+            <Typography className={classes.caption}>
+              妖精を見つけに行こう
+            </Typography>
+          </Box>
+        </Box>
+        
         <Box 
           display="flex" 
           flexDirection="row" 

@@ -39,15 +39,16 @@ export default function Home(props){
   const bot = useContext(BotContext);
   const [log,setLog] = useState(localStorageIO.getJson('homeLog',[]));
   const [botBusy,setBotBusy] = useState(false);
-
-  const userDisplayName=fb.user.displayName;
+  
+  const user = fb.user;
+  const userDisplayName=user.displayName;
   const botDisplayName=`${bot.displayName}@${userDisplayName}`;
-
+  
   useEffect(()=>{
     setBotBusy(true);
     bot.deployLocal()
     .then(()=>{
-      setBotState(false);
+      setBotBusy(false);
     });
 
   },[]);
@@ -72,35 +73,35 @@ export default function Home(props){
       photoURL:user.photoURL,
       text:text,
       speakerId:user.uid,
-      timestamp:toTimestampString(firebase.firestore.Timestamp.now()),
+      timestamp:toTimestampString(fb.timestampNow()),
     };
 
     writeLog(message);
     
     setBotBusy(true);
-    bot.reply(message)
+    bot.reply(user.displayName,text)
       .then(reply=>{
         if(reply.text !== null){
           writeLog({
-            displayName:reply.displayName,
+            displayName:botDisplayName,
             photoURL:reply.photoURL,
             text:reply.text,
-            speakerId:botId,
-            timestamp:toTimestampString(firebase.firestore.Timestamp.now())
+            speakerId:bot.displayName,
+            timestamp:toTimestampString(fb.timestampNow())
           });
           setBotBusy(false);
         }
       })
-      .catch(e=>{
-        writeLog({
-          displayNam:"error",
-          photoURL:"",
-          text:e.message,
-          speakerId:botDisplayName,
-          timestamp:toTimestampString(firebase.firestore.Timestamp.now())
-        })
-        setBotBusy(false);
-      })
+      // .catch(e=>{
+      //   writeLog({
+      //     displayName:"error",
+      //     photoURL:"",
+      //     text:e.message,
+      //     speakerId:bot.DisplayName,
+      //     timestamp:toTimestampString(fb.timestampNow())
+      //   })
+      //   setBotBusy(false);
+      // })
   }
 
     // --------------------------------------------------------
@@ -114,9 +115,9 @@ export default function Home(props){
   const logSlice=log.slice(-CHAT_WINDOW);
   const speeches = logSlice.map(speech =>{
     return (speech.speakerId === user.uid || speech.speakerId === -1 )?
-      <RightBalloon speech={speech}/>
+      <RightBalloon speech={speech} key={speech.timestamp}/>
     :
-      <LeftBalloon speech={speech} />
+      <LeftBalloon speech={speech} key={speech.timestamp}/>
     }
   );
 

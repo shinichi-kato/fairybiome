@@ -38,7 +38,7 @@ export async function matrixize(dict){
   //     tf(t,d) = (ある単語tの行d内での出現回数)/(行d内の全ての単語の出現回数の和) """
 
   // wv
-  wv = zeros(squeezedDict.length,vocab.length);
+  let wv = zeros(squeezedDict.length,vocab.length);
   for (let i=0,l=squeezedDict.length; i<l; i++){
 
     for(let word of squeezedDict[i]){
@@ -63,8 +63,8 @@ export async function matrixize(dict){
   const num_of_columns = tf.size()[0];
   const df = apply(wv,0,x=>sum(isPositive(x))/num_of_columns) ;
 
-  idf = map(df,x=>Math.log(1+1/x));
-  const tfidf = multiply(tf,diag(idf));
+  let idf = map(df,x=>Math.log(1+1/x));
+  let tfidf = multiply(tf,diag(idf));
 
   // """
   // 正規化
@@ -76,6 +76,8 @@ export async function matrixize(dict){
 
   return {
     vocab:vocab,
+    wv:wv,
+    idf:idf,
     tfidf:tfidf,
     index:index
   }

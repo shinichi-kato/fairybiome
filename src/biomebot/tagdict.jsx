@@ -1,5 +1,8 @@
 // チャットボットの入力辞書（ユーザのセリフ）に含まれる言葉のタグ化
-const botTagDict ={
+// tinysegmenterによる分かち書き後のノードに対して適用するため、
+// 期待したように分かち書きされているかは要確認。
+
+export const botTagDict ={
   '{_father_}': ['お父さん','父さん','父親','父上','父親','パパ'],
   '{_mother_}': ['お母さん','母さん','母親','母上','母親','ママ'],
   '{_elderBrother_}':['お兄さん','兄さん','兄上',],
@@ -8,5 +11,5 @@ const botTagDict ={
   '{user}':['あたし','オレ','自分','俺','私','僕'],
 }
 
-const botTagDictKeys = Object.keys(botTagDict);
+export const botTagDictKeys = Object.keys(botTagDict);
 

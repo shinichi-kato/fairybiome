@@ -179,6 +179,7 @@ export default function FirebaseProvider(props){
         firestore:state.firestore,
         user:{...state.user},
         changeUserInfo:changeUserInfo,
+        timestampNow:firebase.firestore.Timestamp.now
       }}
     >
       { state.firebaseApp === null 
