@@ -1,4 +1,4 @@
-import {randomInt} from 'mathjs';
+import {randomInt,clone} from 'mathjs';
 import PartIO from './partIO';
 import {textToInternalRepr,dictToInternalRepr} from './internalRepr.js';
 import matrixizeWorker from  './matrixizeWorker';
@@ -11,7 +11,7 @@ const segmenter = new TinySegmenter();
 
 
 export default class Part extends PartIO{
-  
+   
   compile = async () => {
 
     // inDict,outDictに分割
@@ -28,8 +28,12 @@ export default class Part extends PartIO{
     inDict = inDict.map(l=> dictToInternalRepr(l));
 
     // 正規化tfidf行列,vocab,indexの生成
-    this.inDict = await matrixizeWorker.matrixize(inDict);
-    console.log("compiled",this.inDict)
+    inDict = await matrixizeWorker.matrixize(inDict);
+
+    // 取得した値をindictに代入
+    this.inDict = Object.assign({},inDict);
+    console.log("inDict.vocab",this.inDict.vocab)
+    return  1;
   }
 
   // 返答関数
@@ -58,7 +62,7 @@ export default class Part extends PartIO{
       score:0,      // テキスト検索での一致度
       ordering:"",  // top:このパートを先頭へ, bottom:このパートを末尾へ移動 
     };
-    
+    console.log("outdict",this.outDict)
     console.log("indict",this.inDict)
     // availability check
     if(Math.random() > this.behavior.availability){
@@ -70,7 +74,6 @@ export default class Part extends PartIO{
     text = tagifyInMessage(text);
     const ir = textToInternalRepr(text);
     const irResult = retrieve(ir,this.inDict);
-
     // generosity check
     if(irResult.score < 1-this.behavior.generosity){
       console.log("generosity insufficient")
@@ -93,7 +96,7 @@ export default class Part extends PartIO{
 
     result.ordering = Math.random() > this.behavior.retention ?
       'bottom' : 'top';
-
+    console.log("after",this.inDict)
     return result;
   }
 
@@ -109,6 +112,8 @@ export default class Part extends PartIO{
         
   learnerReplier = (text,userName,state)=>{
     /* learner型
+    1. ユーザの発言Xに似た行が辞書に見つかれば、それに対する返答を返す。
+    2. Xに似た行が見つからなかった場合「
     // 辞書に似た入力があればそれを返す。
     // 1. ユーザから××と言われ、辞書にヒットする言葉がない場合セリフ××を記憶し、
     // どうやって答えたらいいかを聞く。次に帰ってきた答えが
@@ -153,7 +158,11 @@ export default class Part extends PartIO{
     // text retrieving
     text = tagifyInMessage(text);
     const ir = textToInternalRepr(text);
-    const irResult = retrieve(ir,this.inDict);
+    const irResult = retrieve(ir,{
+      vocab:this.vocab,
+      idf:this.idf,
+      tfidf:this.tfidf,
+      index:this.index});
 
     // generosity check
     if(irResult.score < 1-this.behavior.generosity){

@@ -7,6 +7,19 @@ export default class PartIO {
       retention: parseFloat(obj.behavior.retention),
     }
     this.dict = [...obj.dict];
+    this.inDict= {};
+    this.outDict = null;
+  }
+
+  readObj = (obj) => {
+    this.type = obj.type;
+    const b = obj.behavior;
+    this.behavior.availability = parseFloat(b.availability);
+    this.behavior.generosity = parseFloat(b.generosity);
+    this.behavior.retention =parseFloat(b.retention);
+    this.dict = [...obj.dict];
+    this.inDict=Object.assign({},obj.inDict);
+    this.outDict=[...obj.outDict];
   }
 
   dump = () => {

@@ -74,6 +74,8 @@ export async function matrixize(dict){
   const inv_n = apply(tfidf,1,x=>(divide(1,norm(x))));
   tfidf = multiply(diag(inv_n),tfidf);
 
+  
+
   return {
     vocab:vocab,
     wv:wv,

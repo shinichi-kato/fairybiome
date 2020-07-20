@@ -33,18 +33,18 @@ export default class BiomeBot extends BiomeBotIO {
         currentSiteがhabitatであれば「呼んだら来る」モードで起動。
         homeであれば通常の起動。
       */ 
-      this.readLocalStorage();
 
       switch(this.currentSite){
         case 'home':{
           // homeにbuddyがいる・・・通常起動
           // 各パートのコンパイル
           this.tagKeys= Object.keys(this.wordDict);
-
-          for (let partName of this.state.partOrder) {
-            let currentPart = this.parts[partName];
-            currentPart.compile();
-          }
+          
+          Promise.all(this.state.partOrder.map(partName=>(
+            this.parts[partName].compile()
+          ))).then(messages=>{
+            console.log("parrot",this.parts.parrot)
+          });
 
 
           this.wordDict['{PREV_USER_INPUT}'] ="・・・";
@@ -117,12 +117,12 @@ export default class BiomeBot extends BiomeBotIO {
       }
 
       reply.text = this.untagifyNames(reply.text,userName);
-      reply.text = this.untagify(reply.text,userName);
+      reply.text = this.untagify(reply.text);
 
       this.upkeepToLocalStorage();
       this.wordDict['{RESPONSE}'] = reply.text;
       this.wordDict['{PREV_USER_INPUT}'] = userInput;
-
+      console.log("config",this.config)
       return resolve({
         displayName:this.config.botName,
         photoURL:this.config.photoURL,

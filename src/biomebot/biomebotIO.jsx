@@ -3,15 +3,12 @@ import {localStorageIO} from './localStorageIO';
 
 export default class BiomeBot {
   constructor(){
-    const isLoaded = this.readLocalStorage();
-    if(isLoaded) { return; }
-    
     // 書誌的事項(会話中に変化しない)
     this.config = {
       trueName : "",
       firstUser: "",
       buddyUser: "",
-      displayName: "",
+      displayName: null,
       updatedAt : null,
       photoURL : null,
       description : null,
@@ -34,12 +31,12 @@ export default class BiomeBot {
       activeInHub: false,
     };
 
-    // home/habitat/void
-    this.currentSite="home";
+    // "home"/"habitat"/"void"・・・消去/null・・・unloaded
+    this.currentSite="unloaded";
   }
 
   isLoaded = () => {
-    return this.config === "";
+    return this.currentSite ==="home" || this.currentSite === "habitat";
   };
 
   isVacantInLocalStorage = () => {
@@ -66,13 +63,13 @@ export default class BiomeBot {
 
     const partNames = Object.keys(obj.parts);
     for(let part of partNames){
-      this.parts[part] = new Part(obj.parts[part]);
+      this.parts[part].readObj(obj.parts[part]);
     }
     delete this.parts['empty'];
 
     this.state={...obj.state};
     this.currentSite=`${obj.currentSite}`;
-
+    console.log("readObj",obj)
   };
 
   readLocalStorage = () => {
@@ -93,12 +90,16 @@ export default class BiomeBot {
     this.parts = {empty:false};
     for(let partName of state.partOrder){
       let part = localStorageIO.getJson(`Biomebot.part[${partName}]`);
-      this.parts[partName] = new Part(part);
+      if(this.parts[partName]){
+        this.parts[partName].readObj(part);
+      }else{
+        this.parts[partName] = new Part(part);
+      }
     }
     
     this.state = {...state};
     this.currentSite = localStorageIO.getItem('Biomebot.currentSite');
-
+    console.log("readlocal")
     return true;
 
   };

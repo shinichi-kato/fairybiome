@@ -1,7 +1,7 @@
 import React ,{createContext,useContext,useEffect } from "react";
 
 import {FirebaseContext} from '../Firebase/FirebaseProvider';
-import BiomeBot,{biomebotPostCompile} from '../../biomebot/biomebot.jsx';
+import BiomeBot from '../../biomebot/biomebot.jsx';
 
 
 export const BotContext = createContext();
@@ -14,6 +14,7 @@ export default function BotProvider(props){
 
   useEffect(()=>{
     // ローカルに保存されているデータがあればロード
+    if(!bot.isLoaded())
     bot.readLocalStorage();
   },[]);
 
@@ -28,6 +29,10 @@ export default function BotProvider(props){
 
   function handleDeployLocal(){
     return new Promise(resolve => {
+      if(!bot.isLoaded()){
+        bot.readLocalStorage();
+      }
+      
       bot.deployLocal();
       resolve();
     })

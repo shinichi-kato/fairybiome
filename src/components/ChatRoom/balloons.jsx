@@ -78,7 +78,7 @@ export function LeftBalloon(props){
       flexDirection="row"
       alignItems="flex-end">
       <Box >
-        <Avatar src={speech.photoURL} className={classes.avatar} />
+        <Avatar src={`../../svg/${speech.photoURL}`} className={classes.avatar} />
       </Box>
       <Box className={classes.leftBalloon}>
         <Typography variant="subtitle2">{speech.displayName}</Typography>
@@ -108,7 +108,7 @@ export function RightBalloon(props){
         <Typography variant="caption">{speech.timestamp}</Typography>
       </Box>
       <Box >
-        <Avatar src={speech.photoURL} className={classes.avatar} />
+        <Avatar src={`../../svg/${speech.photoURL}`} className={classes.avatar} />
       </Box>
     </Box>
   )
