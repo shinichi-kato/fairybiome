@@ -3,16 +3,6 @@ import {Link} from 'gatsby';
 
 import { makeStyles } from '@material-ui/core/styles';
 import Box from '@material-ui/core/Box';
-import Typography from '@material-ui/core/Typography';
-import LocalOfferIcon from '@material-ui/icons/LocalOffer';　//id
-import PersonIcon from '@material-ui/icons/Person';　//   displayName
-import AccessTimeIcon from '@material-ui/icons/AccessTime';　// updatedAt
-import AccountCircleIcon from '@material-ui/icons/AccountCircle';　// creator
-import FaceIcon from '@material-ui/icons/Face';　// photoURL
-import DescriptionIcon from '@material-ui/icons/Description';　// description
-import CheckCircleOutlineIcon from '@material-ui/icons/CheckCircleOutline';　// availability
-import BlurOnIcon from '@material-ui/icons/BlurOn';　// generosity
-import AllInclusiveIcon from '@material-ui/icons/AllInclusive';　// retention
 
 import {FirebaseContext} from "../Firebase/FirebaseProvider";
 import {BotContext} from "../ChatBot/BotProvider";
@@ -33,53 +23,16 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function ConfigEditor({location}){
+  const classes = useStyles();
   const fb = useContext(FirebaseContext);
   const bot = useContext(BotContext);
 
-  function TextInput(props){
-    return(
-      <>
-        <InputLabel htmlFor={props.slug}>
-          {props.label}
-        </InputLabel>
-        <Input
-          id={props.slug}
-          startAdornment={
-            <InputAdornment position="start">
-              {props.icon}
-            </InputAdornment>
-          }
-        />
-        <Typography variant="text">{props.description}</Typography>
-      </>
-    )
-  }
-
   return (
-    <Box className={classes.root}
-      display="flex"
-      flexDirection="column"
-      flexWrap="nowrap"
-      justifyContent="flex-start"
-      alignContent="flex-start"
+    <Box
+      
     >
-      <Box>
-        <ApplicationBar
-          title="チャットボットの設定"
-        />
-      </Box>
-      <Box className={classes.main}
-        display="flex"
-        flexDirection="column"
-      >
-        <Box>
-          <TextInput
-            slug="bot-id"
-            label="チャットボットの型式"
-            icon={<LocalOfferIcon style={{ color: "#2e7d32"}} />}
-          />
-        </Box>
-      </Box>
+      
     </Box>
   )
+  
 }

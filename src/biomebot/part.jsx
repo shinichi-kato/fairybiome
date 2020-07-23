@@ -1,4 +1,4 @@
-import {randomInt,clone} from 'mathjs';
+import {randomInt,clone, identity} from 'mathjs';
 import PartIO from './partIO';
 import {textToInternalRepr,dictToInternalRepr} from './internalRepr.js';
 import matrixizeWorker from  './matrixizeWorker';
@@ -37,20 +37,20 @@ export default class Part extends PartIO{
   }
 
   // 返答関数
-  replier = (x,y,z) => {
+  replier = (...args) => {
     switch(this.type){
       case 'recaller':
-        return this.recallerReplier(x,y,z);
+        return this.recallerReplier(...args);
       case 'learner':
-        return this.learnerReplier(x,y,z);
+        return this.learnerReplier(...args);
       default :
-        return this.defaultReplier(x,y,z);
+        return this.defaultReplier(...args);
     }
   }
  
   //  以下の返答関数を切り替えて使用
 
-  recallerReplier =　(username,text,state) => {
+  recallerReplier =　(username,text,state,wordDict) => {
     /*  辞書型の返答生成
         辞書の中からユーザのセリフに一番近いものを探し、
         それに対応する出力文字列を返す。
@@ -62,8 +62,18 @@ export default class Part extends PartIO{
       score:0,      // テキスト検索での一致度
       ordering:"",  // top:このパートを先頭へ, bottom:このパートを末尾へ移動 
     };
-    console.log("outdict",this.outDict)
-    console.log("indict",this.inDict)
+    
+    // queueがあればそれを返す
+    if(state.queue.length !== 0){
+      const queue = state.queue.shift();
+      return {
+        text:queue,
+        queue:[],
+        score:1,
+        ordering: "",
+      }
+    }
+
     // availability check
     if(Math.random() > this.behavior.availability){
       console.log("availability insufficient")
@@ -112,16 +122,18 @@ export default class Part extends PartIO{
         
   learnerReplier = (text,userName,state)=>{
     /* learner型
-    1. ユーザの発言Xに似た行が辞書に見つかれば、それに対する返答を返す。
-    2. Xに似た行が見つからなかった場合「
-    // 辞書に似た入力があればそれを返す。
-    // 1. ユーザから××と言われ、辞書にヒットする言葉がない場合セリフ××を記憶し、
-    // どうやって答えたらいいかを聞く。次に帰ってきた答えが
-    // 「〇〇って答えたらいいよ」のような内容だった場合、〇〇の部分を抽出し
-    // 　{in:["××"],
-    //    out:["〇〇"]}
-    //  という記憶を追加する。
-    // 
+    1. availabilityチェックを行う。
+    2. ユーザの発言Xに似た行が辞書を探し、スコアを計算する。
+    3. generosityチェックを行う。OKならユーザ発言に対する返答を返して終わる。
+    4. Xに似た行が見つからなかった場合{!TELL_ME_WHAT_TO_SAY}を出力して終わる。
+       この文字列はどうやって答えたらいいか聞くセリフに変換されてユーザに返る。
+       queueが消去され、{!PARSE_USER_INPUT}が書き込まれる
+    5. queueに{!PARSE_USER_INPUT}があったらパターンを使ってユーザ入力から
+       答えと思われる文字列を抽出し、{RESPONSE}に格納する。なお、前回の
+       ユーザの入力は{PREV_USER_INPUT}に格納される。
+    6. {in:[{PREV_USER_INPUT}],out:[{RESPONSE}]}という記憶を辞書に追加
+    7. {!I_GOT_IT}を出力して終わる。
+
     // ↓将来実装したい
     //  2.ユーザのセリフ□□に対して自分が△△と返事をし、ユーザが笑った場合、
     // 　{in:["□□"],
@@ -136,18 +148,32 @@ export default class Part extends PartIO{
       ordering:"",  // top:このパートを先頭へ, bottom:このパートを末尾へ移動 
     };
 
-    /* {!RESERVE_PARSE_ANSWER}が評価された結果、
-      上述の○○の部分がstate.responseに格納される。
-      state.prevUserInputには常にユーザの一つ前の入力が格納されている。
-      state.responseとstate.prevUserInputはそれぞれ
-      {RESPONSE}、{PREV_USER_INPUT}で
-      辞書から参照できる。
-    */
-    if(state.response){
-      this.dict.push({
-        in:[state.prevUserInput],
-        out:[state.response]
-      });
+    if(state.queue.length !== 0){
+      const queue = state.queue.shift();
+      if(queue === '{!PARSE_USER_INPUT}'){
+
+        //手順5-7
+        this.dict.push({
+          in:[wordDict['{PREV_USER_INPUT}']],
+          out:[wordDict['{RESPONSE}']]
+        });
+
+        return {
+          text:"{!I_GOT_IT}",
+          queue:[],
+          score:1,
+          ordering:"bottom",  
+        }
+    
+      }
+      // queueからshiftした内容を返答にする
+      return {
+        text:queue,
+        queue:[],
+        score:1,
+        ordering:"",
+      }
+  
     }
 
     // availability check
@@ -158,22 +184,14 @@ export default class Part extends PartIO{
     // text retrieving
     text = tagifyInMessage(text);
     const ir = textToInternalRepr(text);
-    const irResult = retrieve(ir,{
-      vocab:this.vocab,
-      idf:this.idf,
-      tfidf:this.tfidf,
-      index:this.index});
+    const irResult = retrieve(ir,this.inDict);
 
     // generosity check
     if(irResult.score < 1-this.behavior.generosity){
-        /* 返答候補がなければ
-        1. ユーザの入力を記憶
-        2. どうやって答えたらいいか聞く
-        3. 次のユーザのセリフを回答候補として使うことを予約
-      */
+      // 手順4
       result = {
         text:"{!TELL_ME_WHAT_TO_SAY}",
-        queue:["{!RESERVE_PARSE_ANSWER}"],
+        queue:["{!PARSE_USER_ANSWER}"],
         ordering:"top",
         score:irResult.score,
       }

@@ -84,7 +84,7 @@ export default class BiomeBot extends BiomeBotIO {
       for(let partName of this.state.partOrder){
         console.log(partName)
         //返答の生成を試みる
-        reply = this.parts[partName].replier(userName,userInput,this.state)
+        reply = this.parts[partName].replier(userName,userInput,this.state,this.wordDict)
         console.log(reply)
         if(reply.text === "") { continue }
 
@@ -122,7 +122,6 @@ export default class BiomeBot extends BiomeBotIO {
       this.upkeepToLocalStorage();
       this.wordDict['{RESPONSE}'] = reply.text;
       this.wordDict['{PREV_USER_INPUT}'] = userInput;
-      console.log("config",this.config)
       return resolve({
         displayName:this.config.botName,
         photoURL:this.config.photoURL,
