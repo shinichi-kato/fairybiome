@@ -45,6 +45,8 @@ export default function BotProvider(props){
         photoURL:bot.config.photoURL,
         config:bot.config,
         setConfig:bot.setConfig,
+        state:bot.state,
+        
         upkeep:bot.upkeepToLocalStorage,
         isVacantInLocalStorage:bot.isVacantInLocalStorage,
         isFairyYoung:bot.isFairyYoung,

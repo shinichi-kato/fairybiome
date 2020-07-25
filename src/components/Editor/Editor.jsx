@@ -34,6 +34,12 @@ export default function Editor(props){
   const bot = useContext(BotContext);
 
   const [page,setPage] = useState('config');
+  const [message,setMessage] = useState("");
+
+  function handleSaveConfig(config){
+    bot.setConfig(config);
+    setMessage("このブラウザに妖精のデータを保存しました");
+  };
 
   return (
     <Box
@@ -53,7 +59,12 @@ export default function Editor(props){
       </Box>
       <Box className={classes.main}>
         {page === "config" &&
-          <Config config={bot.config}/>
+          <Config
+            handleSaveConfig={handleSaveConfig}
+            message={message}
+            config={bot.config}
+            state={bot.state}
+          />
         }
       </Box>
     </Box>  
