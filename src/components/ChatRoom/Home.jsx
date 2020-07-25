@@ -1,9 +1,12 @@
 import React ,{useContext,useEffect,useState,useCallback } from "react";
-import { makeStyles } from '@material-ui/core/styles';
+import {navigate} from 'gatsby';
 
 import {localStorageIO} from '../../utils/localStorageIO';
 
+import { makeStyles } from '@material-ui/core/styles';
 import Box from '@material-ui/core/Box';
+import Fab from '@material-ui/core/Fab';
+import FairyBiomeIcon from '../../icons/FairyBiome';
 
 import ApplicationBar from '../ApplicationBar/ApplicationBar';
 import {RightBalloon,LeftBalloon} from './balloons.jsx';
@@ -29,6 +32,11 @@ const useStyles = makeStyles((theme) => ({
     overscrollBehavior:'auto',
     WebkitOverflowScrolling:'touch',
     padding: 0
+  },
+  floatingButton:{
+    position: "absolute",
+    left: theme.spacing(4),
+    top:80
   }
 }));
 
@@ -122,26 +130,36 @@ export default function Home(props){
   );
 
   return (
-    <Box 
-      className={classes.root}
-      display="flex"
-      flexDirection="column"
-      flexWrap="nowrap"
-      justifyContent="flex-start"
-      alignContent="flex-start"
-    >
-      <Box>
-        <ApplicationBar title="" busy={botBusy}/>
+    <>
+      <Box 
+        className={classes.root}
+        display="flex"
+        flexDirection="column"
+        flexWrap="nowrap"
+        justifyContent="flex-start"
+        alignContent="flex-start"
+      >
+        <Box>
+          <ApplicationBar title="" busy={botBusy}/>
+        </Box>
+        <Box flexGrow={1} order={0} className={classes.main}>
+          {speeches}
+          <div ref={myRef}></div>
+        </Box>
+        <Box order={0} justifyContent="center">
+          <Console
+            position={"0"}
+            handleWriteMessage={handleWriteMessage}/>
+        </Box>
       </Box>
-      <Box flexGrow={1} order={0} className={classes.main}>
-        {speeches}
-        <div ref={myRef}></div>
-      </Box>
-      <Box order={0} justifyContent="center">
-        <Console
-          position={"0"}
-          handleWriteMessage={handleWriteMessage}/>
-      </Box>
-    </Box>
+      <Fab 
+        className={classes.floatingButton}
+        color="secondary" 
+        aria-label="edit"
+        onClick={()=>navigate('/fairybiome/Editor')}
+      >
+        <FairyBiomeIcon />
+      </Fab>
+    </>
   )
 }

@@ -12,6 +12,7 @@ export default class BiomeBot {
       updatedAt : null,
       photoURL : null,
       description : null,
+      defaultPartOrder:[],
       hubBehavior: {
         availability: 0.3,
         generosity: 0.9,
@@ -43,6 +44,9 @@ export default class BiomeBot {
     return localStorageIO.getItem('Biomebot.state',false) === false;
   };
 
+  isFairyYoung = () => {
+    return this.displayName === "";
+  }
 
 
   setConfig = (config) => {
@@ -67,7 +71,10 @@ export default class BiomeBot {
     }
     delete this.parts['empty'];
 
-    this.state={...obj.state};
+    this.state={
+      ...obj.state,
+      partorder:[...obj.config.defaultPartOrder],
+    };
     this.currentSite=`${obj.currentSite}`;
     console.log("readObj",obj)
   };

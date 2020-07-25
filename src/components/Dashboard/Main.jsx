@@ -1,21 +1,22 @@
-import React ,{useState,useContext} from "react";
+import React from "react";
 import {navigate} from 'gatsby';
 
 import { makeStyles } from '@material-ui/core/styles';
-import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
 import Box from '@material-ui/core/Box';
 
+import ApplicationBar from '../ApplicationBar/ApplicationBar';
+import ChatAvatar from './ChatAvatar';
+import MeetFairy from './MeetFairy';
+
 import HomeIcon from "../../icons/Home";
-import HubFairiesIcon from "../../icons/HubFairies";
+// import HubFairiesIcon from "../../icons/HubFairies";
 import HubIcon from "../../icons/Hub";
 import HabitatIcon from "../../icons/Habitat";
 
-import ApplicationBar from '../ApplicationBar/ApplicationBar';
-import ChatAvatar from './ChatAvatar';
 
 const useStyles = makeStyles((theme) => ({
-  rootThatFlexGrowNeeds: {
+  rootWhoseChildUsesFlexGrow: {
     width: "100%",
     height: "100vh",
     // backgroundImage: "url(../images/landing-bg.png)",
@@ -66,7 +67,7 @@ export default function Main(props){
 
   return(
     <Box 
-      className={classes.rootThatFlexGrowNeeds}
+      className={classes.rootWhoseChildUsesFlexGrow}
       display="flex"
       flexDirection="column"
       flexWrap="nowrap"
@@ -104,6 +105,10 @@ export default function Main(props){
               displayName={botDisplayName}
               icon={botPhotoURL}
             />
+          </Box>
+          ||
+          <Box>
+            <MeetFairy />
           </Box>
         }
       </Box>

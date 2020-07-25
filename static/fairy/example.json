@@ -7,6 +7,7 @@
         "updatedAt": "Sun Jul 12 2020 13:50:23 GMT+0900",
         "photoURL": "bot/blueCrystal/young.svg",
         "description": "サンプルのボット",
+        "defaultPartOrder":["greeting","parrot"],
         "hubBehavior":{
             "availability": 0.3,
             "generosity": 0.9,

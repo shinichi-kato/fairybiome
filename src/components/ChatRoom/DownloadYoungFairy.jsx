@@ -13,7 +13,7 @@ import ApplicationBar from '../ApplicationBar/ApplicationBar';
 
 const query = graphql`
   query {
-    allFile(filter: {sourceInstanceName: {eq: "youngfairy"}}) {
+    allFile(filter: {sourceInstanceName: {eq: "fairy"}}) {
       edges {
         node {
           relativePath
@@ -88,7 +88,7 @@ export default function DownloadYoungFairy(props){
 
   function GetPaths(props){
     if(!props.data){
-      setMesssage("サーバーの/youngfairyに妖精のデータがありません");
+      setMesssage("サーバーの/に妖精のデータがありません");
       return null;
     }
 
@@ -100,7 +100,7 @@ export default function DownloadYoungFairy(props){
       const l = pathsRef.current;
       const path = l[randomInt(l.length)];
 
-      fetch(`../../youngfairy/${path}`)
+      fetch(`../../fairy/${path}`)
       .then(res=>res.json())
       .then(data=>{
         setBot(data);

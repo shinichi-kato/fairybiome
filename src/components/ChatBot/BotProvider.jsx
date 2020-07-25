@@ -47,6 +47,7 @@ export default function BotProvider(props){
         setConfig:bot.setConfig,
         upkeep:bot.upkeepToLocalStorage,
         isVacantInLocalStorage:bot.isVacantInLocalStorage,
+        isFairyYoung:bot.isFairyYoung,
         loadGuestFromObj:loadGuestFromObj,
         loadBuddyFromObj:loadBuddyFromObj,
         deployLocal:handleDeployLocal,

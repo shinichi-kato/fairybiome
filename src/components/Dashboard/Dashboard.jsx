@@ -1,7 +1,6 @@
 import React ,{useState,useContext} from "react";
 
 import UserSettings from './UserSettings';
-import DownloadYoungFairy from './DownloadYoungFairy';
 import Main from './Main';
 
 import {FirebaseContext} from '../Firebase/FirebaseProvider';
@@ -38,11 +37,6 @@ export default function Dashboard(props){
           displayName={user.displayName}
           photoURL={user.photoURL}
           handleChangeUserInfo={handleChangeUserInfo}
-        />
-        || bot.isVacantInLocalStorage() &&
-        <DownloadYoungFairy 
-          userName={user.displayName}
-          handleDownload={handleDownload}
         />
         ||
         <Main 

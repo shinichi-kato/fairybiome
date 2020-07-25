@@ -74,8 +74,6 @@ export default function ApplicationBar(props){
           handleClose={handleCloseSettingsMenu}
         />
       </Toolbar>
-      <Tabs value={props.value} />
-      
     </AppBar>
   )
 };
