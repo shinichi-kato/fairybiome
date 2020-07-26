@@ -62,7 +62,10 @@ export default function Config(props){
   
   return (
     <Box className={classes.content}>
-      <Grid container spacing={2}>
+      <Grid 
+        alignItems="center"
+        container 
+        spacing={2}>
         <Grid item xs={12}>
           <FairyPanel
             photoURL={photoURL}
@@ -107,7 +110,10 @@ export default function Config(props){
         </Grid>
         <Grid item xs={7}>
           <Typography variant="subtitle1">
-            0.0〜1.0:0だと妖精はしゃべろうとしない。1だと常にしゃべろうとする。
+            起動率(0.00〜1.00)
+          </Typography>
+          <Typography variant="subtitle2">
+            0だと妖精はしゃべろうとしない。1だと常にしゃべろうとする。
           </Typography>
         </Grid>
 
@@ -121,7 +127,10 @@ export default function Config(props){
         </Grid>
         <Grid item xs={7}>
           <Typography variant="subtitle1">
-            0.0〜1.0:0だと適当なことにも返事をする。1だと正確な場合だけ返答する。
+            寛容性(0.00〜1.00)
+          </Typography>
+          <Typography variant="subtitle2">
+            0だと正確な場合だけ返答する。1だと適当なことにも返事をする。
           </Typography>
         </Grid>
 
@@ -135,14 +144,14 @@ export default function Config(props){
         </Grid>
         <Grid item xs={7}>
           <Typography variant="subtitle1">
-            0.0〜1.0:0だと話題を続けない。1だと話題をずっと続けようとする。
+            継続率(0.00〜1.00)
+          </Typography>
+          <Typography variant="subtitle2">
+            0だと話題を続けない。1だと同じ話題をずっと続けようとする。
           </Typography>
         </Grid>
 
         <Grid item xs={12}>
-          <Button>
-            cancel
-          </Button>
           <Button
             onClick={handleSave}
           >

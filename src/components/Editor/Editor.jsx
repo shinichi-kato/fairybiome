@@ -5,6 +5,9 @@ import Box from '@material-ui/core/Box';
 import ApplicationTabBar from './ApplicationTabBar';
 import Config from './Config';
 import WordDict from './WordDict';
+import Parts from './Parts';
+import Misc from './Misc';
+
 import {FirebaseContext} from '../Firebase/FirebaseProvider';
 import {BotContext} from '../ChatBot/BotProvider';
 
@@ -49,6 +52,14 @@ export default function Editor(props){
 
   function handleSaveWordDict(wordDict){
     bot.setWordDict(wordDict);
+    pageTransition();
+  }
+
+  function handleSaveParts(parts,partOrder){
+    pageTransition();
+  }
+
+  function handleSaveMisc(misc){
     pageTransition();
   }
 
@@ -98,6 +109,23 @@ export default function Editor(props){
 
           />
         }
+        {page === "parts" &&
+          <Parts
+            pageWillChange={pageWillChange}
+            parts={bot.ref.parts}
+            partOrder={bot.ref.config.partOrder}
+            handleSave={handleSaveParts}
+
+          />
+        }
+         {page === "misc" &&
+          <Misc
+            pageWillChange={pageWillChange}
+            state={bot.ref.state}
+            handleSave={handleSaveMisc}
+
+          />
+        }       
       </Box>
     </Box>  
   )

@@ -30,17 +30,16 @@ export default class BiomeBotIO {
     this.state={
       partOrder:[],
       activeInHub: false,
+      hp: 0,
+      queue:[],
+      buddy: "none",  // none:なし, follow:随行中, 
+                      // home:Home, habitat:Habitat
     };
 
-    // "home":Homeにいる
-    // "habitat":Habitatにいる
-    // "void":削除された
-    // null:ロードされていない
-    this.currentSite="unloaded";
   }
 
   isLoaded = () => {
-    return this.currentSite ==="home" || this.currentSite === "habitat";
+    return this.state.site !== "none"
   };
 
   isVacantInLocalStorage = () => {
@@ -87,7 +86,6 @@ export default class BiomeBotIO {
       ...obj.state,
       partorder:[...obj.config.defaultPartOrder],
     };
-    this.currentSite=`${obj.currentSite}`;
     localStorageIO.setItem('Biomebot.config',JSON.stringify(this.config));
     
     console.log("readObj",obj)
@@ -119,16 +117,14 @@ export default class BiomeBotIO {
     }
     
     this.state = {...state};
-    this.currentSite = localStorageIO.getItem('Biomebot.currentSite');
     console.log("readlocal",this.config)
     return true;
 
   };
   
   upkeepToLocalStorage = () => {
-    // this.stateとthis.currentSiteのみ更新
+    // this.stateのみ更新
     localStorageIO.setItem('Biomebot.state',JSON.stringify(this.state));
-    localStorageIO.setItem('Biomebot.currentSite','home');
   };
   
   dumpToLocalStorage = () => {
@@ -142,7 +138,6 @@ export default class BiomeBotIO {
     }
 
     this.upkeepToLocalStorage();
-    localStorageIO.setItem('Biomebot.currentSite',this.currentSite);
   };
 
   

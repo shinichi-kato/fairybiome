@@ -53,7 +53,9 @@
         "partOrder":["greeting","parrot"],
         "activeInHub": false,
         "hp":10,
-        "queue":[]
+        "queue":[],
+        "buddy":"none",
+        "site":"habitat"
     },
-    "currentSite":""
+ 
 }

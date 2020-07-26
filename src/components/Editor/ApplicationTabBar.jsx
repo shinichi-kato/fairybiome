@@ -21,6 +21,9 @@ const useStyles = makeStyles((theme) => ({
   title: {
     flexGrow: 1,
   },
+  tab: {
+    minWidth: "25%"
+  }
 }));
 
 
@@ -64,21 +67,25 @@ export default function ApplicationTabBar(props) {
         onChange={handleChangePage} 
         aria-label="editor tabs" >
         <Tab 
+          className={classes.tab}
           value="config" 
           label="基本" 
           id="editor-tab-0"
           aria-controls="editor-tabpanel-0"/>
         <Tab 
+          className={classes.tab}
           value="wordDict" 
           label="単語辞書" 
           id="editor-tab-1"
           aria-controls="editor-tabpanel-1"/>
         <Tab 
-          value="part" 
+          className={classes.tab}
+          value="parts" 
           label="パート" 
           id="editor-tab-2"
           aria-controls="editor-tabpanel-2"/>
         <Tab 
+          className={classes.tab}
           value="misc" 
           label="その他" 
           id="editor-tab-3"

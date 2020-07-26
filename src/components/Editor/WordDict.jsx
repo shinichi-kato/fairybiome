@@ -1,4 +1,4 @@
-import React,{useRef,useEffect} from 'react';
+import React,{useState,useEffect} from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 
 import Box from '@material-ui/core/Box';
@@ -25,11 +25,15 @@ const useStyles = makeStyles((theme) => ({
 
 }));
 
+
+
+
 export default function WordDict(props){
   const classes = useStyles();
   const wordDict=props.wordDict;
-  const botJustBornEl=useRef(null);
+  const [botJustBorn,setBotJustBorn] = useState(dictToStr('{!BOT_JUST_BORN}'));
   
+
   useEffect(()=>{
     if(props.pageWillChange){
       handleSave();
@@ -39,10 +43,19 @@ export default function WordDict(props){
   function handleSave(){
     props.handleSave({
       ...wordDict,
-      '{!BOT_JUST_BORN}':botJustBornEl.value
+      '{!BOT_JUST_BORN}':botJustBorn.split('\n'),
     })
   }
 
+  function dictToStr(key){
+    const arr = wordDict[key];
+    return arr ? arr.join('\n') : "";
+  }
+
+  
+  function handleChangeBotJustBorn(e){
+    setBotJustBorn(e.target.value);
+  }
 
   return (
     <Box className={classes.content}>
@@ -55,8 +68,14 @@ export default function WordDict(props){
             生まれてすぐの妖精がユーザに出会ったときの挨拶
           </Typography>
           <Input 
-          ref={botJustBornEl}
-          defaultValue={wordDict['{!BOT_JUST_BORN}']}
+            required
+            multiline
+            fullWidth
+            rows={2}
+            rowsMax={5}
+            className={classes.input}
+            value={botJustBorn}
+            onChange={handleChangeBotJustBorn}
           />
         </Grid>
       </Grid>

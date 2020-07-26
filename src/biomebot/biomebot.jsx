@@ -11,12 +11,18 @@ export default class BiomeBot extends BiomeBotIO {
       // 共通
       '{NOT_FOUND}':[""],
       '{HELLO}':[""],
-      '{!BOT_JUST_BORN}':[""],
-      '{!BOT_NAME_ME}':[""],
-      '{!BOT_IS_GOING_OUT}':[""],
-      '{!BOT_IS_COMMING_BACK}':[""],
-      '{!BOT_MEETS_YOU}':[""],
-      '{!BOT_IS_DYING}':[""],
+      '{!BOT_JUST_BORN}':[""], // 生まれたばかりでユーザに出会った
+      '{!BOT_NAME_ME}':[""],  // ユーザに名前をつけてもらう
+      '{!ACCEPT_BUDDY_FORMATION}':[""], // 妖精が仲間になるのを承諾した
+      '{!REJECT_BUDDY_FORMATION}':[""], // 妖精が仲間になるのを断った
+      '{!IGNORE_BUDDY_FORMATION}':[""], // 妖精がすでに仲間になっている
+      '{!BOT_IS_DYING}':[""], // 妖精が消滅する
+      
+      //
+      '{!BOT_WILL_SPLIT}':[""], // 別行動する
+      '{!BOT_WILL_JOIN}':[""],  // 合流する
+      '{!BOT_MEETS_YOU}':[""],  // 別行動中にユーザに出会った
+      '{!BOT_ACCEPT_SUMMON}':[""], // 呼び出しに応じた
 
       // learner用
       '{!TELL_ME_WHAT_TO_SAY}':[""],
@@ -33,7 +39,7 @@ export default class BiomeBot extends BiomeBotIO {
 
   
   reply = (x,y) => {
-    switch(this.currentSite){
+    switch(this.state.buddy){
       case 'home': 
         return this.homeReply(x,y);
       case 'habitat':
@@ -49,13 +55,27 @@ export default class BiomeBot extends BiomeBotIO {
     return new Promise(resolve => {
 
       /* homeまはたhub用のモードの起動
-        localStorageにある妖精データを読み込む。
-        データがない場合、またはcurrentSiteがvoidであればbotは一切反応しない。
-        currentSiteがhabitatであれば「呼んだら来る」モードで起動。
+        localStorageにある妖精データを使用する。
+        データがない場合、またはstate.siteがnoneであればbotは一切反応しない。
+        state.buddyが現在地でなければ「呼んだら来る」モードで起動。
         homeであれば通常の起動。
+
+        ■バディ結成の無効化
+        Homeには自分のバディになっている妖精しか存在しない。
+        Hubでは他の誰かのバディになっている妖精と会話をする場合がある。
+        どちらであっても全ての{!ACCEPT_BUDDY_FORMATION}や{!REJECT_BUDDY_FORMATION}は無効で、
+        {!IGNORE_BUDDY_FORMATION}が代わりに実行される。
+
+        ■単独行動中のバディの呼び出し
+        HomeとHabitatではバディの妖精が単独行動していて現在地にいない場合妖精は返事をしない。
+        妖精が不在でもユーザが呼びかけて{!BOT_ACCEPT_SUMMON}が評価された場合、1d100がHPよりも大きければ
+        妖精は姿を見せてstate.buddyがfollowに戻る。すでに現在地に妖精がいる場合には
+        {!BOT_ACCEPT_SUMMON}は何も効果を持たない
+
+
       */ 
 
-      switch(this.currentSite){
+      switch(this.state.buddy){
         case 'home':{
           // homeにbuddyがいる・・・通常起動
           // 各パートのコンパイル
@@ -75,7 +95,7 @@ export default class BiomeBot extends BiomeBotIO {
           
         }
         case 'habitat':{
-          // buddyがhabitatにいる・・・「呼んだら来る」モード
+          // buddyが現在地にいない・・・「呼んだら来る」モード
           
 
         }
@@ -91,7 +111,7 @@ export default class BiomeBot extends BiomeBotIO {
     /* habitatモードの起動
       habitatのデータはcloud上からメモリにダウンロードし、localStorageには
       保存しない。
-      妖精の選択時、currentSiteがhabitatな妖精しか選べない。
+      妖精の選択時、state.buddyがhabitatな妖精しか選べない。
      */
   };
 
@@ -155,14 +175,37 @@ export default class BiomeBot extends BiomeBotIO {
   
   
   habitatReply = (name,text) => {
+    /*
+      Habitatでの挙動
+      Habitatにはユーザのバディになっている妖精とそうでない妖精がいる。
+      
+      ■ユーザのバディではない妖精
+      ユーザにバディがいない状態であれば、妖精に話しかけてバディにできる可能性がある。
+      会話の中で{!ACCEPT_BUDDY_FORMATION}が評価された場合、1d100が妖精のHPよりも大きければ
+      妖精はバディになる。そうでなければ{!IGNORE_BUDDY_FORMATION}が代わりに実行される。
+      妖精が生まれたばかりであればユーザが名前をつける。それまでは「生まれたばかりの妖精」
+      という仮の名前がついている。
+      会話が不調であれば{!REJECT_BUDDY_FORMATION}が評価される場合もある。その場合は妖精は
+      {!BYE}を実行してどこかに言ってしまう。Habitatでは妖精の設定は変更できず、
+      localStorageに保存はされないが、言葉を教えることはできる。
+      
+      
+      ■ユーザのバディになっている妖精
+      単独行動中の妖精と生息地で偶然出会う場合がある。このときは挨拶としてまず{!BOT_MEET_YOU}が
+      実行される。それ以外の会話はHOMEと変わらない。{!ACCEPT_BUDDY_FORMATION}や
+      {!REJECT_BUDDY_FORMATION}は無視され、代わりに{!IGNORE_BUDDY_FORMATION}が展開される。
+            
+      それ以外の妖精との会話は通常と変わりない。
+      */
     return new Promise((resolve,reject)=>{
+      
       if(this.config.hubBehavior.availability > random()){
         // ここで名前の呼びかけとかだけキャッチしたい
         //
         // 帰ってくる
         this.state.queue=['{!I_AM_COMMING_BACK}'];
         this.upkeepToLocalStorage();
-        // クラウド上の妖精データのcurrentSiteも書き換える
+        // クラウド上の妖精データのstate.buddyも書き換える
         this.deployHome();
     }
     resolve();
@@ -229,7 +272,7 @@ export default class BiomeBot extends BiomeBotIO {
 }  
 
 // export const biomebotPostCompile = (currentBot) => {
-//   switch(currentBot.currentSite){
+//   switch(currentBot.state.buddy){
 //     case 'home' :{
 //       currentBot.reply = (x,y) => currentBot.homeReply(x,y);
 //       break;

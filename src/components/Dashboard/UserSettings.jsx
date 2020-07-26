@@ -60,6 +60,7 @@ export default function UserSettings(props){
     // というwarningになる。これは useStaticQuery()で回避できるが、
     // 2020.7現在ではuseStaticQuery() 自体にバグがあり、undefined
     // しか帰ってこない。
+    // https://github.com/gatsbyjs/gatsby/issues/24394
     // そこで useRef を代替とし、データ取得のみのサブコンポーネントを用いる。  
     if(props.data){
       photoURLsRef.current = [...props.data.allFile.edges];
@@ -88,7 +89,7 @@ export default function UserSettings(props){
     
   }
 
-  function handelClick(){
+  function handleClick(){
     props.handleChangeUserInfo(nameRef.current,photoURL)
   }
 
