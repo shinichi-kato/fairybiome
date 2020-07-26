@@ -6,7 +6,28 @@ export default class BiomeBot extends BiomeBotIO {
   constructor(){
     super();
 
-    
+    // fairybiomeのシステム用word(必須)
+    this.wordDict={
+      // 共通
+      '{NOT_FOUND}':[""],
+      '{HELLO}':[""],
+      '{!BOT_JUST_BORN}':[""],
+      '{!BOT_NAME_ME}':[""],
+      '{!BOT_IS_GOING_OUT}':[""],
+      '{!BOT_IS_COMMING_BACK}':[""],
+      '{!BOT_MEETS_YOU}':[""],
+      '{!BOT_IS_DYING}':[""],
+
+      // learner用
+      '{!TELL_ME_WHAT_TO_SAY}':[""],
+      '{!PARSE_USER_INPUT}':[""],
+      '{!I_GOT_IT}':[""],
+      '{}':[""],
+    };
+
+    if(!this.isLoaded()){
+      this.readLocalStorage();
+    }    
   
   }
 

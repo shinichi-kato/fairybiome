@@ -4,6 +4,7 @@ import Box from '@material-ui/core/Box';
 
 import ApplicationTabBar from './ApplicationTabBar';
 import Config from './Config';
+import WordDict from './WordDict';
 import {FirebaseContext} from '../Firebase/FirebaseProvider';
 import {BotContext} from '../ChatBot/BotProvider';
 
@@ -34,12 +35,34 @@ export default function Editor(props){
   const bot = useContext(BotContext);
 
   const [page,setPage] = useState('config');
+  const [pageWillChange,setPageWillChange] = useState(false);
   const [message,setMessage] = useState("");
 
+  function handleChangePage(page){
+    setPageWillChange(page);
+  }
+  
   function handleSaveConfig(config){
     bot.setConfig(config);
-    setMessage("このブラウザに妖精のデータを保存しました");
+    pageTransition();
   };
+
+  function handleSaveWordDict(wordDict){
+    bot.setWordDict(wordDict);
+    pageTransition();
+  }
+
+  function pageTransition(){
+    const page = pageWillChange;
+    setPageWillChange(false);
+    if(page === 'exit'){
+      navigate('/fairybiome/Home/');
+    }else{
+      setPage(page);
+    }
+
+  }
+
 
   return (
     <Box
@@ -52,18 +75,27 @@ export default function Editor(props){
     >
       <Box>
         <ApplicationTabBar 
-          title="" 
+          title={`${bot.displayName}の設定`} 
           page={page} 
-          handleChangePage={p=>setPage(p)}
+          handleChangePage={handleChangePage}
         />  
       </Box>
       <Box className={classes.main}>
         {page === "config" &&
           <Config
-            handleSaveConfig={handleSaveConfig}
+            handleSave={handleSaveConfig}
+            pageWillChange={pageWillChange}
             message={message}
-            config={bot.config}
-            state={bot.state}
+            config={bot.ref.config}
+            state={bot.ref.state}
+          />
+        }
+        {page === "wordDict" &&
+          <WordDict
+            pageWillChange={pageWillChange}
+            wordDict={bot.ref.wordDict}
+            handleSave={handleSaveWordDict}
+
           />
         }
       </Box>

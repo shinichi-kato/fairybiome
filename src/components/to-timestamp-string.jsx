@@ -14,13 +14,22 @@ export function toTimestampString(timestamp){
 		正規表現を利用し、配列のkeyにできるようにミリ秒まで表示する。
 	
 	*/ 
-	if (timestamp) {
-		const datestr = timestamp.toString();
-	
-		const r = datestr.match(/seconds=([0-9]+), nanoseconds=([0-9][0-9][0-9])/);
-		// r = ["seconds=1578745004, nanoseconds=743","1578745004","743"]
-		let d = new Date(r[1]*1000);
-		return	`${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}.${d.toLocaleTimeString()} ${r[2]}`;
+
+	if(timestamp){
+		let d;
+		let ms;
+		if(typeof timestamp === "object" && timestamp !== null){
+			d = new Date(timestamp.seconds*1000);
+			ms = `${timestamp.nanoseconds}`.substr(0,3);
+		}
+		else {
+			const datestr = timestamp.toString();
+			const r = datestr.match(/seconds=([0-9]+), nanoseconds=([0-9][0-9][0-9])/);
+			d = new Date(r[1]*1000);
+			ms = r[2]
+		}
+		return	`${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}.${d.toLocaleTimeString()} ${ms}`;
 	}
-	return " ";
+
+	return "タイムスタンプが無効です"
 }

@@ -1,7 +1,7 @@
 import Part from './part.jsx';
 import {localStorageIO} from './localStorageIO';
 
-export default class BiomeBot {
+export default class BiomeBotIO {
   constructor(){
     // 書誌的事項(会話中に変化しない)
     this.config = {
@@ -32,7 +32,10 @@ export default class BiomeBot {
       activeInHub: false,
     };
 
-    // "home"/"habitat"/"void"・・・消去/null・・・unloaded
+    // "home":Homeにいる
+    // "habitat":Habitatにいる
+    // "void":削除された
+    // null:ロードされていない
     this.currentSite="unloaded";
   }
 
@@ -59,7 +62,16 @@ export default class BiomeBot {
         retention: parseFloat(b.retention),
       }
     };
+    localStorageIO.setItem('Biomebot.config',JSON.stringify(this.config));
+    
+    console.log("setConfig:",this.config);
+
   };
+
+  setWordDict = (wordDict) => {
+    this.wordDict= {...wordDict};
+    localStorageIO.setItem('Biomebot.wordDict',JSON.stringify(this.wordDict));
+  }
 
   readObj = (obj) => {
     this.setConfig(obj.config);
@@ -76,6 +88,8 @@ export default class BiomeBot {
       partorder:[...obj.config.defaultPartOrder],
     };
     this.currentSite=`${obj.currentSite}`;
+    localStorageIO.setItem('Biomebot.config',JSON.stringify(this.config));
+    
     console.log("readObj",obj)
   };
 
@@ -106,7 +120,7 @@ export default class BiomeBot {
     
     this.state = {...state};
     this.currentSite = localStorageIO.getItem('Biomebot.currentSite');
-    console.log("readlocal")
+    console.log("readlocal",this.config)
     return true;
 
   };

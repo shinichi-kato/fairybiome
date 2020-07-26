@@ -12,11 +12,7 @@ const bot = new BiomeBot();
 export default function BotProvider(props){
   const fb = useContext(FirebaseContext);
 
-  useEffect(()=>{
-    // ローカルに保存されているデータがあればロード
-    if(!bot.isLoaded())
-    bot.readLocalStorage();
-  },[]);
+
 
   function loadGuestFromObj(obj){
     bot.readObj(obj)
@@ -38,15 +34,23 @@ export default function BotProvider(props){
     })
   }
  
+  function handleSaveConfig(config){
+    const newConfig ={
+      ...config,
+      updatedAt: fb.timestampNow()
+    }
+    bot.setConfig(newConfig);
+  }
+
+  
   return (
     <BotContext.Provider
       value={{
         displayName:bot.config.displayName,
         photoURL:bot.config.photoURL,
-        config:bot.config,
-        setConfig:bot.setConfig,
-        state:bot.state,
-        
+        ref:bot,
+        setConfig:handleSaveConfig,
+        setWordDict:bot.setWordDict,
         upkeep:bot.upkeepToLocalStorage,
         isVacantInLocalStorage:bot.isVacantInLocalStorage,
         isFairyYoung:bot.isFairyYoung,

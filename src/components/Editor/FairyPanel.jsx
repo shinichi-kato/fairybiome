@@ -19,9 +19,10 @@ const useStyles = makeStyles((theme) => ({
     width: 200
 
   },
-  bar: {
+  barNormal: {
     borderRadius: 5,
     height: 10,
+    backgroundColor: ""
   },
   
 }));
@@ -53,7 +54,10 @@ export default function FairyPanel(props){
           className={classes.bar}
           variant="determinate"
           size={100} 
-          value={props.hp}/>
+          value={Number(props.hp)}/>
+        </Box>
+        <Box>
+          <Typography>最終更新{props.updatedAt}</Typography>
         </Box>
       </Box>
     </Paper>

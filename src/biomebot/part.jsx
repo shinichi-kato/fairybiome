@@ -191,7 +191,7 @@ export default class Part extends PartIO{
       // 手順4
       result = {
         text:"{!TELL_ME_WHAT_TO_SAY}",
-        queue:["{!PARSE_USER_ANSWER}"],
+        queue:["{!PARSE_USER_INPUT}"],
         ordering:"top",
         score:irResult.score,
       }

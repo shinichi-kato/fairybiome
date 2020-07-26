@@ -1,4 +1,5 @@
 import React from 'react';
+import {navigate} from 'gatsby';
 import { makeStyles } from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
@@ -30,12 +31,17 @@ export default function ApplicationTabBar(props) {
     props.handleChangePage(newValue);
   }
 
+  function handleExit(){
+    props.handleChangePage('exit');
+  }
+
   return(
     <AppBar position="static">
       <Toolbar color="inherit">
         <IconButton 
           edge="start" 
           color="inherit"
+          onClick={handleExit}
         >
           <NavigateBeforeIcon />
 
@@ -48,6 +54,7 @@ export default function ApplicationTabBar(props) {
         </Typography>
         <IconButton 
           edge="end"
+          color="inherit"
         >
            <MenuBookIcon />
         </IconButton>

@@ -1,4 +1,4 @@
-import React ,{useState } from "react";
+import React ,{useState,useEffect } from "react";
 import { makeStyles } from '@material-ui/core/styles';
 
 import Box from '@material-ui/core/Box';
@@ -7,6 +7,7 @@ import Button from '@material-ui/core/Button';
 import Input from '@material-ui/core/Input';
 import Typography from '@material-ui/core/Typography';
 
+import {toTimestampString} from '../to-timestamp-string.jsx';
 import FairyPanel from './FairyPanel';
 import HubIcon from "../../icons/Hub";
 
@@ -38,8 +39,15 @@ export default function Config(props){
   const [generosity,setGenerosity]=useState(config.hubBehavior.generosity);
   const [retention,setRetention]=useState(config.hubBehavior.retention);
 
-  function handleSaveConfig(){
-    props.handleSaveConfig({
+  useEffect(()=>{
+    if(props.pageWillChange){
+      handleSave();
+    }
+  },[props.pageWillChange]);
+  
+  function handleSave(){
+    props.handleSave(
+      {
       ...config,
       displayName:displayName,
       photoURL:photoURL,
@@ -60,6 +68,7 @@ export default function Config(props){
             photoURL={photoURL}
             hp={props.state.hp}
             displayName={displayName}
+            updatedAt={toTimestampString(config.updatedAt)}
           />
         </Grid>
         <Grid item xs={5}>
@@ -135,11 +144,19 @@ export default function Config(props){
             cancel
           </Button>
           <Button
-            onClick={handleSaveConfig()}
+            onClick={handleSave}
           >
             保存する
           </Button>
+          {props.message && 
+            <Grid item xs={12}>
+            <Typography color="error">
+              {props.message}
+            </Typography>
+            </Grid>
+          }
         </Grid>
+        
       </Grid>
     </Box>
   )

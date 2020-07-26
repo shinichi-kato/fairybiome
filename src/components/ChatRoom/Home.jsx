@@ -11,7 +11,7 @@ import FairyBiomeIcon from '../../icons/FairyBiome';
 import ApplicationBar from '../ApplicationBar/ApplicationBar';
 import {RightBalloon,LeftBalloon} from './balloons.jsx';
 import Console from './console.jsx';
-import {toTimestampString} from './to-timestamp-string.jsx';
+import {toTimestampString} from '../to-timestamp-string.jsx';
 import {FirebaseContext} from '../Firebase/FirebaseProvider';
 import {BotContext} from '../ChatBot/BotProvider';
 
