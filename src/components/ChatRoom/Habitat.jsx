@@ -1,4 +1,4 @@
-reimport React ,{useContext,useEffect,useState,useRef } from "react";
+import React ,{useContext,useEffect,useState,useRef } from "react";
 import { StaticQuery,graphql } from "gatsby"
 
 import { makeStyles } from '@material-ui/core/styles';
