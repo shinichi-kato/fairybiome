@@ -3,7 +3,7 @@
         "trueName": "", 
         "firstUser": "", 
         "buddyUser": "",
-        "displayName": "", 
+        "displayName": "クリスタル", 
         "updatedAt": "Sun Jul 12 2020 13:50:23 GMT+0900",
         "photoURL": "bot/blueCrystal/young.svg",
         "description": "サンプルのボット",
@@ -56,6 +56,6 @@
         "queue":[],
         "buddy":"none",
         "site":"habitat"
-    },
+    }
  
 }

@@ -8,9 +8,9 @@ export default class BiomeBot extends BiomeBotIO {
 
     // fairybiomeのシステム用word(必須)
     this.wordDict={
-      // 共通
-      '{NOT_FOUND}':[""],
-      '{HELLO}':[""],
+      // 共通 commons
+      '{!NOT_FOUND}':[""],
+      '{!HELLO}':[""],
       '{!BOT_JUST_BORN}':[""], // 生まれたばかりでユーザに出会った
       '{!BOT_NAME_ME}':[""],  // ユーザに名前をつけてもらう
       '{!ACCEPT_BUDDY_FORMATION}':[""], // 妖精が仲間になるのを承諾した
@@ -18,13 +18,13 @@ export default class BiomeBot extends BiomeBotIO {
       '{!IGNORE_BUDDY_FORMATION}':[""], // 妖精がすでに仲間になっている
       '{!BOT_IS_DYING}':[""], // 妖精が消滅する
       
-      //
+      // 行動 actions
       '{!BOT_WILL_SPLIT}':[""], // 別行動する
       '{!BOT_WILL_JOIN}':[""],  // 合流する
       '{!BOT_MEETS_YOU}':[""],  // 別行動中にユーザに出会った
       '{!BOT_ACCEPT_SUMMON}':[""], // 呼び出しに応じた
 
-      // learner用
+      // Learnerパート用 learner
       '{!TELL_ME_WHAT_TO_SAY}':[""],
       '{!PARSE_USER_INPUT}':[""],
       '{!I_GOT_IT}':[""],

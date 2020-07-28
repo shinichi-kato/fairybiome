@@ -19,7 +19,7 @@ const useStyles = makeStyles((theme) => ({
     width: 200
 
   },
-  barNormal: {
+  bar: {
     borderRadius: 5,
     height: 10,
     backgroundColor: ""

@@ -66,6 +66,9 @@ module.exports = {
         path: `${__dirname}/static/fairy`,
         name: "fairy",
         ignore: [`**/\.*`],
+        plugins: [
+          `gatsby-transformer-json`,
+        ]
       },
     },
     {

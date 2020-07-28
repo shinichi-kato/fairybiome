@@ -35,11 +35,11 @@ export default function BotProvider(props){
   }
  
   function handleSaveConfig(config){
-    const newConfig ={
-      ...config,
-      updatedAt: fb.timestampNow()
-    }
-    bot.setConfig(newConfig);
+    bot.setConfig(config,fb.timestampNow());
+  }
+
+  function handleSaveWordDict(wordDict){
+    bot.setWordDict(wordDict,fb.timestampNow());
   }
 
   
@@ -50,7 +50,7 @@ export default function BotProvider(props){
         photoURL:bot.config.photoURL,
         ref:bot,
         setConfig:handleSaveConfig,
-        setWordDict:bot.setWordDict,
+        setWordDict:handleSaveWordDict,
         upkeep:bot.upkeepToLocalStorage,
         isVacantInLocalStorage:bot.isVacantInLocalStorage,
         isFairyYoung:bot.isFairyYoung,

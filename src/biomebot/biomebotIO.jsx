@@ -9,7 +9,6 @@ export default class BiomeBotIO {
       firstUser: "",
       buddyUser: "",
       displayName: null,
-      updatedAt : null,
       photoURL : null,
       description : null,
       defaultPartOrder:[],
@@ -35,6 +34,7 @@ export default class BiomeBotIO {
       buddy: "none",  // none:なし, follow:随行中, 
                       // home:Home, habitat:Habitat
     };
+    this.updatedAt = null;
 
   }
 
@@ -51,7 +51,7 @@ export default class BiomeBotIO {
   }
 
 
-  setConfig = (config) => {
+  setConfig = (config,updatedAt) => {
     const b = config.hubBehavior;
     this.config = {
       ...config,
@@ -61,15 +61,18 @@ export default class BiomeBotIO {
         retention: parseFloat(b.retention),
       }
     };
+    this.updatedAt = updatedAt;
     localStorageIO.setItem('Biomebot.config',JSON.stringify(this.config));
-    
+    localStorageIO.setItem('Biomebot.updatedAt',JSON.stringify(this.updatedAt));
     console.log("setConfig:",this.config);
 
   };
 
-  setWordDict = (wordDict) => {
+  setWordDict = (wordDict,updatedAt) => {
     this.wordDict= {...wordDict};
+    this.updatedAt = updatedAt;
     localStorageIO.setItem('Biomebot.wordDict',JSON.stringify(this.wordDict));
+    localStorageIO.setItem('Biomebot.updatedAt',JSON.stringify(this.updatedAt));
   }
 
   readObj = (obj) => {
@@ -86,9 +89,7 @@ export default class BiomeBotIO {
       ...obj.state,
       partorder:[...obj.config.defaultPartOrder],
     };
-    localStorageIO.setItem('Biomebot.config',JSON.stringify(this.config));
     
-    console.log("readObj",obj)
   };
 
   readLocalStorage = () => {
@@ -117,6 +118,7 @@ export default class BiomeBotIO {
     }
     
     this.state = {...state};
+    this.updatedAt = localStorage.getJson('Biomebot.updatedAt');
     console.log("readlocal",this.config)
     return true;
 
@@ -136,7 +138,7 @@ export default class BiomeBotIO {
       localStorageIO.setItem(`Biomebot.part[${partName}]`,
       JSON.stringify(this.parts[partName].dump()));
     }
-
+    localStorageIO.setItem('Biomebot.updatedAt',this.updatedAt);
     this.upkeepToLocalStorage();
   };
 

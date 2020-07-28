@@ -27,13 +27,20 @@ const useStyles = makeStyles((theme) => ({
 
 
 
-
 export default function WordDict(props){
   const classes = useStyles();
   const wordDict=props.wordDict;
-  const [botJustBorn,setBotJustBorn] = useState(dictToStr('{!BOT_JUST_BORN}'));
-  
-
+  const [commons,setCommons] = useState({
+    botJustBorn:dictToStr('!{BOT_JUST_BORN'),
+    botNameMe:dictToStr('{!BOT_NAME_ME}'),
+    acceptBuddyFormation:dictToStr('{!ACCEPT_BUDDTY_FORMATION}'),
+    rejectBuddyFormation:dictToStr('{!REJECT_BUDDTY_FORMATION}'),
+    ignoreBuddyFormation:dictToStr('{!IGNORE_BUDDTY_FORMATION}'),
+    botIsDying:dictToStr('{!BOT_IS_DYING}'),
+    hello:dictToStr('{!HELLO}'),
+    notFound:dictToStr('{!NOT_FOUND}'),
+  });
+ 
   useEffect(()=>{
     if(props.pageWillChange){
       handleSave();
@@ -53,8 +60,32 @@ export default function WordDict(props){
   }
 
   
-  function handleChangeBotJustBorn(e){
-    setBotJustBorn(e.target.value);
+  function handleChangeCommons(event) {
+    this.setState({ [event.target.name]: event.target.value });
+  }
+
+
+
+  function TextInput(props){
+    return(
+      <>
+        <Typography variant="subtitle2">
+        {props.caption}
+        </Typography>
+        <Input 
+          name={props.name}
+          required
+          multiline
+          fullWidth
+          rows={2}
+          rowsMax={5}
+          className={classes.input}
+          value={props.value}
+          onChange={props.handleChange}
+        />      
+      </>
+    )
+
   }
 
   return (
@@ -63,21 +94,79 @@ export default function WordDict(props){
         <Grid item xs={12}>
           <Button>.json形式ファイルの貼り付け</Button>
         </Grid>
+
         <Grid item xs={12}>
-          <Typography variant="subtitle2">
-            生まれてすぐの妖精がユーザに出会ったときの挨拶
-          </Typography>
-          <Input 
-            required
-            multiline
-            fullWidth
-            rows={2}
-            rowsMax={5}
-            className={classes.input}
-            value={botJustBorn}
-            onChange={handleChangeBotJustBorn}
+          <TextInput 
+            name={botJustBorn}
+            caption="生まれたばかりの妖精がユーザに出会ったときの挨拶"
+            value={commons.botJustBorn}
+            handleChange={handleChangeCommons}
           />
         </Grid>
+
+        <Grid item xs={12}>
+          <TextInput 
+            name={botNameMe}
+            caption="生まれたばかりの妖精が自分に名前をつけてほしいと頼む"
+            value={commons.botNameMe}
+            handleChange={handleChangeCommons}
+          />
+        </Grid>
+
+        <Grid item xs={12}>
+          <TextInput 
+            name={acceptBuddyFormation}
+            caption="ユーザのバディになることを受け入れる"
+            value={commons.acceptBuddyFormation}
+            handleChange={handleChangeCommons}
+          />
+        </Grid>
+
+        <Grid item xs={12}>
+          <TextInput 
+            name={rejectBuddyFormation}
+            caption="ユーザのバディになることを拒否する"
+            value={commons.rejectBuddyFormation}
+            handleChange={handleChangeCommons}
+          />
+        </Grid>
+
+        <Grid item xs={12}>
+          <TextInput 
+            name={ignoreBuddyFormation}
+            caption="ユーザのバディになってほしいという依頼を受け流す"
+            value={commons.ignoreBuddyFormation}
+            handleChange={handleChangeCommons}
+          />
+        </Grid>
+
+        <Grid item xs={12}>
+          <TextInput 
+            name={botIsDying}
+            caption="妖精のHPが0になり、消滅する瞬間の言葉"
+            value={commons.botIsDying}
+            handleChange={handleChangeCommons}
+          />
+        </Grid>
+
+        <Grid item xs={12}>
+          <TextInput 
+            name={hello}
+            caption="妖精からの挨拶"
+            value={commons.hello}
+            handleChange={handleChangeCommons}
+          />
+        </Grid>
+
+        <Grid item xs={12}>
+          <TextInput 
+            name={notFound}
+            caption="返答候補が見つからなかった場合に相づちやうなづきをとりあえず返す"
+            value={commons.notFound}
+            handleChange={handleChangeCommons}
+          />
+        </Grid>
+
       </Grid>
     </Box>
   )
