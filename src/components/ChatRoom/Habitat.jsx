@@ -1,4 +1,4 @@
-import React ,{useContext,useEffect,useState,useRef } from "react";
+reimport React ,{useContext,useEffect,useState,useRef } from "react";
 import { StaticQuery,graphql } from "gatsby"
 
 import { makeStyles } from '@material-ui/core/styles';
@@ -7,6 +7,7 @@ import Box from '@material-ui/core/Box';
 import Avatar from '@material-ui/core/Avatar';
 import Typography from '@material-ui/core/Typography';
 import LinearProgress from '@material-ui/core/LinearProgress';
+import IconButton from '@material-ui/core/IconButton';
 
 import ApplicationBar from '../ApplicationBar/ApplicationBar';
 import {FirebaseContext} from '../Firebase/FirebaseProvider';
@@ -41,18 +42,21 @@ function randomInt(max) {
 
 // Habitatにいる妖精を抽出
 const query = graphql`
-query {
-  allFairyJson(filter: {state: {site: {eq: "habitat"}}}) {
+query Myq {
+  allFile(filter: {sourceInstanceName: {eq: "fairy"}, childFairyJson: {state: {site: {eq: "habitat"}}}}) {
     edges {
       node {
-        config {
-          displayName
-          photoURL
-          buddyUser
-        }
-        state {
-          hp
-          buddy
+        relativePath
+        childFairyJson {
+          config {
+            buddyUser
+            displayName
+            photoURL
+          }
+          state {
+            hp
+            buddy
+          }
         }
       }
     }
@@ -72,6 +76,13 @@ const useStyles = makeStyles((theme) => ({
     height: 10,
     backgroundColor: ""
   },
+  avatarList:{
+    width:40,
+    height:40
+  },
+  avatarContainer:{
+    width: 120
+  }
 
 
 }));
@@ -99,40 +110,38 @@ export default function Habitat(props){
 
   const seed = Math.floor(fb.timestampNow().seconods/(60*HABITAT.update_interval));
 
-  function GetFairiesList(props){
-    // fairiesListをuseStateで構成すると、「render内でのsetState」
-    // というwarningになる。これは useStaticQuery()で回避できるが、
-    // 2020.7現在ではuseStaticQuery() 自体にバグがあり、undefined
-    // しか帰ってこない。
-    // 
-    // そこで useRef を代替とし、データ取得のみのサブコンポーネントを用いる。  
+  
 
-    
-    if(props.data){
-      fairiesListRef.current = props.data.allFairyJson.edges.map(edge=>({
-        displayName:edge.node.config.displayName,
-        photoURL: edge.node.config.photoURL,
-        buddyUser:edge.node.config.buddyUser,
-        hp:edge.node.state.hp
-      }));
-    }
-    console.log(fairiesListRef.current)
-    return null;
+
+
+  function handleClick(path){
+
   }
+
 
   function FairyAvatar(props){
     return (
       <Box
         display="flex"
         flexDirection="column"
+        alignItems="center"
       >
         <Box>
-          <Avatar src={`../../fairy/${props.photoURL}`}/>
+          <IconoButton
+            onClick={()=>handleClick(props.relativePath)}
+          >
+            <Avatar 
+              className={classes.avatarList}
+              src={`../../svg/${props.photoURL}`}/>
+          </IconoButton>
+          
         </Box>
         <Box>
-          <Typography>{props.displayName}</Typography>
+          <Typography>{props.displayName||"まだ名前のない妖精"}</Typography>
         </Box>
-        <Box>
+        <Box
+          className={classes.avatarContainer}
+        >
           <LinearProgress
             className={classes.bar}
             variant="determinate"
@@ -143,11 +152,52 @@ export default function Habitat(props){
     )
   }
 
+
+
+
+  function GetFairiesList(props){
+    // fairiesListをuseStateで構成すると、「render内でのsetState」
+    // というwarningになる。これは useStaticQuery()で回避できるが、
+    // 2020.7現在ではuseStaticQuery() 自体にバグがあり、undefined
+    // しか帰ってこない。
+    // 
+    // そこで useRef を代替とし、データ取得のみのサブコンポーネントを用いる。  
+
+    
+    if(props.data){
+      fairiesListRef.current = props.data.allFile.edges.map(edge=>{
+        const jsonData = edge.node.childFairyJson;
+        return {
+          relativePath:edge.node.relativePath,
+          displayName:jsonData.config.displayName,
+          photoURL:jsonData.config.photoURL,
+          buddyUser:jsonData.config.buddyUser,
+          hp:jsonData.state.hp,
+        }
+      });
+        
+    }
+    console.log(fairiesListRef.current)
+    return null;
+  }
+
+
   useEffect(()=>{
     // queryでHabitatにいる妖精を抽出し、そのの中から
     // 出現する妖精の数を決める
     if(fairiesListRef.current){
       let allFairies = fairiesListRef.current.filter(fairy=>fairy.hp<hpMaxRef.current);
+      //ユーザのバディがhabitatにいればこれに加える。
+      if(bot.ref.state.site==='habitat'){
+        allFairies.push({
+          relativePath:'__localStorage__',
+          displayName:bot.displayName,
+          photoURL: bot.photoURL,
+          buddyUser:fb.user.displayName,
+          hp:bot.ref.state.hp         
+        })
+      }
+      // firestore上のbotをfetchして加える
 
       let selectedFairies = [];
       const numOfFairies = Math.min(random_norm(HABITAT.numberBehavior),allFairies.length);
@@ -182,9 +232,13 @@ export default function Habitat(props){
         <Box>
           <ApplicationBar title="妖精の生息地" />
         </Box>
+        <Box>
+          <Typography>誰とお話する？</Typography>
+        </Box>
         <Box 
           display="flex"
           flexDirection="row"
+          justifyContent="space-evenly"
         >
           {fairies.map((fairy,index)=><FairyAvatar {...fairy} key={index}/>)}
 
