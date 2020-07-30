@@ -140,7 +140,7 @@ export default function Home(props){
         alignContent="flex-start"
       >
         <Box>
-          <ApplicationBar title="" busy={botBusy}/>
+          <ApplicationBar title="ホーム" busy={botBusy}/>
         </Box>
         <Box flexGrow={1} order={0} className={classes.main}>
           {speeches}

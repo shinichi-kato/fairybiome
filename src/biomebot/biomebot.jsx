@@ -51,6 +51,36 @@ export default class BiomeBot extends BiomeBotIO {
     }
   }
 
+  promiseOverwriteStandbyBot = () => {
+    return new Promise(resolve=>{
+      fetch('/static/systembot/standby.json')
+      .then(res=>res.json())
+      .then(data=>{
+        // 今のボットを部分的に上書き
+        this.config = {
+          ...this.config,
+          ...data.config
+        };
+        this.wordDict = {
+          ...this.wordDict,
+          ...data.wordDict,
+        };
+        this.parts = {
+          ...data.parts
+        };
+        this.state={
+          ...this.state,
+          ...data.state
+        };
+      
+
+      })
+      .catch(error=>{
+        reject("failed to load systembot/standby.json");
+      })
+
+    })
+  }
   deployLocal = (userName) => {
     return new Promise(resolve => {
 
@@ -76,8 +106,8 @@ export default class BiomeBot extends BiomeBotIO {
       */ 
 
       switch(this.state.buddy){
-        case 'home':{
-          // homeにbuddyがいる・・・通常起動
+        case 'follow':{
+          // buddyが随行中・・・通常起動
           // 各パートのコンパイル
           this.tagKeys= Object.keys(this.wordDict);
           
@@ -91,28 +121,79 @@ export default class BiomeBot extends BiomeBotIO {
           this.wordDict['{PREV_USER_INPUT}'] ="・・・";
           this.wordDict['{RESPONSE}'] = "・・・";
 
-          console.log("home used")
-          
         }
-        case 'habitat':{
-          // buddyが現在地にいない・・・「呼んだら来る」モード
-          
+        case 'none':{
+          // buddyがいない・・・無反応
+          break;
 
         }
         default :{
-          // buddyがいない・・・無反応
-          
-        }
+          // buddyがhomeかhabitatにいるが、ユーザからは離れている・・・
+          // 呼べば来るかもパートだけの共通ボットを起動
+          this.promiseOverwriteStandbyBot()
+          .then(()=>{
+              // 各パートのコンパイル
+              this.tagKeys= Object.keys(this.wordDict);
+            
+              Promise.all(this.state.partOrder.map(partName=>(
+                this.parts[partName].compile()
+              ))).then(messages=>{
+                console.log("parrot",this.parts.parrot)
+              });
+      
+      
+              this.wordDict['{PREV_USER_INPUT}'] ="・・・";
+              this.wordDict['{RESPONSE}'] = "・・・";              
+            
+
+          })
       } 
     return resolve();
   })};
 
-  deployHabitat = () =>{
+  deployHabitat = (path) =>{
     /* habitatモードの起動
-      habitatのデータはcloud上からメモリにダウンロードし、localStorageには
-      保存しない。
-      妖精の選択時、state.buddyがhabitatな妖精しか選べない。
+      deployHabitat(null)として起動すると、ユーザが会話する相手を選んでいない
+      状態（ボタンを押していない/byeした後)になる。その場合 
+      　buddyのsiteがfollow: 通常起動
+        buddyのsiteがhabitat:待受モード
+        buddyのsiteがそれら以外:無反応
+      となる。
+
+      ユーザが相手を選んでいる状態ではpathで指定されたボットがbotにダウンロード
+      されている。
+      
+      habitatモードではボットのデータはlocalStorageには一切保存しない。
+      
      */
+    if(path === null){
+      if(this.state.buddy === "none" || this.state.buddy === "home"){
+        //無反応
+      }
+      // 通常のボットをロード
+      bot.readLocalStorate();
+      
+      if(this.state.buddy === "habitat"){
+        //待受モード（通常起動に上書き)
+      //   this.promiseOverwriteStandbyBot()
+      //   .then(()=>{
+      //       // 各パートのコンパイル
+      //       this.tagKeys= Object.keys(this.wordDict);
+          
+      //       Promise.all(this.state.partOrder.map(partName=>(
+      //         this.parts[partName].compile()
+      //       ))).then(messages=>{
+      //         console.log("parrot",this.parts.parrot)
+      //       });
+    
+    
+      //       this.wordDict['{PREV_USER_INPUT}'] ="・・・";
+      //       this.wordDict['{RESPONSE}'] = "・・・";              
+          
+
+      //   })
+      // }
+    }
   };
 
 

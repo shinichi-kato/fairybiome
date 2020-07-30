@@ -16,6 +16,16 @@ module.exports = {
     //   email: "",
     // },
     // menuLinks: [],
+ 
+    local_log_lines_max:200,  /* ローカルのログに記録する最大行数 */
+    chat_lines_max:20,        /* 画面上に表示するログの最大行数 */
+    habitat_fairy_hp_max:120, /* habitatで出現する妖精の最大数 */
+    habitat_num_of_fairy_max:4  /* habitatで出現する妖精の最大HPを決める乱数の最大値 */
+        /*  妖精の最大HPは100で、HP100の妖精も存在する。
+            しかしHP_MAXを100にするとHP100の妖精が出現する確率が
+            低くなりすぎるため、HP_MAXは100より大きくする。
+            HP_MAXを大きくするほどHPの高い妖精が出現しやすくなる */
+    
   },
   pathPrefix: "/",
   plugins: [

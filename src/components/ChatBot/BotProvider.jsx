@@ -34,6 +34,16 @@ export default function BotProvider(props){
     })
   }
  
+  function handleDeployHabitat(){
+    return new Promise(resolve =>{
+      if(bot.isLoaded){
+        bot.deployHabitat();
+      }
+      resolve();
+    })
+  }
+
+
   function handleSaveConfig(config){
     bot.setConfig(config,fb.timestampNow());
   }
@@ -54,9 +64,11 @@ export default function BotProvider(props){
         upkeep:bot.upkeepToLocalStorage,
         isVacantInLocalStorage:bot.isVacantInLocalStorage,
         isFairyYoung:bot.isFairyYoung,
+        readLocalStorage:bot.readLocalStorage,
         loadGuestFromObj:loadGuestFromObj,
         loadBuddyFromObj:loadBuddyFromObj,
         deployLocal:handleDeployLocal,
+        deployHabitat:handleDeployHabitat,
         reply:bot.reply,
       }}
     >

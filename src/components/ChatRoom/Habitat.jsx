@@ -10,40 +10,21 @@ import LinearProgress from '@material-ui/core/LinearProgress';
 import IconButton from '@material-ui/core/IconButton';
 
 import ApplicationBar from '../ApplicationBar/ApplicationBar';
+import {RightBalloon,LeftBalloon} from './balloons.jsx';
+import Console from './console.jsx';
+import {toTimestampString} from '../to-timestamp-string.jsx';
 import {FirebaseContext} from '../Firebase/FirebaseProvider';
 import {BotContext} from '../ChatBot/BotProvider';
 
-const HABITAT={
-  update_interval:1, // 生息地にいる妖精の顔ぶれが更新されるまでの時間(分) 
-  numberBehavior:{
-    mean:3,   // 妖精出現数の平均値
-    stdDev:0.5 // 幼生出現数の標準偏差 
-  },
-  hpBehavior:{
-    mean:50, // 出現する妖精のHP最大値の平均値
-    stdDev:20 // 出現する妖精のHP最大値の標準偏差
-  }
-}
-
-function random_norm(behavior) {
-  //平均0、標準偏差1の正規乱数を返す。
-  //https://stabucky.com/wp/archives/9263
-  var s, i;
-  s = 0;
-  for(i = 0; i < 12; i++) {
-    s += Math.random();
-  }
-  return behavior.mean + (s - 6)*behavior.stdDev;
-}
 
 function randomInt(max) {
   return Math.floor(Math.random() * Math.floor(max));
 }
 
-// Habitatにいる妖精を抽出
+// fairyディレクトリの妖精の中でHabitatにいるものを抽出
 const query = graphql`
 query Myq {
-  allFile(filter: {sourceInstanceName: {eq: "fairy"}, childFairyJson: {state: {site: {eq: "habitat"}}}}) {
+  allFile(filter: {sourceInstanceName: {eq: "fairy"}}) {
     edges {
       node {
         relativePath
@@ -59,6 +40,14 @@ query Myq {
           }
         }
       }
+    }
+  }
+  site {
+    siteMetadata {
+      local_log_lines_max
+      chat_lines_max
+      habitat_num_of_fairy_max
+      habitat_fairy_hp_max
     }
   }
 }
@@ -82,10 +71,24 @@ const useStyles = makeStyles((theme) => ({
   },
   avatarContainer:{
     width: 120
-  }
+  },
+  avatarSelector:{
+    height: 200,
+  },
+  main: {
+    height: 'calc( 100vh - 64px - 48px - 200px )',
+      overflowY:'scroll',
+    overscrollBehavior:'auto',
+    WebkitOverflowScrolling:'touch',
+    padding: 0
+  },
 
 
 }));
+
+
+
+
 
 
 export default function Habitat(props){
@@ -97,25 +100,47 @@ export default function Habitat(props){
     妖精と会話すると、仲間にできる場合がある。
 
     妖精の出現傾向
-    妖精が出現する数はnumber{mean,stdDev}で与えられる正規分布に従い、
-    また出現できる妖精のHP最大値はhp{mean,stdDev}で与えられる正規分布に従う。
+    妖精が出現する数は0〜4の乱数、現れる妖精のHP最大値は0〜100の乱数で決まる
+    また出現している妖精の顔ぶれはアプリ起動中変わらない。
+  
   */
   const classes = useStyles();
 
   const fb = useContext(FirebaseContext);
   const bot = useContext(BotContext);
   const fairiesListRef = useRef(null);
-  const hpMaxRef = useRef(randomInt(100));
+  const hpMaxRef = useRef();
+  const numOfFairyRef = useRef();
+  const localLogLinesMaxRef = useRef(10);
+  const chatLinesMaxRef = useRef(10);
   const [fairies,setFairies] = useState([]);
+  const [currentFairy,setCurrentFairy] = useState(null);
+  const [botBusy,setBotBusy] = useState(false);
 
-  const seed = Math.floor(fb.timestampNow().seconods/(60*HABITAT.update_interval));
-
-  
+  // const seed = Math.floor(fb.timestampNow().seconods/(60*HABITAT.update_interval));
 
 
+  function handleCatchFairy(path){
+    setCurrentFairy(path);
 
-  function handleClick(path){
+    if(path === '__localStorage__'){
+      bot.readLocalStorage();
 
+    }else if(path.endsWith('.json')){
+      fetch(`../../fairy/${path}`)
+        .then(res=>res.json())
+        .then(data=>{
+          bot.loadGuestFromObj(data);
+        })
+        .catch(error=>{
+          setMessage(error.message);
+        })
+    }else{
+      // firestoreからダウンロード
+      // 未実装
+    }
+
+    bot.deployHabitat(path);
   }
 
 
@@ -127,13 +152,13 @@ export default function Habitat(props){
         alignItems="center"
       >
         <Box>
-          <IconoButton
-            onClick={()=>handleClick(props.relativePath)}
+          <IconButton
+            onClick={()=>handleCatchFairy(props.relativePath)}
           >
             <Avatar 
               className={classes.avatarList}
               src={`../../svg/${props.photoURL}`}/>
-          </IconoButton>
+          </IconButton>
           
         </Box>
         <Box>
@@ -153,40 +178,38 @@ export default function Habitat(props){
   }
 
 
+  function FairiesList(props){
+    // fairyディレクトリ、 ユーザのバディ、firestoreそれぞれの妖精を抽出し、
+    // ランダムに数名を選んで表示
 
+    if(fairiesListRef.current === null){
 
-  function GetFairiesList(props){
-    // fairiesListをuseStateで構成すると、「render内でのsetState」
-    // というwarningになる。これは useStaticQuery()で回避できるが、
-    // 2020.7現在ではuseStaticQuery() 自体にバグがあり、undefined
-    // しか帰ってこない。
-    // 
-    // そこで useRef を代替とし、データ取得のみのサブコンポーネントを用いる。  
+      // fairyディレクトリの妖精はgraphqlで抽出
+      const data = props.data.allFile.edges.map(edge=>{
+          const jsonData = edge.node.childFairyJson;
+          return {
+            relativePath:edge.node.relativePath,
+            displayName:jsonData.config.displayName,
+            photoURL:jsonData.config.photoURL,
+            buddyUser:jsonData.config.buddyUser,
+            hp:jsonData.state.hp,
+          }
+        });
+      const hpMax = props.site.siteMetadata.habitat_fairy_hp_max;
+      const numOfFairyMax = props.site.siteMetadata.habitat_num_of_fairy_max;
+      
+      hpMaxRef.current = randomInt(hpMax);
+      numOfFairyRef.current = randomInt(numOfFairyMax);
+          
+      
+      fairiesListRef.current=[...data];
 
-    
-    if(props.data){
-      fairiesListRef.current = props.data.allFile.edges.map(edge=>{
-        const jsonData = edge.node.childFairyJson;
-        return {
-          relativePath:edge.node.relativePath,
-          displayName:jsonData.config.displayName,
-          photoURL:jsonData.config.photoURL,
-          buddyUser:jsonData.config.buddyUser,
-          hp:jsonData.state.hp,
-        }
-      });
-        
-    }
-    console.log(fairiesListRef.current)
-    return null;
-  }
+      // firestore上のbotをfetchして加える
+      // 未実装
 
-
-  useEffect(()=>{
-    // queryでHabitatにいる妖精を抽出し、そのの中から
-    // 出現する妖精の数を決める
-    if(fairiesListRef.current){
-      let allFairies = fairiesListRef.current.filter(fairy=>fairy.hp<hpMaxRef.current);
+      // hp が 1d100値よりも小さい妖精に絞り込む
+      let allFairies = data.filter(fairy=>fairy.hp<hpMaxRef.current);
+      
       //ユーザのバディがhabitatにいればこれに加える。
       if(bot.ref.state.site==='habitat'){
         allFairies.push({
@@ -197,53 +220,131 @@ export default function Habitat(props){
           hp:bot.ref.state.hp         
         })
       }
-      // firestore上のbotをfetchして加える
-
+      
+      // そのうちの0〜4名をランダムに選ぶ
       let selectedFairies = [];
-      const numOfFairies = Math.min(random_norm(HABITAT.numberBehavior),allFairies.length);
-      for(let i=0; i<numOfFairies; i++){
+      for(let i=0; i<numOfFairyRef.current; i++){
         let index = randomInt(allFairies.length);
         selectedFairies.push(allFairies[index])
-        delete allFairies[index];
+        allFairies.splice(index,1);
       }
       setFairies([...selectedFairies])
-  
+      console.log("all",allFairies,"hp",hpMaxRef.current,numOfFairyRef.current,selectedFairies);
+    
+      // ついでにチャットログ用の定数をセット
+      localLogLinesMaxRef.current = props.site.siteMetadata.local_log_lines_max;
+      chatLinesMaxRef.current = props.site.siteMetadata.chat_lines_max;
+
     }
+    
+    return (
+      <>
+       {
+          numOfFairyRef.current === 0 
+          ?
+          <Typography>今は誰もいないようだ・・・</Typography>
+          :
+          fairies.map((fairy,index)=><FairyAvatar {...fairy} key={index}/>)
+        }
+      </>
+    )
+  }
 
-  },[fairiesListRef.current])
+  function handleWriteMessage(text){
+    if(text === null){
+      return;
+    }
+    const message={
+      displayName:user.displayName,
+      photoURL:user.photoURL,
+      text:text,
+      speakerId:user.uid,
+      timestamp:toTimestampString(fb.timestampNow()),
+    };
 
-  
+    writeLog(message);
+    
+    setBotBusy(true);
+    bot.reply(user.displayName,text)
+      .then(reply=>{
+        if(reply.text !== null){
+          writeLog({
+            displayName:botDisplayName,
+            photoURL:reply.photoURL,
+            text:reply.text,
+            speakerId:bot.displayName,
+            timestamp:toTimestampString(fb.timestampNow())
+          });
+          setBotBusy(false);
+        }
+      })
+      // .catch(e=>{
+      //   writeLog({
+      //     displayName:"error",
+      //     photoURL:"",
+      //     text:e.message,
+      //     speakerId:bot.DisplayName,
+      //     timestamp:toTimestampString(fb.timestampNow())
+      //   })
+      //   setBotBusy(false);
+      // })
+  }
+
+
+  // --------------------------------------------------------
+  // currentLogが変更されたら最下行へ自動スクロール
+  const myRef = useCallback(node => {
+    if(node!== null){
+      node.scrollIntoView({behavior:"smooth",block:"end"});
+    }
+  })
+
+  const logSlice=log.slice(-CHAT_WINDOW);
+  const speeches = logSlice.map(speech =>{
+    return (speech.speakerId === user.uid || speech.speakerId === -1 )?
+      <RightBalloon speech={speech} key={speech.timestamp}/>
+    :
+      <LeftBalloon speech={speech} key={speech.timestamp}/>
+    }
+  );
 
   return (
-    <>
-      {fairiesListRef.current === null &&
-        <StaticQuery
-          query={query}
-          render={data=><GetFairiesList data={data} />}
-        />
-      }
+    <Box 
+      display="flex"
+      flexDirection="column"
+      flexWrap="nowrap"
+      justifyContent="flex-start"
+      alignContent="flex-start"
+      className={classes.root}
+    >
+      <Box>
+        <ApplicationBar title="妖精の生息地" busy={botBusy}/>
+      </Box>
+      <Box>
+        <Typography>誰とお話する？</Typography>
+      </Box>
       <Box 
         display="flex"
-        flexDirection="column"
-        flexWrap="nowrap"
-        justifyContent="flex-start"
-        alignContent="flex-start"
+        flexDirection="row"
+        justifyContent="space-evenly"
+        className={classes.avatarSelector}
       >
-        <Box>
-          <ApplicationBar title="妖精の生息地" />
-        </Box>
-        <Box>
-          <Typography>誰とお話する？</Typography>
-        </Box>
-        <Box 
-          display="flex"
-          flexDirection="row"
-          justifyContent="space-evenly"
-        >
-          {fairies.map((fairy,index)=><FairyAvatar {...fairy} key={index}/>)}
-
-        </Box>
+        <StaticQuery
+          query={query}
+          render={data=><FairiesList data={data} />}
+        />
       </Box>
-    </>
+      <Box
+        flexGrow={1}
+        className={classes.main}
+      >
+        {speeches}
+        <div ref={myRef}></div>
+      </Box>
+      <Box order={0} justifyContent="center">
+          <Console
+            handleWriteMessage={handleWriteMessage}/>
+      </Box>
+    </Box>
   )
 }
