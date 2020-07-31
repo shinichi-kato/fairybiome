@@ -1,5 +1,6 @@
 import {random, re} from 'mathjs';
 import BiomeBotIO from './biomebotIO.jsx';
+import {stabdbyFairy} from './standbyFairy';
 
 
 export default class BiomeBot extends BiomeBotIO {
@@ -39,6 +40,9 @@ export default class BiomeBot extends BiomeBotIO {
 
   
   reply = (x,y) => {
+    /* 
+    
+    */
     switch(this.state.buddy){
       case 'home': 
         return this.homeReply(x,y);
@@ -51,153 +55,129 @@ export default class BiomeBot extends BiomeBotIO {
     }
   }
 
-  promiseOverwriteStandbyBot = () => {
-    return new Promise(resolve=>{
-      fetch('/static/systembot/standby.json')
-      .then(res=>res.json())
-      .then(data=>{
-        // 今のボットを部分的に上書き
-        this.config = {
-          ...this.config,
-          ...data.config
-        };
-        this.wordDict = {
-          ...this.wordDict,
-          ...data.wordDict,
-        };
-        this.parts = {
-          ...data.parts
-        };
-        this.state={
-          ...this.state,
-          ...data.state
-        };
-      
+  overwriteStandbyFairy = () =>{
+    this.config = {
+      ...this.config,
+      ...standbyFairy.config
+    };
+    this.wordDict = {
+      ...this.wordDict,
+      ...standbyFairy.wordDict,
+    };
+    this.parts = {
+      ...standbyFairy.parts
+    };
+    this.state={
+      ...this.state,
+      ...standbyFairy.state
+    };
 
-      })
-      .catch(error=>{
-        reject("failed to load systembot/standby.json");
-      })
-
-    })
   }
-  deployLocal = (userName) => {
-    return new Promise(resolve => {
 
-      /* homeまはたhub用のモードの起動
-        localStorageにある妖精データを使用する。
-        データがない場合、またはstate.siteがnoneであればbotは一切反応しない。
-        state.buddyが現在地でなければ「呼んだら来る」モードで起動。
-        homeであれば通常の起動。
+  deploy = async (userName,fairy,site) => {
+    /* 
+      fairy:nullの場合妖精不在、Objectを渡した場合妖精のobj形式データとみなす。
+      site:現在地
 
-        ■バディ結成の無効化
-        Homeには自分のバディになっている妖精しか存在しない。
-        Hubでは他の誰かのバディになっている妖精と会話をする場合がある。
-        どちらであっても全ての{!ACCEPT_BUDDY_FORMATION}や{!REJECT_BUDDY_FORMATION}は無効で、
-        {!IGNORE_BUDDY_FORMATION}が代わりに実行される。
-
-        ■単独行動中のバディの呼び出し
-        HomeとHabitatではバディの妖精が単独行動していて現在地にいない場合妖精は返事をしない。
-        妖精が不在でもユーザが呼びかけて{!BOT_ACCEPT_SUMMON}が評価された場合、1d100がHPよりも大きければ
-        妖精は姿を見せてstate.buddyがfollowに戻る。すでに現在地に妖精がいる場合には
-        {!BOT_ACCEPT_SUMMON}は何も効果を持たない
-
-
-      */ 
-
-      switch(this.state.buddy){
-        case 'follow':{
-          // buddyが随行中・・・通常起動
-          // 各パートのコンパイル
-          this.tagKeys= Object.keys(this.wordDict);
-          
-          Promise.all(this.state.partOrder.map(partName=>(
-            this.parts[partName].compile()
-          ))).then(messages=>{
-            console.log("parrot",this.parts.parrot)
-          });
-
-
-          this.wordDict['{PREV_USER_INPUT}'] ="・・・";
-          this.wordDict['{RESPONSE}'] = "・・・";
-
-        }
-        case 'none':{
-          // buddyがいない・・・無反応
-          break;
-
-        }
-        default :{
-          // buddyがhomeかhabitatにいるが、ユーザからは離れている・・・
-          // 呼べば来るかもパートだけの共通ボットを起動
-          this.promiseOverwriteStandbyBot()
-          .then(()=>{
-              // 各パートのコンパイル
-              this.tagKeys= Object.keys(this.wordDict);
-            
-              Promise.all(this.state.partOrder.map(partName=>(
-                this.parts[partName].compile()
-              ))).then(messages=>{
-                console.log("parrot",this.parts.parrot)
-              });
+      fairyから会話相手になる妖精のデータをロードする。buddyをロードした場合は
+      さらにfollow,home,habitatの3つの状態がありうる。これらの組み合わせにより、
+      実際に起動する妖精のモードを下記の表に従って決定し、データをbotに読み込み、コンパイルする。
+                        
+      選択した話し相手     buddyの状態    現在地      動作モード 
+      -------------------------------------------------------      
+      null              null          hub         none
+      null              null          home        none
+      null              null          habitat     none
+      null              follow        hub         buddy
+      null              follow        home        buddy
+      null              follow        habitat     none
+      null              home          hub         none
+      null              home          home        buddy-standby
+      null              home          habitat     none
+      null              habitat       hub         none
+      null              habitat       home        none
+      null              habitat       habitat     buddy-standby
       
+      guest             null          hub         -
+      guest             null          home        -
+      guest             null          habitat     guest
+      guest             follow        hub         -
+      guest             follow        home        -
+      guest             follow        habitat     guest
+      guest             home          hub         -
+      guest             home          home        -
+      guest             home          habitat     guest
+      guest             habitat       hub         -
+      guest             habitat       home        -
+      guest             habitat       habitat     guest
       
-              this.wordDict['{PREV_USER_INPUT}'] ="・・・";
-              this.wordDict['{RESPONSE}'] = "・・・";              
-            
+      buddy             null          hub         -
+      buddy             null          home        -
+      buddy             null          habitat     -
+      buddy             follow        hub         buddy
+      buddy             follow        home        buddy
+      buddy             follow        habitat     buddy
+      buddy             home          hub         -
+      buddy             home          home        -
+      buddy             home          habitat     -
+      buddy             habitat       hub         -
+      buddy             habitat       home        -
+      buddy             habitat       habitat     -
 
-          })
-      } 
-    return resolve();
-  })};
 
-  deployHabitat = (path) =>{
-    /* habitatモードの起動
-      deployHabitat(null)として起動すると、ユーザが会話する相手を選んでいない
-      状態（ボタンを押していない/byeした後)になる。その場合 
-      　buddyのsiteがfollow: 通常起動
-        buddyのsiteがhabitat:待受モード
-        buddyのsiteがそれら以外:無反応
-      となる。
+    */
+    
+    const buddyState = this.getBuddyState();
 
-      ユーザが相手を選んでいる状態ではpathで指定されたボットがbotにダウンロード
-      されている。
+    this.state.buddy = "none";
       
-      habitatモードではボットのデータはlocalStorageには一切保存しない。
-      
-     */
-    if(path === null){
-      if(this.state.buddy === "none" || this.state.buddy === "home"){
-        //無反応
+    if(!fairy){
+      // 話し相手を選んでいない
+      if(buddyState === 'follow' && site !=='habitat'){
+        // buddyが随行中ならhabitat以外では話し相手になる
+        this.readLocalStorage();
+      }else if(buddyState === site){
+        // buddyが現地にいるが離れている
+        this.readObj(fairy);
+        this.overwriteStandbyFairy();
+      }else{
+        return;
       }
-      // 通常のボットをロード
-      bot.readLocalStorate();
-      
-      if(this.state.buddy === "habitat"){
-        //待受モード（通常起動に上書き)
-      //   this.promiseOverwriteStandbyBot()
-      //   .then(()=>{
-      //       // 各パートのコンパイル
-      //       this.tagKeys= Object.keys(this.wordDict);
-          
-      //       Promise.all(this.state.partOrder.map(partName=>(
-      //         this.parts[partName].compile()
-      //       ))).then(messages=>{
-      //         console.log("parrot",this.parts.parrot)
-      //       });
-    
-    
-      //       this.wordDict['{PREV_USER_INPUT}'] ="・・・";
-      //       this.wordDict['{RESPONSE}'] = "・・・";              
-          
-
-      //   })
-      // }
+    }else{
+      // 話し相手にguestまたはbuddyを選んだ
+      // →選んだ相手と話す
+      this.readObj(fairy);
     }
-  };
+
+    // 各パートのコンパイル
+    this.tagKeys= Object.keys(this.wordDict);
+    
+    Promise.all(this.state.partOrder.map(partName=>(
+      this.parts[partName].compile()
+    ))).then(messages=>{
+      console.log("parrot",this.parts.parrot)
+    });
 
 
+    this.wordDict['{PREV_USER_INPUT}'] ="・・・";
+    this.wordDict['{RESPONSE}'] = "・・・";
+  }
+
+  
   homeReply = (userName,userInput) => {
+    /*
+    ■バディ結成の無効化
+    Homeには自分のバディになっている妖精しか存在しない。
+    Hubでは他の誰かのバディになっている妖精と会話をする場合がある。
+    どちらであっても全ての{!ACCEPT_BUDDY_FORMATION}や{!REJECT_BUDDY_FORMATION}は無効で、
+    {!IGNORE_BUDDY_FORMATION}が代わりに実行される。
+
+    ■単独行動中のバディの呼び出し
+    HomeとHabitatではバディの妖精が単独行動していて現在地にいない場合妖精は返事をしない。
+    妖精が不在でもユーザが呼びかけて{!BOT_ACCEPT_SUMMON}が評価された場合、1d100がHPよりも大きければ
+    妖精は姿を見せてstate.buddyがfollowに戻る。すでに現在地に妖精がいる場合には
+    {!BOT_ACCEPT_SUMMON}は何も効果を持たない
+    */
     return new Promise(resolve => {
 
 
@@ -258,9 +238,9 @@ export default class BiomeBot extends BiomeBotIO {
   habitatReply = (name,text) => {
     /*
       Habitatでの挙動
-      Habitatにはユーザのバディになっている妖精とそうでない妖精がいる。
-      
-      ■ユーザのバディではない妖精
+      Habitatで会話する相手にはguest、buddy、待受状態のbuddyの３種類がある。
+
+      ■ゲスト妖精
       ユーザにバディがいない状態であれば、妖精に話しかけてバディにできる可能性がある。
       会話の中で{!ACCEPT_BUDDY_FORMATION}が評価された場合、1d100が妖精のHPよりも大きければ
       妖精はバディになる。そうでなければ{!IGNORE_BUDDY_FORMATION}が代わりに実行される。
@@ -271,12 +251,14 @@ export default class BiomeBot extends BiomeBotIO {
       localStorageに保存はされないが、言葉を教えることはできる。
       
       
-      ■ユーザのバディになっている妖精
+      ■buddy
+      Homeと同じ
+
+      ■待受状態のbuddy
       単独行動中の妖精と生息地で偶然出会う場合がある。このときは挨拶としてまず{!BOT_MEET_YOU}が
       実行される。それ以外の会話はHOMEと変わらない。{!ACCEPT_BUDDY_FORMATION}や
       {!REJECT_BUDDY_FORMATION}は無視され、代わりに{!IGNORE_BUDDY_FORMATION}が展開される。
             
-      それ以外の妖精との会話は通常と変わりない。
       */
     return new Promise((resolve,reject)=>{
       
@@ -297,10 +279,16 @@ export default class BiomeBot extends BiomeBotIO {
 
 
   hubReply = (name,text)=>{
+    /*
+      Hubでの挙動
+      ハブでは他のユーザ及び連れている妖精と会話を行う。
+      妖精はhubBehaviorに従って会話を行う。
+    */
     return new Promise(resolve => {
       resolve({displayName:"",text:""});})
   }
 
+  
 
 
 

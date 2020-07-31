@@ -50,6 +50,14 @@ export default class BiomeBotIO {
     return this.displayName === "";
   }
 
+  getBuddyState = () => {
+    const state = localStorageIO.getItem('Biomebot.state',false);
+    if (!state){
+      return false;
+    }
+    return state.buddy;
+  }
+
 
   setConfig = (config,updatedAt) => {
     const b = config.hubBehavior;

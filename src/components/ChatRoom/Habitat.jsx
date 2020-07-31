@@ -65,9 +65,13 @@ const useStyles = makeStyles((theme) => ({
     height: 10,
     backgroundColor: ""
   },
-  avatarList:{
+  avatar:{
     width:40,
     height:40
+  },
+  currentAvatar:{
+    width: 80,
+    height: 80,
   },
   avatarContainer:{
     width: 120
@@ -125,12 +129,14 @@ export default function Habitat(props){
 
     if(path === '__localStorage__'){
       bot.readLocalStorage();
+      bot.deployHabitat(path);
 
     }else if(path.endsWith('.json')){
-      fetch(`../../fairy/${path}`)
+       fetch(`../../fairy/${path}`)
         .then(res=>res.json())
         .then(data=>{
           bot.loadGuestFromObj(data);
+          bot.deployHabitat(path);
         })
         .catch(error=>{
           setMessage(error.message);
@@ -138,9 +144,9 @@ export default function Habitat(props){
     }else{
       // firestoreからダウンロード
       // 未実装
+      bot.deployHabitat(path);
     }
 
-    bot.deployHabitat(path);
   }
 
 
@@ -156,7 +162,11 @@ export default function Habitat(props){
             onClick={()=>handleCatchFairy(props.relativePath)}
           >
             <Avatar 
-              className={classes.avatarList}
+              className={
+                currentFairy===props.relativePath 
+                ?
+                classes.currentAvatar : classes.avatar
+                }
               src={`../../svg/${props.photoURL}`}/>
           </IconButton>
           

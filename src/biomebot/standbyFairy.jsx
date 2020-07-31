@@ -1,3 +1,4 @@
+export const standbyFairy=
 {
     "config": {
         "description": "「呼んだら来る」モード。メモリ中のbuddyに上書きして使用",
