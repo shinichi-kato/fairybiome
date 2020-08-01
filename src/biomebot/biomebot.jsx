@@ -1,6 +1,6 @@
-import {random, re} from 'mathjs';
+import {randomInt} from 'mathjs';
 import BiomeBotIO from './biomebotIO.jsx';
-import {stabdbyFairy} from './standbyFairy';
+import {standbyFairy} from './standbyFairy';
 
 
 export default class BiomeBot extends BiomeBotIO {
@@ -186,7 +186,7 @@ export default class BiomeBot extends BiomeBotIO {
 
 
         // queueに追加
-        this.state.queue = [this.state.queue,...reply.queue];
+        this.state.queue = [...this.state.queue,...reply.queue];
 
 
         if(reply.ordering === "top"){
@@ -212,8 +212,7 @@ export default class BiomeBot extends BiomeBotIO {
         reply.text ="{NotFound}"
       }
 
-      reply.text = this.untagifyNames(reply.text,userName);
-      reply.text = this.untagify(reply.text);
+      reply.text = this.untagify(reply.text,userName);
 
       this.upkeepToLocalStorage();
       this.wordDict['{RESPONSE}'] = reply.text;
@@ -229,7 +228,7 @@ export default class BiomeBot extends BiomeBotIO {
   
   
   
-  replyHabitat = (name,text) => {
+  replyHabitat = (userName,userInput) => {
     /*
       Habitatでの挙動
       Habitatで会話する相手にはguest、buddy、待受状態のbuddyの３種類がある。
@@ -266,9 +265,96 @@ export default class BiomeBot extends BiomeBotIO {
         })
       }
       
-      if(this.config.hubBehavior.availability > random()){
-        // ここで名前の呼びかけとかだけキャッチしたい
-        //
+      let reply;
+      const queue = this.state.queue.pop();
+      
+      if(queue === "{!CONFIRM_NAME}"){
+        // バディ結成手順２命名
+        // ユーザ名がOKかどうかの返事が入力されたとみなし、true/falseを抽出
+        if(userInput.search(
+          /(それで)?(いいよ|はい|OK|ok|Ok|おっけー|オッケー|いいです)[。!！]?$/
+        ) !== -1){
+          // OK ・・・妖精がユーザのバディになる
+          this.config={
+            ...this.config,
+            trueName:this.config.displayName,
+            firstUser:userName,
+            buddyuser:userName,
+          };
+          this.state={
+            ...this.state,
+            buddy:"follow"
+          };
+          this.dumpToLocalStorage();
+          resolve({
+            displayName:this.config.displayName,
+            text:this.untagify("{!THANKS_FOR_BECOMING_BUDDY}")         
+          })
+
+          
+        }else if(userInput.search(
+            /(ちがう|NO|No|no|そうじゃない|違う)[。!！]?$/
+          ) !== -1){
+            // Noの明示・・・名前受付に戻る
+            this.state.queue=["{!CONFIRM_NAME}"]
+            resolve({
+              displayName:this.config.displayName,
+              text:this.untagify("{!RETRY_NAME_ENTRY}")        
+            });
+        }else {
+          // 名前が再入力されたとみなして抽出を試みる
+          queue =  "{!QUERY_BOT_NAME}";
+        }
+
+        if(queue === "{!QUERY_BOT_NAME}"){
+          // ユーザ名が入力されたとみなし、前後の不要語を除去して名前を抽出
+          const regexps = [
+            /」? ?(は|で|っていうのは|とか)(どう|どうですか|どうかな|かな)?[。？]$/,
+            /^(それじゃあ|では|うーん。|じゃあ)「? ?/
+          ];
+          
+          const nameCand = regexps.reduce( (accum,val) =>{
+            return accum.replace(val,"");
+          },userInput);
+  
+          this.config.displayName=nameCand;
+          this.state.queue=["{!CONFIRM_NAME}"]
+          resolve({
+            displayName:"",
+            text:this.untagify("{!QUERY_NAME_OK}")
+          });
+        }
+      }
+
+      for(let partName of this.state.partOrder){
+
+        //返答の生成を試みる
+        reply = this.parts[partName].replier(userName,userInput,this.state,this.wordDict)
+        if(reply.text === "") { continue }  
+
+        //queueに追加
+        this.state.queue = [...this.state.queue,...reply.queue];
+
+        //バディ結成手順１
+        // {!ACCEPT_BUDDY_FORMATION}を発話
+        if(reply.text.indexOf("{!ACCEPT_BUDDY_FORMATION}") !== -1){
+          if(this.state.hp < randomInt(100)){
+            //1d100してhpより大きかったのでバディ結成を受け入れ、命名を依頼する
+            reply.text = "{!NAME_ME}"
+            this.state.queue = ["{!QUERY_BOT_NAME}"]
+          }else {
+            // バディ結成を断る
+            reply.text = "{!IGNORE_BUDDY_FORMATION}"
+          }
+        }
+        
+        if(reply.ordering === "top"){
+          // このパートを先頭に
+          this.state.partOrder.slice(i,1);
+          this.state.partOrder.unshift(partName);
+          // partOrderの順番を破壊したのでループを抜ける
+          break;
+        }       
        
     }
     resolve({displayName:this.displayName,text:null});
@@ -314,15 +400,12 @@ export default class BiomeBot extends BiomeBotIO {
     return text;
   }
 
-  untagifyNames = (text,userName) => {
+
+  untagify = (text,userName) => {
     /* ユーザ発言やボットの発言に含まれる{userName},{botName}を戻す */
     text = text.replace(/{botName}/g,this.displayName);
     text = text.replace(/{userName}/g,userName);
-    return text;
 
-  }
-
-  untagify(text){
     /* messageに含まれるタグを文字列に戻す再帰的処理 */
     if(text){
       for (let tag of this.tagKeys){

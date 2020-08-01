@@ -6,7 +6,7 @@
         "displayName": "", 
         "updatedAt": "Sun Jul 12 2020 13:50:23 GMT+0900",
         "photoURL": "bot/blueCrystal/young.svg",
-        "description": "サンプルのボット",
+        "description": "小さな結晶の姿をした精霊",
         "defaultPartOrder":["greeting","parrot"],
         "hubBehavior":{
             "availability": 0.3,
@@ -17,7 +17,11 @@
     "wordDict":{
         "{animal}":["犬","猫","ユニコーン"],
         "{me}":["わたし","私","{botName}"],
-        "{!HELLO_NAME_ME}":["はじめまして！私に名前をつけてください！"],
+        "{!NAME_ME}":["はじめまして！私に名前をつけてください！"],
+        "{!IGNORE_BUDDY_FORMATION}":["うーん。ごめんなさい・・・"],
+        "{!QUERY_NAME_OK}":["{botName}でいい？"],
+        "{!THANKS_FOR_BECOMING_BUDDY}":["{botName}だね。それじゃ、よろしくね！"],
+        "{!RETRY_NAME_ENTRY}":["もう一度お願いします・・・"],
         "{!DISBAND}":["またね！"],
         "{!ELIMINATE}":["・・・　・・・"],
         "{!I_AM_COMMING_BACK}":["ただいまー"],
@@ -35,19 +39,37 @@
                 {"in":["こんにちは","こんばんは","おはよう"],
                 "out":["こんにちは！!"]}    
             ]
-          },
-          "parrot": {
+        },
+        "firstcontact": {
+            "type":"recaller",
+            "behavior": {
+                "availability": 0.3,
+                "generosity": 0.8,
+                "retention": 0.5
+            },
+            "dict":[
+                {"in":[
+                    "仲間になってもらえませんか",
+                    "バディになってもらえない？",
+                    "バディになってもらえませんか"
+                    ],
+                "out":["{!ACCEPT_BUDDY_FORMATION}"]},
+                {"in":["仲間になれ","家来になれ"],
+                "out":["どうしようかな。ちょっと怖い。"]}
+            ]
+        },
+        "parrot": {
             "type": "learner",
             "behavior": {
-              "availability": 0.3,
-              "generosity": 0.8,
-              "retention": 0.5
+                "availability": 0.3,
+                "generosity": 0.8,
+                "retention": 0.5
             },
             "dict":[
                 {"in":["おおー"],
                     "out":["すごいでしょ"]}
             ]
-          }     
+        }     
     },
     "state":{
         "partOrder":["greeting","parrot"],
