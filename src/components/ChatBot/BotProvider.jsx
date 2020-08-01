@@ -53,7 +53,9 @@ export default function BotProvider(props){
         deployHome:handleDeployHome,
         deployHabitat:handleDeployHabitat,
         deployHub:handleDeployHub,
-        reply:bot.reply,
+        replyHome:bot.replyHome,
+        replyHub:bot.replyHub,
+        replyHabitat:bot.replyHabitat,
       }}
     >
       {props.children}

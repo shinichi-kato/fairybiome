@@ -31,8 +31,9 @@ export default class BiomeBotIO {
       activeInHub: false,
       hp: 0,
       queue:[],
-      buddy: "none",  // none:なし, follow:随行中, 
-                      // home:Home, habitat:Habitat
+      buddy: "none",  // none:非バディ, follow:随行中, 
+                      // home:ユーザから離れてHomeにいる, 
+                      // habitat:ユーザから離れてHabitatにいる
     };
     this.updatedAt = null;
 
@@ -89,7 +90,7 @@ export default class BiomeBotIO {
 
     const partNames = Object.keys(obj.parts);
     for(let part of partNames){
-      this.parts[part].readObj(obj.parts[part]);
+      this.parts[part] = new Part(obj.parts[part]);
     }
     delete this.parts['empty'];
 

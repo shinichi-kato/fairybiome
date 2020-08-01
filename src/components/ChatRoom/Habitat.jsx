@@ -1,5 +1,7 @@
-import React ,{useContext,useEffect,useState,useRef } from "react";
+import React ,{useContext,useCallback,useEffect,useState,useRef } from "react";
 import { StaticQuery,graphql } from "gatsby"
+
+import {localStorageIO} from '../../utils/localStorageIO';
 
 import { makeStyles } from '@material-ui/core/styles';
 
@@ -8,7 +10,7 @@ import Avatar from '@material-ui/core/Avatar';
 import Typography from '@material-ui/core/Typography';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import IconButton from '@material-ui/core/IconButton';
-
+import Card from '@material-ui/core/Card';
 import ApplicationBar from '../ApplicationBar/ApplicationBar';
 import {RightBalloon,LeftBalloon} from './balloons.jsx';
 import Console from './console.jsx';
@@ -74,10 +76,16 @@ const useStyles = makeStyles((theme) => ({
     height: 80,
   },
   avatarContainer:{
-    width: 120
+    width: 120,
+    
   },
   avatarSelector:{
     height: 200,
+    marginTop: 15,
+  },
+  avatarCard:{
+    padding: theme.spacing(1),
+    width:"95%",
   },
   main: {
     height: 'calc( 100vh - 64px - 48px - 200px )',
@@ -117,9 +125,10 @@ export default function Habitat(props){
   const numOfFairyRef = useRef();
   const localLogLinesMaxRef = useRef(10);
   const chatLinesMaxRef = useRef(10);
-  const [fairies,setFairies] = useState([]);
+  const fairiesRef = useRef([]);
   const [currentFairy,setCurrentFairy] = useState(null);
   const [botBusy,setBotBusy] = useState(false);
+  const [log,setLog] = useState([]);
 
   // const seed = Math.floor(fb.timestampNow().seconods/(60*HABITAT.update_interval));
 
@@ -198,6 +207,7 @@ export default function Habitat(props){
   function FairiesList(props){
     // fairyディレクトリ、 ユーザのバディ、firestoreそれぞれの妖精を抽出し、
     // ランダムに数名を選んで表示
+    // ※FairiesList中でuseStateは使用できない
 
     if(fairiesListRef.current === null){
 
@@ -212,8 +222,9 @@ export default function Habitat(props){
             hp:jsonData.state.hp,
           }
         });
-      const hpMax = props.site.siteMetadata.habitat_fairy_hp_max;
-      const numOfFairyMax = props.site.siteMetadata.habitat_num_of_fairy_max;
+      const siteMetadata = props.data.site.siteMetadata;
+      const hpMax = siteMetadata.habitat_fairy_hp_max;
+      const numOfFairyMax = siteMetadata.habitat_num_of_fairy_max;
       
       hpMaxRef.current = randomInt(hpMax);
       numOfFairyRef.current = randomInt(numOfFairyMax);
@@ -228,7 +239,7 @@ export default function Habitat(props){
       let allFairies = data.filter(fairy=>fairy.hp<hpMaxRef.current);
       
       //ユーザのバディがhabitatにいればこれに加える。
-      if(bot.ref.state.site==='habitat'){
+      if(bot.ref.state.buddy==='habitat'){
         allFairies.push({
           relativePath:'__localStorage__',
           displayName:bot.displayName,
@@ -240,17 +251,17 @@ export default function Habitat(props){
       
       // そのうちの0〜4名をランダムに選ぶ
       let selectedFairies = [];
-      for(let i=0; i<numOfFairyRef.current; i++){
+      for(let i=0,num=Math.min(numOfFairyRef.current,allFairies.length); i<num; i++){
         let index = randomInt(allFairies.length);
         selectedFairies.push(allFairies[index])
         allFairies.splice(index,1);
       }
-      setFairies([...selectedFairies])
+      fairiesRef.current = [...selectedFairies];
       console.log("all",allFairies,"hp",hpMaxRef.current,numOfFairyRef.current,selectedFairies);
     
       // ついでにチャットログ用の定数をセット
-      localLogLinesMaxRef.current = props.site.siteMetadata.local_log_lines_max;
-      chatLinesMaxRef.current = props.site.siteMetadata.chat_lines_max;
+      localLogLinesMaxRef.current = siteMetadata.local_log_lines_max;
+      chatLinesMaxRef.current = siteMetadata.chat_lines_max;
 
     }
     
@@ -261,7 +272,7 @@ export default function Habitat(props){
           ?
           <Typography>今は誰もいないようだ・・・</Typography>
           :
-          fairies.map((fairy,index)=><FairyAvatar {...fairy} key={index}/>)
+          fairiesRef.current.map((fairy,index)=><FairyAvatar {...fairy} key={index}/>)
         }
       </>
     )
@@ -272,17 +283,17 @@ export default function Habitat(props){
       return;
     }
     const message={
-      displayName:user.displayName,
-      photoURL:user.photoURL,
+      displayName:fb.user.displayName,
+      photoURL:fb.user.photoURL,
       text:text,
-      speakerId:user.uid,
+      speakerId:fb.user.uid,
       timestamp:toTimestampString(fb.timestampNow()),
     };
 
     writeLog(message);
     
     setBotBusy(true);
-    bot.reply(user.displayName,text)
+    bot.replyHabitat(fb.user.displayName,text)
       .then(reply=>{
         if(reply.text !== null){
           writeLog({
@@ -307,6 +318,16 @@ export default function Habitat(props){
       })
   }
 
+  function writeLog(message){
+    setLog(prevLog=>{
+      /* 連続selLog()で前のselLog()が後のsetLog()で上書きされるのを防止 */
+      const newLog = [...prevLog,message];
+      newLog.slice(-localLogLinesMaxRef.current);
+      localStorageIO.setJson('habitatLog',newLog);
+      return newLog;
+    });
+
+  }
 
   // --------------------------------------------------------
   // currentLogが変更されたら最下行へ自動スクロール
@@ -316,9 +337,9 @@ export default function Habitat(props){
     }
   })
 
-  const logSlice=log.slice(-CHAT_WINDOW);
+  const logSlice=log.slice(-chatLinesMaxRef.current);
   const speeches = logSlice.map(speech =>{
-    return (speech.speakerId === user.uid || speech.speakerId === -1 )?
+    return (speech.speakerId === fb.user.uid || speech.speakerId === -1 )?
       <RightBalloon speech={speech} key={speech.timestamp}/>
     :
       <LeftBalloon speech={speech} key={speech.timestamp}/>
@@ -337,19 +358,24 @@ export default function Habitat(props){
       <Box>
         <ApplicationBar title="妖精の生息地" busy={botBusy}/>
       </Box>
-      <Box>
-        <Typography>誰とお話する？</Typography>
-      </Box>
+
       <Box 
         display="flex"
         flexDirection="row"
         justifyContent="space-evenly"
         className={classes.avatarSelector}
       >
-        <StaticQuery
-          query={query}
-          render={data=><FairiesList data={data} />}
-        />
+        <Card
+          className={classes.avatarCard}
+        >
+          <Typography variant="h5">
+            誰とお話する？
+          </Typography>
+          <StaticQuery
+              query={query}
+              render={data=><FairiesList data={data} />}
+            />
+        </Card>
       </Box>
       <Box
         flexGrow={1}

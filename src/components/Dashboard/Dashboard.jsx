@@ -24,10 +24,6 @@ export default function Dashboard(props){
     fb.changeUserInfo(displayName,photoURL)
   }
 
-  function handleDownload(obj){
-    bot.loadBuddyFromObj(obj)
-
-  }
 
   return (
     <>
@@ -41,7 +37,7 @@ export default function Dashboard(props){
         ||
         <Main 
           user={user}
-          bot={bot}
+          bot={bot.ref}
         />
       }
     </>

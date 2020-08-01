@@ -39,21 +39,6 @@ export default class BiomeBot extends BiomeBotIO {
   }
 
   
-  reply = (x,y) => {
-    /* 
-    
-    */
-    switch(this.state.buddy){
-      case 'home': 
-        return this.homeReply(x,y);
-      case 'habitat':
-        return this.habitatReply(x,y);
-      case 'hub':
-        return this.hubReply(x,y);
-      default:
-        return this.defaultReply(x,y);
-    }
-  }
 
   overwriteStandbyFairy = () =>{
     this.config = {
@@ -129,7 +114,7 @@ export default class BiomeBot extends BiomeBotIO {
     
     const buddyState = this.getBuddyState();
 
-    this.state.buddy = "none";
+    this.state.partOrder=[]; //　妖精がいない
       
     if(!fairy){
       // 話し相手を選んでいない
@@ -164,7 +149,7 @@ export default class BiomeBot extends BiomeBotIO {
   }
 
   
-  homeReply = (userName,userInput) => {
+  replyHome = (userName,userInput) => {
     /*
     ■名前がついていない妖精には名前をつける
     
@@ -181,6 +166,14 @@ export default class BiomeBot extends BiomeBotIO {
     */
     return new Promise(resolve => {
 
+      if(this.state.partOrder.length === 0){
+        // 妖精不在
+        return {
+          displayName:"",
+          photoURL:"",
+          text:null,
+        }
+      }
 
       let reply ;
 
@@ -225,7 +218,7 @@ export default class BiomeBot extends BiomeBotIO {
       this.upkeepToLocalStorage();
       this.wordDict['{RESPONSE}'] = reply.text;
       this.wordDict['{PREV_USER_INPUT}'] = userInput;
-      return resolve({
+      resolve({
         displayName:this.config.botName,
         photoURL:this.config.photoURL,
         text:reply.text,
@@ -236,7 +229,7 @@ export default class BiomeBot extends BiomeBotIO {
   
   
   
-  habitatReply = (name,text) => {
+  replyHabitat = (name,text) => {
     /*
       Habitatでの挙動
       Habitatで会話する相手にはguest、buddy、待受状態のbuddyの３種類がある。
@@ -256,37 +249,51 @@ export default class BiomeBot extends BiomeBotIO {
       Homeと同じ
 
       ■待受状態のbuddy
-      単独行動中の妖精と生息地で偶然出会う場合がある。このときは挨拶としてまず{!BOT_MEET_YOU}が
+      話し相手がいない状態でユーザが発言しても返答は帰ってこない。しかし
+      単独行動中の妖精が生息地にいる場合は、ユーザの呼びかけに応えてbuddyの妖精が姿を見せる場合がある。
       実行される。それ以外の会話はHOMEと変わらない。{!ACCEPT_BUDDY_FORMATION}や
       {!REJECT_BUDDY_FORMATION}は無視され、代わりに{!IGNORE_BUDDY_FORMATION}が展開される。
             
       */
     return new Promise((resolve,reject)=>{
+      if(this.state.partOrder.length === 0){
+        // 妖精不在
+        resolve({
+          displayName:"",
+          photoURL:"",
+          text:null,
+        })
+      }
       
       if(this.config.hubBehavior.availability > random()){
         // ここで名前の呼びかけとかだけキャッチしたい
         //
-        // 帰ってくる
-        this.state.queue=['{!I_AM_COMMING_BACK}'];
-        this.upkeepToLocalStorage();
-        // クラウド上の妖精データのstate.buddyも書き換える
-        this.deployHome();
+       
     }
-    resolve();
+    resolve({displayName:this.displayName,text:null});
   })}
 
 
 
 
 
-  hubReply = (name,text)=>{
+  replyHub = (name,text)=>{
     /*
       Hubでの挙動
       ハブでは他のユーザ及び連れている妖精と会話を行う。
       妖精はhubBehaviorに従って会話を行う。
     */
     return new Promise(resolve => {
-      resolve({displayName:"",text:""});})
+      if(this.state.partOrder.length === 0){
+        // 妖精不在
+        resolve({
+          displayName:"",
+          photoURL:"",
+          text:null
+        });
+      }
+    })
+
   }
 
   

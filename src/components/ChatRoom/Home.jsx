@@ -87,7 +87,7 @@ export default function Home(props){
     writeLog(message);
     
     setBotBusy(true);
-    bot.reply(user.displayName,text)
+    bot.replyHome(user.displayName,text)
       .then(reply=>{
         if(reply.text !== null){
           writeLog({

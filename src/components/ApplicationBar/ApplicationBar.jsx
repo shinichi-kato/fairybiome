@@ -45,11 +45,11 @@ export default function ApplicationBar(props){
   return (
     <AppBar position="static">
       <Toolbar>
-        <IconButton edge="start">
+        <IconButton edge="start" color="inherit">
           <NavigateBeforeIcon />
 
         </IconButton>
-        <IconButton>
+        <IconButton color="inherit">
           <NavigateNextIcon />
         </IconButton>
         <Typography variant="h6" className={classes.title}>
@@ -57,11 +57,12 @@ export default function ApplicationBar(props){
           {props.title}
         </Typography>
         {props.busy && <TextsmsIcon />}
-        <IconButton >
+        <IconButton color="inherit">
           <MenuBookIcon />
         </IconButton>
         <IconButton 
           edge="end"
+          color="inherit"
           aria-controls="settings-menu" 
           aria-haspopup="true" 
           onClick={handleClickSettingsMenu}
