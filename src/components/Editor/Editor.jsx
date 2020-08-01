@@ -98,6 +98,7 @@ export default function Editor(props){
             pageWillChange={pageWillChange}
             message={message}
             config={bot.ref.config}
+            updatedAt={bot.ref.updatedAt}
             state={bot.ref.state}
           />
         }

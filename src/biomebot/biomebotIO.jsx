@@ -31,16 +31,18 @@ export default class BiomeBotIO {
       activeInHub: false,
       hp: 0,
       queue:[],
-      buddy: "none",  // none:非バディ, follow:随行中, 
-                      // home:ユーザから離れてHomeにいる, 
-                      // habitat:ユーザから離れてHabitatにいる
+      buddy: null,    // null: アンロード状態
+                      // "none":非バディ, 
+                      // "follow":随行中, 
+                      // "home":ユーザから離れてHomeにいる, 
+                      // "habitat":ユーザから離れてHabitatにいる
     };
     this.updatedAt = null;
 
   }
 
   isLoaded = () => {
-    return this.state.site !== "none"
+    return this.state.buddy !== null;
   };
 
   isVacantInLocalStorage = () => {
@@ -48,15 +50,20 @@ export default class BiomeBotIO {
   };
 
   isFairyYoung = () => {
-    return this.displayName === "";
+    return this.config.displayName === "";
   }
 
   getBuddyState = () => {
-    const state = localStorageIO.getItem('Biomebot.state',false);
+    const config = localStorageIO.getJson('Biomebot.config',false);
+    const state = localStorageIO.getJson('Biomebot.state',false);
     if (!state){
       return false;
     }
-    return state.buddy;
+    return {
+      displayName:config.displayName,
+      photoURL:config.photoURL,
+      buddy:state.buddy,
+    }
   }
 
 

@@ -62,9 +62,7 @@ export default function Main(props){
   const classes = useStyles();
   const userDisplayName=props.user.displayName;
   const userPhotoURL = props.user.photoURL;
-  const botDisplayName=props.bot.displayName;
-  const botPhotoURL=props.bot.photoURL;
-
+  console.log(props)
   return(
     <Box 
       className={classes.rootWhoseChildUsesFlexGrow}
@@ -99,11 +97,11 @@ export default function Main(props){
             icon={userPhotoURL}
           />
         </Box>
-        {!props.bot.isVacantInLocalStorage() &&
+        {props.bot &&
           <Box>
             <ChatAvatar
-              displayName={botDisplayName}
-              icon={botPhotoURL}
+              displayName={props.bot.displayName || "名前のない妖精"}
+              icon={props.bot.photoURL}
             />
           </Box>
           ||

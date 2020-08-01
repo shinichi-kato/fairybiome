@@ -45,7 +45,7 @@ export default function ChatAvatar(props){
       </Box>
       <Box className={classes.nameContainer}>
         <Typography className={classes.name}>
-          {  props.displayName || "ユーザ名"　}
+          {  props.displayName }
         </Typography>
       </Box>
     </Box>

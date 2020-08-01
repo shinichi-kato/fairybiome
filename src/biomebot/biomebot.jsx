@@ -114,14 +114,14 @@ export default class BiomeBot extends BiomeBotIO {
     
     const buddyState = this.getBuddyState();
 
-    this.state.partOrder=[]; //　妖精がいない
+    this.state.buddy = null; //　妖精がいない
       
     if(!fairy){
       // 話し相手を選んでいない
-      if(buddyState === 'follow' && site !=='habitat'){
+      if(buddyState && buddyState.buddy === 'follow' && site !=='habitat'){
         // buddyが随行中ならhabitat以外では話し相手になる
         this.readLocalStorage();
-      }else if(buddyState === site){
+      }else if(buddyState.buddy === site){
         // buddyが現地にいるが離れている
         this.readObj(fairy);
         this.overwriteStandbyFairy();
@@ -151,7 +151,7 @@ export default class BiomeBot extends BiomeBotIO {
   
   replyHome = (userName,userInput) => {
     /*
-    ■名前がついていない妖精には名前をつける
+
     
     ■バディ結成の無効化
     Homeには自分のバディになっている妖精しか存在しない。そのため
@@ -238,8 +238,9 @@ export default class BiomeBot extends BiomeBotIO {
       ユーザにバディがいない状態であれば、妖精に話しかけてバディにできる可能性がある。
       会話の中で{!ACCEPT_BUDDY_FORMATION}が評価された場合、1d100が妖精のHPよりも大きければ
       妖精はバディになる。そうでなければ{!IGNORE_BUDDY_FORMATION}が代わりに実行される。
-      妖精が生まれたばかりであればユーザが名前をつける。それまでは「生まれたばかりの妖精」
-      という仮の名前がついている。
+      妖精が生まれたばかりであればユーザが名前をつける。名前をつけることで妖精がバディになる。
+      
+      それまでは「生まれたばかりの妖精」という仮の名前がついている。
       会話が不調であれば{!REJECT_BUDDY_FORMATION}が評価される場合もある。その場合は妖精は
       {!BYE}を実行してどこかに言ってしまう。Habitatでは妖精の設定は変更できず、
       localStorageに保存はされないが、言葉を教えることはできる。

@@ -71,7 +71,7 @@ export default function Config(props){
             photoURL={photoURL}
             hp={props.state.hp}
             displayName={displayName}
-            updatedAt={toTimestampString(config.updatedAt)}
+            updatedAt={toTimestampString(props.updatedAt)}
           />
         </Grid>
         <Grid item xs={5}>

@@ -19,11 +19,15 @@ export default function Dashboard(props){
   const fb = useContext(FirebaseContext);
   const bot = useContext(BotContext);
   const user = fb.user;
+  const buddyState = bot.getBuddyState();
+
+
 
   function handleChangeUserInfo(displayName,photoURL){
     fb.changeUserInfo(displayName,photoURL)
   }
 
+  
 
   return (
     <>
@@ -34,10 +38,10 @@ export default function Dashboard(props){
           photoURL={user.photoURL}
           handleChangeUserInfo={handleChangeUserInfo}
         />
-        ||
+        || 
         <Main 
           user={user}
-          bot={bot.ref}
+          bot={buddyState}
         />
       }
     </>
