@@ -100,6 +100,36 @@ export default class BiomeBotIO {
     
   };
 
+  getFairyFromLocalStorage = () => {
+    const state = localStorageIO.getJson('Biomebot.state');
+    if(state === null){return false};
+    const config =  localStorageIO.getJson('Biomebot.config');
+    const wordDict = localStorageIO.getJson('Biomebot.wordDict')
+    const updatedAt = localStorageIO.getJson('Biomebot.updatedAt');
+    
+    let parts = new Object();
+    
+    for(let partName of state.partOrder){
+      parts[partName] = localStorageIO.getJson(`Biomebot.part[${partName}]`);
+    }
+
+
+    return {
+      config:{
+        ...config,
+        hubBehavior:{
+          availability: parseFloat(config.hubBehavior.availability),
+          generosity: parseFloat(config.hubBehavior.generosity),
+          retention: parseFloat(config.hubBehavior.retention),       
+        }       
+      },
+      wordDict:wordDict,
+      parts:parts,
+      state:state,
+      updatedAt:updatedAt,
+    }
+  }
+
   readLocalStorage = () => {
     const state = localStorageIO.getJson('Biomebot.state');
     if(state === null){return false};
@@ -126,11 +156,13 @@ export default class BiomeBotIO {
     }
     
     this.state = {...state};
-    this.updatedAt = localStorage.getJson('Biomebot.updatedAt');
+    this.updatedAt = localStorageIO.getJson('Biomebot.updatedAt');
     console.log("readlocal",this.config)
     return true;
 
   };
+
+
   
   upkeepToLocalStorage = () => {
     // this.stateのみ更新

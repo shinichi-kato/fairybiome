@@ -166,10 +166,11 @@ export default class BiomeBot extends BiomeBotIO {
   
   homeReply = (userName,userInput) => {
     /*
+    ■名前がついていない妖精には名前をつける
+    
     ■バディ結成の無効化
-    Homeには自分のバディになっている妖精しか存在しない。
-    Hubでは他の誰かのバディになっている妖精と会話をする場合がある。
-    どちらであっても全ての{!ACCEPT_BUDDY_FORMATION}や{!REJECT_BUDDY_FORMATION}は無効で、
+    Homeには自分のバディになっている妖精しか存在しない。そのため
+    全ての{!ACCEPT_BUDDY_FORMATION}や{!REJECT_BUDDY_FORMATION}は無効で、
     {!IGNORE_BUDDY_FORMATION}が代わりに実行される。
 
     ■単独行動中のバディの呼び出し
@@ -340,22 +341,4 @@ export default class BiomeBot extends BiomeBotIO {
  
 }  
 
-// export const biomebotPostCompile = (currentBot) => {
-//   switch(currentBot.state.buddy){
-//     case 'home' :{
-//       currentBot.reply = (x,y) => currentBot.homeReply(x,y);
-//       break;
-//     }
-//     case 'habitat' :{
-//       currentBot.reply = (x,y) => currentBot.habitatReply(x,y);
-//       break;
-//     }
-//     case 'hub' :{
-//       currentBot.reply = (x,y) => currentBot.hubReply(x,y);
-//       break;
-//     }
-//     default : {
-//       currentBot.reply = (x,y) => currentbot.homeReply(x,y);
-//     }
-//   }
-// }
+

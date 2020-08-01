@@ -14,33 +14,19 @@ export default function BotProvider(props){
 
 
 
-  function loadGuestFromObj(obj){
-    bot.readObj(obj)
+
+  function handleDeployHome(){
+    const fairy = bot.getFairyFromLocalStorage();
+    return bot.deploy(fb.user.displayName,fairy,"home");
   }
 
-  function loadBuddyFromObj(obj){
-    bot.readObj(obj);
-    bot.dumpToLocalStorage();
+  function handleDeployHabitat(fairy){
+    return bot.deploy(fb.user.displayName,fairy,"habitat");
   }
 
-  function handleDeployLocal(){
-    return new Promise(resolve => {
-      if(!bot.isLoaded()){
-        bot.readLocalStorage();
-      }
-      
-      bot.deployLocal();
-      resolve();
-    })
-  }
- 
-  function handleDeployHabitat(){
-    return new Promise(resolve =>{
-      if(bot.isLoaded){
-        bot.deployHabitat();
-      }
-      resolve();
-    })
+  function handleDeployHub(){
+    const fairy = bot.getFairyFromLocalStorage();
+    return bot.deploy(fb.user.displayName,fairy,"habitat");
   }
 
 
@@ -64,11 +50,9 @@ export default function BotProvider(props){
         upkeep:bot.upkeepToLocalStorage,
         isVacantInLocalStorage:bot.isVacantInLocalStorage,
         isFairyYoung:bot.isFairyYoung,
-        readLocalStorage:bot.readLocalStorage,
-        loadGuestFromObj:loadGuestFromObj,
-        loadBuddyFromObj:loadBuddyFromObj,
-        deployLocal:handleDeployLocal,
+        deployHome:handleDeployHome,
         deployHabitat:handleDeployHabitat,
+        deployHub:handleDeployHub,
         reply:bot.reply,
       }}
     >

@@ -123,20 +123,26 @@ export default function Habitat(props){
 
   // const seed = Math.floor(fb.timestampNow().seconods/(60*HABITAT.update_interval));
 
+  // ---------------------------------------------------
+  // 初期は話し相手なしの状態で起動
+
+  useEffect(()=>{
+    bot.deployHabitat(null);
+  },[]);
 
   function handleCatchFairy(path){
+    
     setCurrentFairy(path);
-
+    
     if(path === '__localStorage__'){
-      bot.readLocalStorage();
-      bot.deployHabitat(path);
+      const fairy = bot.getFairyFromLocalStorage();
+      bot.deployHabitat(fairy);
 
     }else if(path.endsWith('.json')){
        fetch(`../../fairy/${path}`)
         .then(res=>res.json())
-        .then(data=>{
-          bot.loadGuestFromObj(data);
-          bot.deployHabitat(path);
+        .then(fairy=>{
+          bot.deployHabitat(fairy);
         })
         .catch(error=>{
           setMessage(error.message);
@@ -144,7 +150,8 @@ export default function Habitat(props){
     }else{
       // firestoreからダウンロード
       // 未実装
-      bot.deployHabitat(path);
+      const fairy = {}
+      bot.deployHabitat(fairy);
     }
 
   }
@@ -288,16 +295,16 @@ export default function Habitat(props){
           setBotBusy(false);
         }
       })
-      // .catch(e=>{
-      //   writeLog({
-      //     displayName:"error",
-      //     photoURL:"",
-      //     text:e.message,
-      //     speakerId:bot.DisplayName,
-      //     timestamp:toTimestampString(fb.timestampNow())
-      //   })
-      //   setBotBusy(false);
-      // })
+      .catch(e=>{
+        writeLog({
+          displayName:"error",
+          photoURL:"",
+          text:e.message,
+          speakerId:bot.DisplayName,
+          timestamp:toTimestampString(fb.timestampNow())
+        })
+        setBotBusy(false);
+      })
   }
 
 

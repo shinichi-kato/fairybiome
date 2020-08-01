@@ -54,7 +54,7 @@ export default function Home(props){
   
   useEffect(()=>{
     setBotBusy(true);
-    bot.deployLocal()
+    bot.deployHome()
     .then(()=>{
       setBotBusy(false);
     });
