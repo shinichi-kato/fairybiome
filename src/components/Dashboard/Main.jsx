@@ -62,7 +62,6 @@ export default function Main(props){
   const classes = useStyles();
   const userDisplayName=props.user.displayName;
   const userPhotoURL = props.user.photoURL;
-  console.log(props)
   return(
     <Box 
       className={classes.rootWhoseChildUsesFlexGrow}

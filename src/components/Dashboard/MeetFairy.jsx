@@ -3,6 +3,8 @@ import { makeStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
 import Box from '@material-ui/core/Box';
 
+import HabitatIcon from "../../icons/Habitat";
+
 const useStyles = makeStyles((theme) => ({
   iconContainer: {
     width: 120,
@@ -18,8 +20,8 @@ const useStyles = makeStyles((theme) => ({
     margin: "auto",
   },
   name: {
-    padding: theme.spacing(2),
-    fontSize: 22,
+    padding: theme.spacing(0),
+    fontSize: 18,
   }
 
 }));
@@ -41,7 +43,10 @@ export default function MeetFairy(props){
       </Box>
       <Box className={classes.nameContainer}>
         <Typography className={classes.name}>
-          <HabitatIcon />生息地で<BR></BR>妖精を見つけよう！
+        生息地<HabitatIcon />で
+        </Typography>
+        <Typography className={classes.name}>
+        妖精を見つけよう！
         </Typography>
       </Box>
     </Box>      

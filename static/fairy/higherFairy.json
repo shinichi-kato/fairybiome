@@ -35,13 +35,13 @@
         "greeting": {
             "type": "recaller",
             "behavior": {
-              "availability": 0.3,
+              "availability": 0.8,
               "generosity": 0.8,
               "retention": 0.5
             },
             "dict":[
                 {"in":["こんにちは","こんばんは","おはよう"],
-                "out":["ようこそ。"]},
+                "out":["妖精の郷へようこそ。"]},
                 {"in":["さようなら","さよなら","ありがとう"],
                 "out":["ごきげんよう・・・{!BYE}"]},
                 {"in":["元気？"],
@@ -52,7 +52,7 @@
           "oracle": {
             "type": "recaller",
             "behavior": {
-              "availability": 0.7,
+              "availability": 0.9,
               "generosity": 0.8,
               "retention": 0.3
             },

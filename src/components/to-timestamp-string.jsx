@@ -14,7 +14,6 @@ export function toTimestampString(timestamp){
 		正規表現を利用し、配列のkeyにできるようにミリ秒まで表示する。
 	
 	*/ 
-	console.log(timestamp)
 	if(timestamp){
 		let d;
 		let ms;

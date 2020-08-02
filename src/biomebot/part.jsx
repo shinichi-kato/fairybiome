@@ -5,6 +5,7 @@ import matrixizeWorker from  './matrixizeWorker';
 import {retrieve} from './retrieve';
 import {botTagDict,botTagDictKeys} from './tagdict';
 import {TinySegmenter} from './tinysegmenter.js';
+import {typeOf,matrix,reviver} from 'mathjs';
 
 const segmenter = new TinySegmenter();
 // 注記: [<>{}+-]がアルファベットに分類されるよう変更したものを使用
@@ -29,10 +30,13 @@ export default class Part extends PartIO{
 
     // 正規化tfidf行列,vocab,indexの生成
     inDict = await matrixizeWorker.matrixize(inDict);
-
-    // 取得した値をindictに代入
-    this.inDict = Object.assign({},inDict);
-    console.log("inDict.vocab",this.inDict.vocab)
+    this.inDict = {
+      vocab:inDict.vocab,
+      wv:inDict.wv,
+      idf:JSON.parse(inDict.idf,reviver),
+      tfidf:JSON.parse(inDict.tfidf,reviver),
+      index:JSON.parse(inDict.index),
+    }
     return  1;
   }
 
@@ -81,16 +85,22 @@ export default class Part extends PartIO{
     }
 
     // text retrieving
-    text = tagifyInMessage(text);
+    text = tagifyInMessage(segmenter.segment(text));
     const ir = textToInternalRepr(text);
     const irResult = retrieve(ir,this.inDict);
+
+    if (!irResult.index){
+      return result
+    }
     // generosity check
-    if(irResult.score < 1-this.behavior.generosity){
-      console.log("generosity insufficient")
+    if(irResult.score > 1-this.behavior.generosity){
+      console.log(`generosity insufficient, score=${irResult.score},generosity=${this.behavior.generosity}`)
       return result;
     }  
 
     // 出力候補の中から一つを選ぶ
+    console.log("irResult:",irResult)
+
     let cands = [];
     cands = this.outDict[irResult.index];
     result.text = cands[randomInt(cands.length)];

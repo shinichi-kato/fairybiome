@@ -92,7 +92,16 @@ export default class BiomeBotIO {
   }
 
   readObj = (obj) => {
-    this.setConfig(obj.config);
+    const b = obj.config.hubBehavior;
+    this.config={
+      ...obj.config,
+      hubBehavior:{
+        availability: parseFloat(b.availability),
+        generosity: parseFloat(b.generosity),
+        retention: parseFloat(b.retention),
+      }
+    };
+
     this.wordDict={...obj.wordDict};
 
     const partNames = Object.keys(obj.parts);

@@ -1,5 +1,5 @@
 import {zeros,divide,apply,sum,dot,dotMultiply,
-  isPositive,map,norm,randomInt,matrix} from 'mathjs';
+  isPositive,map,norm,randomInt,typeOf} from 'mathjs';
 
 
 export function retrieve(text,inDict){
@@ -27,6 +27,7 @@ export function retrieve(text,inDict){
 
   const tf = map(wv,x=>x/sum(wv) );
   const tfidf = dotMultiply(tf,inDict.idf);
+
   // 正規化
 
   const n = norm(tfidf);
@@ -38,7 +39,7 @@ export function retrieve(text,inDict){
 
   // 最も類似度が高かった行のindexとその類似度を返す。
   // 同点一位が複数あった場合はランダムに一つを選ぶ
-
+  console.log("s",s,typeOf(s))
   const max = Math.max(...s);
   let cand = [];
   for(let i=0,l=s.length;i<l;i++){
@@ -48,5 +49,5 @@ export function retrieve(text,inDict){
     }
   }
 
-  return {score:score,index:cand[randomInt(cand.length)]};
+  return {score:max,index:cand[randomInt(cand.length)]};
 }

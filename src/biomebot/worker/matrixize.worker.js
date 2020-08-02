@@ -23,14 +23,7 @@ export async function matrixize(dict){
   }
 
   // // vocabの生成
-  // vocab = new Object();
-
-  // for(let i=0,l=squeezedDict.length; i<l; i++){
-
-  //   for(let word of squeezedDict[i]){
-  //     vocab[word] = true;
-  //   }
-  // }
+  
   vocab = Object.keys(vocab);
 
   // """ Term Frequency: 各行内での単語の出現頻度
@@ -50,10 +43,10 @@ export async function matrixize(dict){
   }
 
 
+
   // tf = wv / wv.sum(axis=0)
   const inv_wv = apply(wv,1,x=>divide(1,sum(x)) );
   const tf = multiply(diag(inv_wv),wv );
-
 
   // """ Inverse Document Frequency: 各単語が現れる行の数の割合
   //
@@ -74,14 +67,18 @@ export async function matrixize(dict){
   const inv_n = apply(tfidf,1,x=>(divide(1,norm(x))));
   tfidf = multiply(diag(inv_n),tfidf);
 
+  // matrixは直に渡すとObject型になってしまうのでシリアライズ
+  // 受け取る側で
+  // import {reviver} from 'mathjs';
+  // const x = JSON.parse(v.idf,reviver);
+  // とすると復元できる。
   
-
   return {
     vocab:vocab,
-    wv:wv,
-    idf:idf,
-    tfidf:tfidf,
-    index:index
+    wv:JSON.stringify(wv),
+    idf:JSON.stringify(idf),
+    tfidf:JSON.stringify(tfidf),
+    index:JSON.stringify(index)
   }
 }
 

@@ -326,7 +326,8 @@ export default class BiomeBot extends BiomeBotIO {
         }
       }
 
-      for(let partName of this.state.partOrder){
+      for(let i=0,l=this.state.partOrder; i<l; i++){
+        const partName = this.state.partOrder[i];
 
         //返答の生成を試みる
         reply = this.parts[partName].replier(userName,userInput,this.state,this.wordDict)
@@ -356,8 +357,8 @@ export default class BiomeBot extends BiomeBotIO {
           break;
         }       
        
-    }
-    resolve({displayName:this.displayName,text:null});
+      }
+    resolve({displayName:this.displayName,text:reply.text});
   })}
 
 

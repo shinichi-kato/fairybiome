@@ -11,6 +11,7 @@ export const localStorageIO = {
   },
 
   setItem: (name,value) => {
+    console.log(`biomebotIO localStorage write(${name})`)
     if(isBrowser()){
       localStorage.setItem(name,value);
     }
@@ -34,6 +35,7 @@ export const localStorageIO = {
   },
 
   setJson: (name,value) =>{
+    console.log(`biomebotIO localStorage write(${name})`)
     if(isBrowser()){
       const payload = JSON.stringify(value);
       localStorage.setItem(name,payload);

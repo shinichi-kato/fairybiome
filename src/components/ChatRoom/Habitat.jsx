@@ -133,7 +133,7 @@ export default function Habitat(props){
   // const seed = Math.floor(fb.timestampNow().seconods/(60*HABITAT.update_interval));
 
   // ---------------------------------------------------
-  // 初期は話し相手なしの状態で起動
+  // 初期は話し相手を指定しない状態で起動
 
   useEffect(()=>{
     bot.deployHabitat(null);
@@ -151,6 +151,7 @@ export default function Habitat(props){
        fetch(`../../fairy/${path}`)
         .then(res=>res.json())
         .then(fairy=>{
+          console.log("loaded:",fairy)
           bot.deployHabitat(fairy);
         })
         .catch(error=>{
@@ -306,16 +307,16 @@ export default function Habitat(props){
           setBotBusy(false);
         }
       })
-      .catch(e=>{
-        writeLog({
-          displayName:"error",
-          photoURL:"",
-          text:e.message,
-          speakerId:bot.DisplayName,
-          timestamp:toTimestampString(fb.timestampNow())
-        })
-        setBotBusy(false);
-      })
+      // .catch(e=>{
+      //   writeLog({
+      //     displayName:"error",
+      //     photoURL:"",
+      //     text:e.message,
+      //     speakerId:bot.DisplayName,
+      //     timestamp:toTimestampString(fb.timestampNow())
+      //   })
+      //   setBotBusy(false);
+      // })
   }
 
   function writeLog(message){
