@@ -3,6 +3,10 @@ import {localStorageIO} from './localStorageIO';
 
 export default class BiomeBotIO {
   constructor(){
+    this.init();
+  }
+
+  init = () =>{
     // 書誌的事項(会話中に変化しない)
     this.config = {
       trueName : "",
@@ -38,7 +42,6 @@ export default class BiomeBotIO {
                       // "habitat":ユーザから離れてHabitatにいる
     };
     this.updatedAt = null;
-
   }
 
   isLoaded = () => {

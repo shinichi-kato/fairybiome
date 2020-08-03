@@ -126,6 +126,7 @@ export default class BiomeBot extends BiomeBotIO {
         this.readObj(fairy);
         this.overwriteStandbyFairy();
       }else{
+        this.init();
         return;
       }
     }else{
@@ -134,13 +135,13 @@ export default class BiomeBot extends BiomeBotIO {
       this.readObj(fairy);
     }
 
+    this.wordDictKeys= Object.keys(this.wordDict);
+    this.state.partOrder = [...this.config.defaultPartOrder];
     // 各パートのコンパイル
-    this.tagKeys= Object.keys(this.wordDict);
     
     Promise.all(this.state.partOrder.map(partName=>(
       this.parts[partName].compile()
     ))).then(messages=>{
-      console.log("parrot",this.parts.parrot)
     });
 
 
@@ -177,7 +178,8 @@ export default class BiomeBot extends BiomeBotIO {
 
       let reply ;
 
-      for(let partName of this.state.partOrder){
+      for(let i=0,l=this.state.partOrder.length; i<l; i++){
+        const partName = this.state.partOrder[i];
         console.log(partName)
         //返答の生成を試みる
         reply = this.parts[partName].replier(userName,userInput,this.state,this.wordDict)
@@ -205,14 +207,15 @@ export default class BiomeBot extends BiomeBotIO {
           break;
         }
 
-        break;
+        
       }
 
       if(reply.text === ""){
-        reply.text ="{NotFound}"
+        reply.text ="{!NOT_FOUND}"
       }
+      console.log("reply",reply)
 
-      reply.text = this.untagify(reply.text,userName);
+      reply.text = this.untagify(reply.text,userName,this.config.displayName);
 
       this.upkeepToLocalStorage();
       this.wordDict['{RESPONSE}'] = reply.text;
@@ -265,9 +268,9 @@ export default class BiomeBot extends BiomeBotIO {
         })
       }
       
-      let reply;
-      const queue = this.state.queue.pop();
-      
+      let reply={};
+      const queue = this.state.queue.shift();
+      console.log("queue",queue)
       if(queue === "{!CONFIRM_NAME}"){
         // バディ結成手順２命名
         // ユーザ名がOKかどうかの返事が入力されたとみなし、true/falseを抽出
@@ -288,7 +291,7 @@ export default class BiomeBot extends BiomeBotIO {
           this.dumpToLocalStorage();
           resolve({
             displayName:this.config.displayName,
-            text:this.untagify("{!THANKS_FOR_BECOMING_BUDDY}")         
+            text:this.untagify("{!THANKS_FOR_BECOMING_BUDDY}",userName,this.config.displayName)         
           })
 
           
@@ -297,36 +300,50 @@ export default class BiomeBot extends BiomeBotIO {
           ) !== -1){
             // Noの明示・・・名前受付に戻る
             this.state.queue=["{!CONFIRM_NAME}"]
-            resolve({
+            return resolve({
               displayName:this.config.displayName,
-              text:this.untagify("{!RETRY_NAME_ENTRY}")        
+              photoURL:this.config.photoURL,
+              text:this.untagify("{!RETRY_NAME_ENTRY}",userName,this.config.displayName)        
             });
         }else {
           // 名前が再入力されたとみなして抽出を試みる
           queue =  "{!QUERY_BOT_NAME}";
         }
+      }
+      
+      if(queue === "{!QUERY_BOT_NAME}"){
+        
+        // ユーザ名が入力されたとみなし、前後の不要語を除去して名前を抽出
+        const regexps =  [
+          /[、。？！]$/g,
+          /[」 、]*(は|で|っていうのは|とか)(どう|どうですか|どうかな|かな)?$/,
+          /^(それ|そん|うーん。|うーん|そうだな。)?(じゃあ|じゃ|では)(ね|ねえ|ねぇ)?[「 、]*/
+        ];
+        
+        const nameCand = regexps.reduce( (accum,val) =>{
+          return accum.replace(val,"");
+        },userInput);
 
-        if(queue === "{!QUERY_BOT_NAME}"){
-          // ユーザ名が入力されたとみなし、前後の不要語を除去して名前を抽出
-          const regexps = [
-            /」? ?(は|で|っていうのは|とか)(どう|どうですか|どうかな|かな)?[。？]$/,
-            /^(それじゃあ|では|うーん。|じゃあ)「? ?/
-          ];
-          
-          const nameCand = regexps.reduce( (accum,val) =>{
-            return accum.replace(val,"");
-          },userInput);
-  
-          this.config.displayName=nameCand;
-          this.state.queue=["{!CONFIRM_NAME}"]
-          resolve({
-            displayName:"",
-            text:this.untagify("{!QUERY_NAME_OK}")
-          });
-        }
+        this.config.displayName=nameCand;
+        this.state.queue=["{!CONFIRM_NAME}"];
+        console.log("candname",nameCand)
+        return resolve({
+          displayName:"",
+          photoURL:this.config.photoURL,
+          text:this.untagify("{!QUERY_NAME_OK}",userName,this.config.displayName)
+        });
       }
 
-      for(let i=0,l=this.state.partOrder; i<l; i++){
+      if(queue){
+        return resolve({
+          displayName:this.config.displayName,
+          photoURL:this.config.photoURL,
+          text:this.untagify(queue,userName,this.config.displayName)
+        })
+      }
+      
+
+      for(let i=0,l=this.state.partOrder.length; i<l; i++){
         const partName = this.state.partOrder[i];
 
         //返答の生成を試みる
@@ -338,15 +355,32 @@ export default class BiomeBot extends BiomeBotIO {
 
         //バディ結成手順１
         // {!ACCEPT_BUDDY_FORMATION}を発話
-        if(reply.text.indexOf("{!ACCEPT_BUDDY_FORMATION}") !== -1){
-          if(this.state.hp < randomInt(100)){
-            //1d100してhpより大きかったのでバディ結成を受け入れ、命名を依頼する
-            reply.text = "{!NAME_ME}"
+        if(reply.text.indexOf("{!ACCEPT_BUDDY_FORMATION}") !== -1)
+        {
+          const buddyState=this.getBuddyState();
+          if(buddyState.buddy === null && this.state.hp < randomInt(100)){
+            // バディがいたらNG
+            // 1d100してhpより大きかったのでバディ結成を受け入れ、命名を依頼する
+            reply.text = "{!NAME_ME}";
+            reply.ordering = "top";
             this.state.queue = ["{!QUERY_BOT_NAME}"]
+            
           }else {
             // バディ結成を断る
             reply.text = "{!IGNORE_BUDDY_FORMATION}"
+            reply.ordering = "top";
           }
+        }
+
+        // さよなら
+        if(reply.text.indexOf("{!BYE}") !== -1)
+        {
+          return resolve({
+            displayName:this.config.displayName,
+            photoURL:this.config.photoURL,
+            text:reply.text}
+          );
+
         }
         
         if(reply.ordering === "top"){
@@ -356,12 +390,20 @@ export default class BiomeBot extends BiomeBotIO {
           // partOrderの順番を破壊したのでループを抜ける
           break;
         }       
-       
       }
-    resolve({displayName:this.displayName,text:reply.text});
-  })}
 
+      if(reply.text === ""){
+        console.log("reply is null?",reply)
+        reply.text = "{!NOT_FOUND}"
+      }
 
+      console.log("reply",reply.text)
+      return resolve({
+        displayName:this.config.displayName,
+        photoURL:this.config.photoURL,
+        text:this.untagify(reply.text,userName,this.config.displayName)});
+    })
+  }
 
 
 
@@ -393,34 +435,35 @@ export default class BiomeBot extends BiomeBotIO {
   
   tagifyNames = (text,userName) => {
     /* ユーザ発言に含まれるユーザ名、ボット名を{userName},{botName}に置き換える */
-    text = text.replace(new RegExp(`${this.displayName}ちゃん`,"g"),"{botName}");
-    text = text.replace(new RegExp(`${this.displayName}さん`,"g"),"{botName}");
-    text = text.replace(new RegExp(`${this.displayName}君`,"g"),"{botName}");
-    text = text.replace(new RegExp(this.displayName,"g"),"{botName}");
+    text = text.replace(new RegExp(`${this.config.displayName}ちゃん`,"g"),"{botName}");
+    text = text.replace(new RegExp(`${this.config.displayName}さん`,"g"),"{botName}");
+    text = text.replace(new RegExp(`${this.config.displayName}君`,"g"),"{botName}");
+    text = text.replace(new RegExp(this.config.displayName,"g"),"{botName}");
     text = text.replace(new RegExp(userName,"g"),"{userName}");
     return text;
   }
 
 
-  untagify = (text,userName) => {
+  untagify = (text,userName,botName) => {
     /* ユーザ発言やボットの発言に含まれる{userName},{botName}を戻す */
-    text = text.replace(/{botName}/g,this.displayName);
+    text = text.replace(/{botName}/g,botName);
     text = text.replace(/{userName}/g,userName);
 
     /* messageに含まれるタグを文字列に戻す再帰的処理 */
     if(text){
-      for (let tag of this.tagKeys){
+      for (let tag of this.wordDictKeys){
         if(text.indexOf(tag) !== -1){
           text = text.replace(/(\{[!a-zA-Z0-9_]+\})/g,(whole,tag)=>(this._expand(tag)));
         }
       }
     }
+
     return text;
   }
     
  
 
-  _expand(tag){
+  _expand = (tag) => {
     const items = this.wordDict[tag];
     if(!items){ return tag}
    let item = items[Math.floor( Math.random() * items.length)];

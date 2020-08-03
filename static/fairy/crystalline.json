@@ -7,7 +7,8 @@
         "updatedAt": "Sun Jul 12 2020 13:50:23 GMT+0900",
         "photoURL": "bot/blueCrystal/young.svg",
         "description": "小さな結晶の姿をした精霊",
-        "defaultPartOrder":["greeting","parrot"],
+        "defaultPartOrder":["greeting","firstcontact","parrot"],
+        "# defaultPartOrder:[\"greeting\",\"firstcontact\",\"parrot\"]":"######",
         "hubBehavior":{
             "availability": 0.3,
             "generosity": 0.9,
@@ -17,29 +18,33 @@
     "wordDict":{
         "{animal}":["犬","猫","ユニコーン"],
         "{me}":["わたし","私","{botName}"],
-        "{!NAME_ME}":["はじめまして！私に名前をつけてください！"],
-        "{!IGNORE_BUDDY_FORMATION}":["うーん。ごめんなさい・・・"],
+        "{!NAME_ME}":["よろしくね！それじゃ私に名前をつけてください！"],
+        "{!IGNORE_BUDDY_FORMATION}":["うーん。ごめんなさい・・・","また今度ね。","もう誰か仲間がいるんじゃない？"],
         "{!QUERY_NAME_OK}":["{botName}でいい？"],
         "{!THANKS_FOR_BECOMING_BUDDY}":["{botName}だね。それじゃ、よろしくね！"],
         "{!RETRY_NAME_ENTRY}":["もう一度お願いします・・・"],
         "{!DISBAND}":["またね！"],
         "{!ELIMINATE}":["・・・　・・・"],
         "{!I_AM_COMMING_BACK}":["ただいまー"],
-        "{NOT_FOUND}":["？","そうなんだ"]
+        "{!TELL_ME_WHAT_YO_SAY}":["そういうとき、なんて返事したらいいの？"],
+        "{!NOT_FOUND}":["？","そうなんだ"]
+        
     },
     "parts":{
         "greeting": {
             "type": "recaller",
             "behavior": {
-              "availability": 0.8,
+              "availability": 0.7,
               "generosity": 0.8,
               "retention": 0.5
             },
             "dict":[
-                {"in":["こんにちは","こんばんは","おはよう"],
+                {"in":["こんにちは","こんばんは","おはよう","お早うございます"],
                 "out":["こんにちは！!"]},
                 {"in":["元気ですか？"],
-                "out":["まあまあです。","元気ですよ！"]}   
+                "out":["まあまあです。","元気ですよ！"]} ,
+                {"in":["さようなら","バイバイ","バイバーイ","またね","ばいばい"],
+                "out":["バイバイ！{!BYE}"]  }
             ]
         },
         "firstcontact": {
@@ -47,7 +52,7 @@
             "behavior": {
                 "availability": 1.0,
                 "generosity": 0.8,
-                "retention": 0.5
+                "retention": 0.8
             },
             "dict":[
                 {"in":[
@@ -57,7 +62,7 @@
                     ],
                 "out":["{!ACCEPT_BUDDY_FORMATION}"]},
                 {"in":["仲間になれ","家来になれ"],
-                "out":["どうしようかな。ちょっと怖い。"]}
+                "out":["え、怖い・・・{!BYE}","じゃあね！{!BYE}","ちょっとコンビニ行くんで・・{!BYE}"]}
             ]
         },
         "parrot": {
@@ -74,7 +79,7 @@
         }     
     },
     "state":{
-        "partOrder":["greeting","parrot"],
+        "partOrder":[],
         "activeInHub": false,
         "hp":10,
         "queue":[],

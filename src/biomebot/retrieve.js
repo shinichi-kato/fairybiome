@@ -8,7 +8,7 @@ export function retrieve(text,inDict){
   // wv
   const vocabLength = inDict.vocab.length;
   if(vocabLength === 0){
-    return {index:0,score:0}
+    return {index:null,score:0}
   }
 
   const wv = zeros(vocabLength);
@@ -19,6 +19,7 @@ export function retrieve(text,inDict){
         wv.set([pos],wv.get([pos])+1);
       }
   }
+  console.log("wv",wv)
   if(sum(wv) === 0){
     return { score: 0 ,index:null};
   }
@@ -39,8 +40,8 @@ export function retrieve(text,inDict){
 
   // 最も類似度が高かった行のindexとその類似度を返す。
   // 同点一位が複数あった場合はランダムに一つを選ぶ
-  console.log("s",s,typeOf(s))
   const max = Math.max(...s);
+  
   let cand = [];
   for(let i=0,l=s.length;i<l;i++){
     let score=s[i];
@@ -48,6 +49,8 @@ export function retrieve(text,inDict){
       cand.push(inDict.index[i]);
     }
   }
+
+  console.log("retrieve ",max,"cand=",cand)
 
   return {score:max,index:cand[randomInt(cand.length)]};
 }

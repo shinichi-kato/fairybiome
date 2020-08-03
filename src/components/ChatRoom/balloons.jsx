@@ -114,3 +114,11 @@ export function RightBalloon(props){
   )
 
 }
+
+export function SystemLog(props){
+  return (
+    <Box alignSelf="center">
+      <Typography variant="subtitle2">{props.speech.text}</Typography>
+    </Box>
+  )
+}

@@ -79,8 +79,9 @@ export default class Part extends PartIO{
     }
 
     // availability check
-    if(Math.random() > this.behavior.availability){
-      console.log("availability insufficient")
+    const a =Math.random();
+    if(a > this.behavior.availability){
+      console.log(`recaller:avail. insufficient 1d1=${a} avail.=${this.behavior.availability}`)
       return result;
     }
 
@@ -89,21 +90,22 @@ export default class Part extends PartIO{
     const ir = textToInternalRepr(text);
     const irResult = retrieve(ir,this.inDict);
 
-    if (!irResult.index){
+    if (irResult.index === null){
       return result
     }
+
     // generosity check
-    if(irResult.score > 1-this.behavior.generosity){
-      console.log(`generosity insufficient, score=${irResult.score},generosity=${this.behavior.generosity}`)
+    if(irResult.score < 1-this.behavior.generosity){
+      console.log(`recaller:generos. insufficient score=${irResult.score},generosity=${this.behavior.generosity}`)
       return result;
     }  
 
     // 出力候補の中から一つを選ぶ
-    console.log("irResult:",irResult)
 
     let cands = [];
     cands = this.outDict[irResult.index];
     result.text = cands[randomInt(cands.length)];
+    console.log("result.text:",result.text)
     
     // テキストに<BR>が含まれていたらqueueに送る
     if(result.text.indexOf('<BR>') !== -1){
@@ -114,9 +116,8 @@ export default class Part extends PartIO{
 
     //retention check
 
-    result.ordering = Math.random() > this.behavior.retention ?
+    result.ordering = Math.random() < this.behavior.retention ?
       'bottom' : 'top';
-    console.log("after",this.inDict)
     return result;
   }
 
@@ -188,17 +189,23 @@ export default class Part extends PartIO{
 
     // availability check
     if(Math.random() > this.behavior.availability){
+      console.log("learner:avail. insufficient")
       return result;
     }
 
     // text retrieving
-    text = tagifyInMessage(text);
+    text = tagifyInMessage(segmenter.segment(text));
     const ir = textToInternalRepr(text);
     const irResult = retrieve(ir,this.inDict);
+    
+    if (irResult.index === null){
+      return result
+    }
 
     // generosity check
     if(irResult.score < 1-this.behavior.generosity){
-      // 手順4
+      // 手順4 返答できない場合尋ねる
+      console.log(`learner:generos. ${this.behavior.generosity} score:${irResult.score}`)
       result = {
         text:"{!TELL_ME_WHAT_TO_SAY}",
         queue:["{!PARSE_USER_INPUT}"],
@@ -212,7 +219,7 @@ export default class Part extends PartIO{
     let cands = [];
     cands = this.outDict[irResult.index];
     result.text = cands[randomInt(cands.length)];
-    
+    console.log("result.text:",result.text)    
     // テキストに<BR>が含まれていたらqueueに送る
     if(result.text.indexOf('<BR>') !== -1){
       const replies = reply.text.split('<BR>');

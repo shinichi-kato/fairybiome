@@ -12,7 +12,7 @@ import LinearProgress from '@material-ui/core/LinearProgress';
 import IconButton from '@material-ui/core/IconButton';
 import Card from '@material-ui/core/Card';
 import ApplicationBar from '../ApplicationBar/ApplicationBar';
-import {RightBalloon,LeftBalloon} from './balloons.jsx';
+import {RightBalloon,LeftBalloon,SystemLog} from './balloons.jsx';
 import Console from './console.jsx';
 import {toTimestampString} from '../to-timestamp-string.jsx';
 import {FirebaseContext} from '../Firebase/FirebaseProvider';
@@ -146,13 +146,15 @@ export default function Habitat(props){
     if(path === '__localStorage__'){
       const fairy = bot.getFairyFromLocalStorage();
       bot.deployHabitat(fairy);
+      writeLog(`${fairy.config.displayName}があなたのすぐそばに来た`);
 
     }else if(path.endsWith('.json')){
        fetch(`../../fairy/${path}`)
         .then(res=>res.json())
         .then(fairy=>{
-          console.log("loaded:",fairy)
           bot.deployHabitat(fairy);
+          writeLog("妖精があなたのそばにやって来た");
+
         })
         .catch(error=>{
           setMessage(error.message);
@@ -162,6 +164,8 @@ export default function Habitat(props){
       // 未実装
       const fairy = {}
       bot.deployHabitat(fairy);
+      writeLog("妖精があなたのほうを見ている");
+
     }
 
   }
@@ -288,7 +292,6 @@ export default function Habitat(props){
       photoURL:fb.user.photoURL,
       text:text,
       speakerId:fb.user.uid,
-      timestamp:toTimestampString(fb.timestampNow()),
     };
 
     writeLog(message);
@@ -297,13 +300,27 @@ export default function Habitat(props){
     bot.replyHabitat(fb.user.displayName,text)
       .then(reply=>{
         if(reply.text !== null){
-          writeLog({
-            displayName:botDisplayName,
+          let message = {
+            displayName:reply.displayName,
             photoURL:reply.photoURL,
             text:reply.text,
-            speakerId:bot.displayName,
-            timestamp:toTimestampString(fb.timestampNow())
-          });
+            speakerId:reply.displayName,
+          };
+
+          if(reply.text.indexOf("{!BYE}") !== -1){
+            console.log("reply",reply)
+            message.text = reply.text.replace("{!BYE}","");
+
+            writeLog(message);
+            
+            bot.deployHabitat(null); 
+            setCurrentFairy(null);
+
+            writeLog("妖精は離れていった");    
+          }else{
+            writeLog(message);
+          }
+
           setBotBusy(false);
         }
       })
@@ -320,9 +337,24 @@ export default function Habitat(props){
   }
 
   function writeLog(message){
+    let newMessage;
+    if(typeof message === "string"){
+      newMessage={
+        displayName:null,
+        photoURL:null,
+        text:message,
+        speakerId:null,
+        timestamp:toTimestampString(fb.timestampNow())
+      }
+    }else{
+      newMessage={
+        ...message,
+        timestamp:toTimestampString(fb.timestampNow())
+      }
+    }
     setLog(prevLog=>{
       /* 連続selLog()で前のselLog()が後のsetLog()で上書きされるのを防止 */
-      const newLog = [...prevLog,message];
+      const newLog = [...prevLog,newMessage];
       newLog.slice(-localLogLinesMaxRef.current);
       localStorageIO.setJson('habitatLog',newLog);
       return newLog;
@@ -340,12 +372,15 @@ export default function Habitat(props){
 
   const logSlice=log.slice(-chatLinesMaxRef.current);
   const speeches = logSlice.map(speech =>{
-    return (speech.speakerId === fb.user.uid || speech.speakerId === -1 )?
-      <RightBalloon speech={speech} key={speech.timestamp}/>
-    :
-      <LeftBalloon speech={speech} key={speech.timestamp}/>
+    if(speech.speakerId === null){
+      return <SystemLog speech={speech} key={speech.timestamp}/>
     }
-  );
+    if(speech.speakerId === fb.user.uid || speech.speakerId === -1 ){
+      return <RightBalloon speech={speech} key={speech.timestamp}/>
+    } else {
+      return <LeftBalloon speech={speech} key={speech.timestamp}/>
+    }
+  });
 
   return (
     <Box 

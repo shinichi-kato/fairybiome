@@ -18,8 +18,8 @@ export default class PartIO {
     this.behavior.generosity = parseFloat(b.generosity);
     this.behavior.retention =parseFloat(b.retention);
     this.dict = [...obj.dict];
-    this.inDict=Object.assign({},obj.inDict);
-    this.outDict=[...obj.outDict];
+    this.inDict=null;
+    this.outDict=null;
   }
 
   dump = () => {
