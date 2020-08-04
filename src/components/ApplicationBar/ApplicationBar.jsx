@@ -42,10 +42,22 @@ export default function ApplicationBar(props){
     setAnchorEl(null);
   }
   
+  function handleClickNavBefore(){
+    if(props.handleBack){
+      props.handleBack();
+
+    }
+    else{
+      navigate(-1);
+    } 
+  }
+
   return (
     <AppBar position="static">
       <Toolbar>
-        <IconButton edge="start" color="inherit">
+        <IconButton edge="start" color="inherit"
+          onClick={handleClickNavBefore}
+        >
           <NavigateBeforeIcon />
 
         </IconButton>

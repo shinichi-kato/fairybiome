@@ -66,6 +66,13 @@ const useStyles = makeStyles(theme => createStyles({
   }
 }));
 
+const useStyles2 = makeStyles(theme => createStyles({
+  root: {
+    width: '95%',
+    margin: 'auto',
+    pading: '0.5em',
+  },
+}));
 
 export function LeftBalloon(props){
   const classes = useStyles();
@@ -116,8 +123,9 @@ export function RightBalloon(props){
 }
 
 export function SystemLog(props){
+  const classes = useStyles2();
   return (
-    <Box alignSelf="center">
+    <Box className={classes.system}>
       <Typography variant="subtitle2">{props.speech.text}</Typography>
     </Box>
   )

@@ -60,13 +60,19 @@ export default class BiomeBotIO {
     const config = localStorageIO.getJson('Biomebot.config',false);
     const state = localStorageIO.getJson('Biomebot.state',false);
     if (!state){
-      return false;
+      return {
+        displayName:null,
+        photoURL:null,
+        buddy:null,
+        hp:null
+      }
     }
     return {
       displayName:config.displayName,
       photoURL:config.photoURL,
       buddy:state.buddy,
-    }
+      hp:state.hp
+     }
   }
 
 

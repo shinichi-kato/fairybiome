@@ -49,6 +49,7 @@ export default function BotProvider(props){
         setWordDict:handleSaveWordDict,
         upkeep:bot.upkeepToLocalStorage,
         getBuddyState:bot.getBuddyState,
+        dumpToLocalStorage:bot.dumpToLocalStorage,
         isVacantInLocalStorage:bot.isVacantInLocalStorage,
         isFairyYoung:bot.isFairyYoung,
         deployHome:handleDeployHome,

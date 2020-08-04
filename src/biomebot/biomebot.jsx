@@ -118,7 +118,7 @@ export default class BiomeBot extends BiomeBotIO {
       
     if(!fairy){
       // 話し相手を選んでいない
-      if(buddyState && buddyState.buddy === 'follow' && site !=='habitat'){
+      if(buddyState.buddy === 'follow' && site !=='habitat'){
         // buddyが随行中ならhabitat以外では話し相手になる
         this.readLocalStorage();
       }else if(buddyState.buddy === site){
@@ -215,7 +215,7 @@ export default class BiomeBot extends BiomeBotIO {
       }
       console.log("reply",reply)
 
-      reply.text = this.untagify(reply.text,userName,this.config.displayName);
+      reply.text = this.untagify(reply.text,userName);
 
       this.upkeepToLocalStorage();
       this.wordDict['{RESPONSE}'] = reply.text;
@@ -291,7 +291,8 @@ export default class BiomeBot extends BiomeBotIO {
           this.dumpToLocalStorage();
           resolve({
             displayName:this.config.displayName,
-            text:this.untagify("{!THANKS_FOR_BECOMING_BUDDY}",userName,this.config.displayName)         
+            photoURL:this.config.photoURL,
+            text:this.untagify("{!THANKS_FOR_BECOMING_BUDDY}",userName)         
           })
 
           
@@ -303,7 +304,7 @@ export default class BiomeBot extends BiomeBotIO {
             return resolve({
               displayName:this.config.displayName,
               photoURL:this.config.photoURL,
-              text:this.untagify("{!RETRY_NAME_ENTRY}",userName,this.config.displayName)        
+              text:this.untagify("{!RETRY_NAME_ENTRY}",userName)        
             });
         }else {
           // 名前が再入力されたとみなして抽出を試みる
@@ -330,7 +331,7 @@ export default class BiomeBot extends BiomeBotIO {
         return resolve({
           displayName:"",
           photoURL:this.config.photoURL,
-          text:this.untagify("{!QUERY_NAME_OK}",userName,this.config.displayName)
+          text:this.untagify("{!QUERY_NAME_OK}",userName)
         });
       }
 
@@ -338,7 +339,7 @@ export default class BiomeBot extends BiomeBotIO {
         return resolve({
           displayName:this.config.displayName,
           photoURL:this.config.photoURL,
-          text:this.untagify(queue,userName,this.config.displayName)
+          text:this.untagify(queue,userName)
         })
       }
       
@@ -358,8 +359,9 @@ export default class BiomeBot extends BiomeBotIO {
         if(reply.text.indexOf("{!ACCEPT_BUDDY_FORMATION}") !== -1)
         {
           const buddyState=this.getBuddyState();
-          if(buddyState.buddy === null && this.state.hp < randomInt(100)){
-            // バディがいたらNG
+          console.log("buddyState",buddyState)
+          if(!buddyState.buddy && this.state.hp < randomInt(100)){
+            // バディがおらず、
             // 1d100してhpより大きかったのでバディ結成を受け入れ、命名を依頼する
             reply.text = "{!NAME_ME}";
             reply.ordering = "top";
@@ -401,7 +403,7 @@ export default class BiomeBot extends BiomeBotIO {
       return resolve({
         displayName:this.config.displayName,
         photoURL:this.config.photoURL,
-        text:this.untagify(reply.text,userName,this.config.displayName)});
+        text:this.untagify(reply.text,userName)});
     })
   }
 
@@ -444,10 +446,11 @@ export default class BiomeBot extends BiomeBotIO {
   }
 
 
-  untagify = (text,userName,botName) => {
+  untagify = (text,userName) => {
     /* ユーザ発言やボットの発言に含まれる{userName},{botName}を戻す */
-    text = text.replace(/{botName}/g,botName);
-    text = text.replace(/{userName}/g,userName);
+    this.wordDict['{botName}']=[this.config.displayName];
+    this.wordDict['{userName}']=[userName];
+    this.wordDictKeys = Object.keys(this.wordDict);
 
     /* messageに含まれるタグを文字列に戻す再帰的処理 */
     if(text){

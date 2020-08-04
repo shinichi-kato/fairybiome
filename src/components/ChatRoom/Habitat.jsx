@@ -1,5 +1,5 @@
 import React ,{useContext,useCallback,useEffect,useState,useRef } from "react";
-import { StaticQuery,graphql } from "gatsby"
+import { StaticQuery,graphql ,navigate} from "gatsby"
 
 import {localStorageIO} from '../../utils/localStorageIO';
 
@@ -129,6 +129,7 @@ export default function Habitat(props){
   const [currentFairy,setCurrentFairy] = useState(null);
   const [botBusy,setBotBusy] = useState(false);
   const [log,setLog] = useState([]);
+  const [pageWillChange,setPageWillChange] = useState(null);
 
   // const seed = Math.floor(fb.timestampNow().seconods/(60*HABITAT.update_interval));
 
@@ -244,13 +245,14 @@ export default function Habitat(props){
       let allFairies = data.filter(fairy=>fairy.hp<hpMaxRef.current);
       
       //ユーザのバディがhabitatにいればこれに加える。
-      if(bot.ref.state.buddy==='habitat'){
+      const buddyState = bot.getBuddyState();
+      if(buddyState.buddy==='habitat'){
         allFairies.push({
           relativePath:'__localStorage__',
-          displayName:bot.displayName,
-          photoURL: bot.photoURL,
+          displayName:buddyState.displayName,
+          photoURL: buddyState.photoURL,
           buddyUser:fb.user.displayName,
-          hp:bot.ref.state.hp         
+          hp:buddyState.hp         
         })
       }
       
@@ -277,7 +279,13 @@ export default function Habitat(props){
           ?
           <Typography>今は誰もいないようだ・・・</Typography>
           :
-          fairiesRef.current.map((fairy,index)=><FairyAvatar {...fairy} key={index}/>)
+          <Box 
+            display ="flex"
+            flexDirection="row"
+            justifyContent="space-evenly"
+          >
+            {fairiesRef.current.map((fairy,index)=><FairyAvatar {...fairy} key={index}/>)}
+          </Box>
         }
       </>
     )
@@ -362,6 +370,15 @@ export default function Habitat(props){
 
   }
 
+  function handleToDashborad(){
+    //ページが変わる前にバディの状態を保存
+
+    if(bot.ref.state.buddy==='follow' ){
+      bot.dumpToLocalStorage();
+    }
+    navigate('/fairybiome/Dashboard/');
+  }
+
   // --------------------------------------------------------
   // currentLogが変更されたら最下行へ自動スクロール
   const myRef = useCallback(node => {
@@ -392,7 +409,11 @@ export default function Habitat(props){
       className={classes.root}
     >
       <Box>
-        <ApplicationBar title="妖精の生息地" busy={botBusy}/>
+        <ApplicationBar 
+          title="妖精の生息地" 
+          handleBack={handleToDashborad}
+          busy={botBusy}
+        />
       </Box>
 
       <Box 
