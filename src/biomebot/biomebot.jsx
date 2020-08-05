@@ -267,10 +267,9 @@ export default class BiomeBot extends BiomeBotIO {
           text:null,
         })
       }
-      
+
       let reply={};
       const queue = this.state.queue.shift();
-      console.log("queue",queue)
       if(queue === "{!CONFIRM_NAME}"){
         // バディ結成手順２命名
         // ユーザ名がOKかどうかの返事が入力されたとみなし、true/falseを抽出
@@ -297,7 +296,7 @@ export default class BiomeBot extends BiomeBotIO {
 
           
         }else if(userInput.search(
-            /(ちがう|NO|No|no|そうじゃない|違う)[。!！]?$/
+            /(ちがう|NO|No|no|そうじゃない|違う|違います|違った)(がな|な|よ)?[。!！ー-]*$/
           ) !== -1){
             // Noの明示・・・名前受付に戻る
             this.state.queue=["{!CONFIRM_NAME}"]
@@ -352,7 +351,7 @@ export default class BiomeBot extends BiomeBotIO {
         if(reply.text === "") { continue }  
 
         //queueに追加
-        this.state.queue = [...this.state.queue,...reply.queue];
+        // this.state.queue = [...this.state.queue,...reply.queue];
 
         //バディ結成手順１
         // {!ACCEPT_BUDDY_FORMATION}を発話
@@ -380,7 +379,7 @@ export default class BiomeBot extends BiomeBotIO {
           return resolve({
             displayName:this.config.displayName,
             photoURL:this.config.photoURL,
-            text:reply.text}
+            text:this.untagify(reply.text,userName)}
           );
 
         }

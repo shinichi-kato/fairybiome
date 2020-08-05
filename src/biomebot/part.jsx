@@ -131,18 +131,21 @@ export default class Part extends PartIO{
       
 
         
-  learnerReplier = (text,userName,state)=>{
+  learnerReplier = (usernName,text,state,wordDict) => {
     /* learner型
     1. availabilityチェックを行う。
-    2. ユーザの発言Xに似た行が辞書を探し、スコアを計算する。
+    2. ユーザの発言Xに似た行があるか辞書を探し、スコアを計算する。
     3. generosityチェックを行う。OKならユーザ発言に対する返答を返して終わる。
-    4. Xに似た行が見つからなかった場合{!TELL_ME_WHAT_TO_SAY}を出力して終わる。
-       この文字列はどうやって答えたらいいか聞くセリフに変換されてユーザに返る。
-       queueが消去され、{!PARSE_USER_INPUT}が書き込まれる
+    4. Xに似た行が見つからなかった場合{!TELL_ME_WHAT_TO_SAY}を出力し、
+       今のユーザ発言をwordDict['{USER_UNKNOWN_INPUT}'}に格納して
+       queueは[{!PARSE_USER_INPUT}]にして終わる。
     5. queueに{!PARSE_USER_INPUT}があったらパターンを使ってユーザ入力から
-       答えと思われる文字列を抽出し、{RESPONSE}に格納する。なお、前回の
-       ユーザの入力は{PREV_USER_INPUT}に格納される。
-    6. {in:[{PREV_USER_INPUT}],out:[{RESPONSE}]}という記憶を辞書に追加
+       答えと思われる文字列を抽出し、wordDict['{BOT_CAND_OUTPUT}']に格納する。
+       botは確認メッセージ{!CONFIRM_LEARN}を出力、queueを{!CONFIRM_LEARN}にする
+  　6. queueが{!CONFIRM_LEARN}だった場合、ユーザの入力がyesかどうか調べ、
+       yes出会った場合このパートのinDictに
+       in:[ユーザ入力],out:[ボット出力]
+       を追加。コンパイルする。
     7. {!I_GOT_IT}を出力して終わる。
 
     // ↓将来実装したい
@@ -163,20 +166,54 @@ export default class Part extends PartIO{
       const queue = state.queue.shift();
       if(queue === '{!PARSE_USER_INPUT}'){
 
-        //手順5-7
-        this.dict.push({
-          in:[wordDict['{PREV_USER_INPUT}']],
-          out:[wordDict['{RESPONSE}']]
-        });
-
+        //手順5
+        // 返答が入力されたとみなし、前後の不要語を除去して返答を抽出
+        const regexps =  [
+          /^(そういうときは|そういう時は)?[「 、]*/,
+          /[」 、]*(って言うんだよ)?[。！!]?$/,
+        ];
+        
+        const responseCand = regexps.reduce( (accum,val) =>{
+          return accum.replace(val,"");
+        },text);
+        wordDict["{!BOT_CAND_OUTPUT}"] = responseCand;
         return {
-          text:"{!I_GOT_IT}",
-          queue:[],
+          text:"{!CONFIRM_LEARN}",
+          queue:["{!CONFIRM_LEARN}"],
           score:1,
-          ordering:"bottom",  
+          ordering:"top",  
         }
-    
       }
+
+      if(queue==='{!CONFIRM_LEARN}'){
+        if(text.search(
+          /(ちがう|NO|No|no|そうじゃない|違う|違います|違った)(がな|な|よ)?[。!！ー-]*$/
+        ) !== -1){
+          // 否定の明示・・・学習のキャンセル
+          return {
+            text:"{!LEARN_FIZZLED}",
+            queue:[],
+            ordering:"bottom",
+            score:1,
+          }
+        }else{
+          // 学習成功
+          this.dict.push({
+            in:[wordDict['{!USER_UNKNOWN_INPUT}']],
+            out:[wordDict['{!BOT_CAND_OUTPUT}']]
+          })
+          this.compile().then(()=>{
+
+          })
+          return {
+            text:"{!I_GOT_IT}",
+            queue:[],
+            score:1,
+            ordering:"bottom",
+          }
+        }
+      }
+
       // queueからshiftした内容を返答にする
       return {
         text:queue,
@@ -186,7 +223,6 @@ export default class Part extends PartIO{
       }
   
     }
-
     // availability check
     if(Math.random() > this.behavior.availability){
       console.log("learner:avail. insufficient")
@@ -198,28 +234,25 @@ export default class Part extends PartIO{
     const ir = textToInternalRepr(text);
     const irResult = retrieve(ir,this.inDict);
     
-    if (irResult.index === null){
-      return result
-    }
-
     // generosity check
-    if(irResult.score < 1-this.behavior.generosity){
+    if(irResult.index === null || irResult.score <= 1-this.behavior.generosity){
       // 手順4 返答できない場合尋ねる
       console.log(`learner:generos. ${this.behavior.generosity} score:${irResult.score}`)
-      result = {
+      wordDict['{!USER_UNKNOWN_INPUT}'] = text;
+      return {
         text:"{!TELL_ME_WHAT_TO_SAY}",
         queue:["{!PARSE_USER_INPUT}"],
         ordering:"top",
         score:irResult.score,
       }
-      return result;  
     }  
 
     // 出力候補の中から一つを選ぶ
     let cands = [];
     cands = this.outDict[irResult.index];
     result.text = cands[randomInt(cands.length)];
-    console.log("result.text:",result.text)    
+    console.log("result.text:",result.text)  
+
     // テキストに<BR>が含まれていたらqueueに送る
     if(result.text.indexOf('<BR>') !== -1){
       const replies = reply.text.split('<BR>');
@@ -245,10 +278,9 @@ export default class Part extends PartIO{
 
   defaultReplier = (text,username,state) => {
     let result = {
-      text:"",      // 返答文字列
+      text:"default replier",      // 返答文字列
       queue:[],     // キューに送る文字列
       score:0,      // テキスト検索での一致度
-      prevUserInput:"", // ユーザのセリフを記憶
       ordering:"",  // top:このパートを先頭へ, bottom:このパートを末尾へ移動 
     };
     return result;
