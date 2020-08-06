@@ -269,7 +269,7 @@ export default class BiomeBot extends BiomeBotIO {
       }
 
       let reply={};
-      const queue = this.state.queue.shift();
+      const queue = this.state.queue[0];
       if(queue === "{!CONFIRM_NAME}"){
         // バディ結成手順２命名
         // ユーザ名がOKかどうかの返事が入力されたとみなし、true/falseを抽出
@@ -287,7 +287,9 @@ export default class BiomeBot extends BiomeBotIO {
             ...this.state,
             buddy:"follow"
           };
+          this.queue.shift();
           this.dumpToLocalStorage();
+
           resolve({
             displayName:this.config.displayName,
             photoURL:this.config.photoURL,
@@ -325,8 +327,8 @@ export default class BiomeBot extends BiomeBotIO {
         },userInput);
 
         this.config.displayName=nameCand;
+        this.state.queue.shift();
         this.state.queue=["{!CONFIRM_NAME}"];
-        console.log("candname",nameCand)
         return resolve({
           displayName:"",
           photoURL:this.config.photoURL,
@@ -334,13 +336,13 @@ export default class BiomeBot extends BiomeBotIO {
         });
       }
 
-      if(queue){
-        return resolve({
-          displayName:this.config.displayName,
-          photoURL:this.config.photoURL,
-          text:this.untagify(queue,userName)
-        })
-      }
+      // if(queue){
+      //   return resolve({
+      //     displayName:this.config.displayName,
+      //     photoURL:this.config.photoURL,
+      //     text:this.untagify(queue,userName)
+      //   })
+      // }
       
 
       for(let i=0,l=this.state.partOrder.length; i<l; i++){
@@ -351,7 +353,7 @@ export default class BiomeBot extends BiomeBotIO {
         if(reply.text === "") { continue }  
 
         //queueに追加
-        // this.state.queue = [...this.state.queue,...reply.queue];
+        this.state.queue = [...this.state.queue,...reply.queue];
 
         //バディ結成手順１
         // {!ACCEPT_BUDDY_FORMATION}を発話

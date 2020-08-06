@@ -161,7 +161,7 @@ export default class Part extends PartIO{
       score:0,      // テキスト検索での一致度
       ordering:"",  // top:このパートを先頭へ, bottom:このパートを末尾へ移動 
     };
-
+    console.log("queue=",state.queue)
     if(state.queue.length !== 0){
       const queue = state.queue.shift();
       if(queue === '{!PARSE_USER_INPUT}'){
@@ -187,7 +187,7 @@ export default class Part extends PartIO{
 
       if(queue==='{!CONFIRM_LEARN}'){
         if(text.search(
-          /(ちがう|NO|No|no|そうじゃない|違う|違います|違った)(がな|な|よ)?[。!！ー-]*$/
+          /(いやいや|ちがう|NO|No|no|そうじゃない|違う|違います|違った)(がな|な|よ)?[。!！ー-]*$/
         ) !== -1){
           // 否定の明示・・・学習のキャンセル
           return {
