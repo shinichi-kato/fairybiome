@@ -170,6 +170,11 @@ export default function FirebaseProvider(props){
 		});    
   }
 
+  function timestampNow(){
+    if (typeof window !== `undefined`) {
+      return firebase.firestore.Timestamp.now
+    }
+  }
   
 
   return (
@@ -179,7 +184,7 @@ export default function FirebaseProvider(props){
         firestore:state.firestore,
         user:{...state.user},
         changeUserInfo:changeUserInfo,
-        timestampNow:firebase.firestore.Timestamp.now
+        timestampNow:timestampNow,
       }}
     >
       { state.firebaseApp === null 

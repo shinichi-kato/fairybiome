@@ -96,7 +96,7 @@ export default function Main(props){
             icon={userPhotoURL}
           />
         </Box>
-        {props.bot &&
+        {props.bot.displayName &&
           <Box>
             <ChatAvatar
               displayName={props.bot.displayName || "名前のない妖精"}

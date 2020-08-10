@@ -24,7 +24,7 @@
         "{!THANKS_FOR_BECOMING_BUDDY}":["{botName}だね。それじゃ、よろしくね！"],
         "{!RETRY_NAME_ENTRY}":["もう一度お願いします・・・"],
         "{!TELL_ME_WHAT_TO_SAY}":["そういうとき、なんて返事したらいいの？"],
-        "{!CONFIRM_LEARN}":["「{!USER_UNKNOWN_INPUT}」って言われたときは{!BOT_CAND_OUTPUT}って・・・"],
+        "{!CONFIRM_LEARN}":["「{!USER_UNKNOWN_INPUT}」って言われたときは「{!BOT_CAND_OUTPUT}」・・・でいい？"],
         "{!LEARN_FIZZLED}":["難しいんだね・・"],
         "{!I_GOT_IT}":["ありがとう！"],
         "{!DISBAND}":["またね！"],

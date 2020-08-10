@@ -59,7 +59,7 @@ export default class BiomeBotIO {
   getBuddyState = () => {
     const config = localStorageIO.getJson('Biomebot.config',false);
     const state = localStorageIO.getJson('Biomebot.state',false);
-    if (!state){
+    if (!state || !config){
       return {
         displayName:null,
         photoURL:null,

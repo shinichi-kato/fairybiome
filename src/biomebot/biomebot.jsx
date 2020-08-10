@@ -159,6 +159,11 @@ export default class BiomeBot extends BiomeBotIO {
     全ての{!ACCEPT_BUDDY_FORMATION}や{!REJECT_BUDDY_FORMATION}は無効で、
     {!IGNORE_BUDDY_FORMATION}が代わりに実行される。
 
+    ■妖精の外出
+    妖精がセリフ内で{!BOT_WILL_SPLIT}を発言した場合、ボットはhomeかhabitatに
+    でかけてユーザとは別行動になる。出かける直前の状態は保存され、ボットはstandby-mode
+    になる
+
     ■単独行動中のバディの呼び出し
     HomeとHabitatではバディの妖精が単独行動していて現在地にいない場合妖精は返事をしない。
     妖精が不在でもユーザが呼びかけて{!BOT_ACCEPT_SUMMON}が評価された場合、1d100がHPよりも大きければ
@@ -177,6 +182,7 @@ export default class BiomeBot extends BiomeBotIO {
       }
 
       let reply ;
+      const queue = this.state.queue[0];
 
       for(let i=0,l=this.state.partOrder.length; i<l; i++){
         const partName = this.state.partOrder[i];
@@ -189,6 +195,31 @@ export default class BiomeBot extends BiomeBotIO {
 
         // queueに追加
         this.state.queue = [...this.state.queue,...reply.queue];
+
+        // 発言中に'{!BOT_WILL_SPLIT}'を検出したらbuddyはhomeかhabitatに
+        // 出かける
+
+        if(reply.text.indexOf("{!BOT_WILL_SPLIT}") !== -1){
+          this.state.buddy = Math.random()>0.5 ? "home" : "habitat";
+          this.dumpToLocalStorage();
+          if(this.state.buddy === 'home'){
+            this.overwriteStandbyFairy();
+          }else{
+            this.init();
+          }
+          this.compile().then(()=>{});
+
+          return resolve({
+            displayName:this.config.botName,
+            photoURL:this.config.photoURL,
+            text:this.untagify(reply.text,userName)
+          });
+        }
+
+        // 発言中に'{!BOT_ACCEPT_SUMMON}'を検出したらbotはfollowに戻る
+        if(reply.text.indexOf("{!BOT_ACCEPT_SUMMON}") !== -1){
+          this.state
+        }
 
 
         if(reply.ordering === "top"){
@@ -220,10 +251,10 @@ export default class BiomeBot extends BiomeBotIO {
       this.upkeepToLocalStorage();
       this.wordDict['{RESPONSE}'] = reply.text;
       this.wordDict['{PREV_USER_INPUT}'] = userInput;
-      resolve({
+      return resolve({
         displayName:this.config.botName,
         photoURL:this.config.photoURL,
-        text:reply.text,
+        text:this.untagify(reply.text,userName)
       })
     })
   }
@@ -355,6 +386,13 @@ export default class BiomeBot extends BiomeBotIO {
         //queueに追加
         this.state.queue = [...this.state.queue,...reply.queue];
 
+        // 辞書に追加
+        if(reply.appendDict){
+          console.log("appenddict",reply.appendDict)
+          this.wordDict = {...this.wordDict,...reply.appendDict}
+
+        }
+
         //バディ結成手順１
         // {!ACCEPT_BUDDY_FORMATION}を発話
         if(reply.text.indexOf("{!ACCEPT_BUDDY_FORMATION}") !== -1)
@@ -393,6 +431,13 @@ export default class BiomeBot extends BiomeBotIO {
           // partOrderの順番を破壊したのでループを抜ける
           break;
         }       
+        if(reply.ordering === 'bottom'){
+          // このパートを末尾に
+          this.state.partOrder.slice(i,1);
+          this.state.partOrder.push(partName);
+          // currentPartsの順番を破壊するのでforループを抜ける
+          break;
+        }
       }
 
       if(reply.text === ""){

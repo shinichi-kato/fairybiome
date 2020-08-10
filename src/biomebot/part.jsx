@@ -86,8 +86,8 @@ export default class Part extends PartIO{
     }
 
     // text retrieving
-    text = tagifyInMessage(segmenter.segment(text));
-    const ir = textToInternalRepr(text);
+    const nodes = tagifyInMessage(segmenter.segment(text));
+    const ir = textToInternalRepr(nodes);
     const irResult = retrieve(ir,this.inDict);
 
     if (irResult.index === null){
@@ -161,27 +161,32 @@ export default class Part extends PartIO{
       score:0,      // テキスト検索での一致度
       ordering:"",  // top:このパートを先頭へ, bottom:このパートを末尾へ移動 
     };
-    console.log("queue=",state.queue)
+
     if(state.queue.length !== 0){
       const queue = state.queue.shift();
       if(queue === '{!PARSE_USER_INPUT}'){
+
+
 
         //手順5
         // 返答が入力されたとみなし、前後の不要語を除去して返答を抽出
         const regexps =  [
           /^(そういうときは|そういう時は)?[「 、]*/,
-          /[」 、]*(って言うんだよ)?[。！!]?$/,
+          /[」 、]*(と|って)(いう|言ったら|言う|)*[。！!]?$/,
         ];
         
         const responseCand = regexps.reduce( (accum,val) =>{
           return accum.replace(val,"");
         },text);
-        wordDict["{!BOT_CAND_OUTPUT}"] = responseCand;
+
+        const appendDict={"{!BOT_CAND_OUTPUT}":[responseCand]};
+        console.log("text",text)
         return {
           text:"{!CONFIRM_LEARN}",
           queue:["{!CONFIRM_LEARN}"],
           score:1,
           ordering:"top",  
+          appendDict:appendDict
         }
       }
 
@@ -199,18 +204,19 @@ export default class Part extends PartIO{
         }else{
           // 学習成功
           this.dict.push({
-            in:[wordDict['{!USER_UNKNOWN_INPUT}']],
-            out:[wordDict['{!BOT_CAND_OUTPUT}']]
+            in:wordDict['{!USER_UNKNOWN_INPUT}'],
+            out:wordDict['{!BOT_CAND_OUTPUT}']
           })
-          this.compile().then(()=>{
+          this.compile().then(()=>{});
 
-          })
           return {
             text:"{!I_GOT_IT}",
             queue:[],
             score:1,
             ordering:"bottom",
           }
+
+
         }
       }
 
@@ -230,20 +236,21 @@ export default class Part extends PartIO{
     }
 
     // text retrieving
-    text = tagifyInMessage(segmenter.segment(text));
-    const ir = textToInternalRepr(text);
+    const nodes = tagifyInMessage(segmenter.segment(text));
+    const ir = textToInternalRepr(nodes);
     const irResult = retrieve(ir,this.inDict);
     
     // generosity check
     if(irResult.index === null || irResult.score <= 1-this.behavior.generosity){
       // 手順4 返答できない場合尋ねる
       console.log(`learner:generos. ${this.behavior.generosity} score:${irResult.score}`)
-      wordDict['{!USER_UNKNOWN_INPUT}'] = text;
+      const appendDict={'{!USER_UNKNOWN_INPUT}':[text]};
       return {
         text:"{!TELL_ME_WHAT_TO_SAY}",
         queue:["{!PARSE_USER_INPUT}"],
         ordering:"top",
         score:irResult.score,
+        appendDict:appendDict
       }
     }  
 
