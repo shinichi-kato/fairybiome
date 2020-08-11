@@ -192,7 +192,7 @@ export default class Part extends PartIO{
 
       if(queue==='{!CONFIRM_LEARN}'){
         if(text.search(
-          /(いやいや|ちがう|NO|No|no|そうじゃない|違う|違います|違った)(がな|な|よ)?[。!！ー-]*$/
+          /(いやいや|ちがう|NO|No|no|そうじゃない|違う|違います|違った|違えた|ごめん)(がな|な|よ)?[。!！ー-]*$/
         ) !== -1){
           // 否定の明示・・・学習のキャンセル
           return {

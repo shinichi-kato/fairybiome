@@ -7,7 +7,6 @@ export default function Component() {
       <center>
         <Typography
           color="primary"
-          
           component="span"
           gutterBottom
           paragraph

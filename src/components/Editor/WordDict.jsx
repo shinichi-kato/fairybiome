@@ -68,7 +68,7 @@ export default function WordDict(props){
 
   function TextInput(props){
     return(
-      <>
+      <div>
         <Typography variant="subtitle2">
         {props.caption}
         </Typography>
@@ -83,7 +83,7 @@ export default function WordDict(props){
           value={props.value}
           onChange={props.handleChange}
         />      
-      </>
+      </div>
     )
 
   }

@@ -94,7 +94,7 @@ export default function UserSettings(props){
   }
 
   return(
-    <>
+    <div>
       {photoURLsRef.current === null &&
         <StaticQuery  
           query={query}
@@ -156,6 +156,6 @@ export default function UserSettings(props){
         </Button>
       </Box>
     </Box>
-    </>
+    </div>
   )
 }

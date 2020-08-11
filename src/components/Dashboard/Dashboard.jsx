@@ -30,7 +30,7 @@ export default function Dashboard(props){
   
 
   return (
-    <>
+    <div>
       { 
         (user.displayName === "" && user.photoURL === "") && 
         <UserSettings 
@@ -44,6 +44,6 @@ export default function Dashboard(props){
           bot={buddyState}
         />
       }
-    </>
+    </div>
   )
 }

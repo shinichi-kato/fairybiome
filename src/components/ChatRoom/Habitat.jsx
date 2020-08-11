@@ -158,7 +158,7 @@ export default function Habitat(props){
 
         })
         .catch(error=>{
-          setMessage(error.message);
+          writeLog(error.message);
         })
     }else{
       // firestoreからダウンロード
@@ -273,7 +273,7 @@ export default function Habitat(props){
     }
     
     return (
-      <>
+      <div>
        {
           numOfFairyRef.current === 0 
           ?
@@ -287,7 +287,7 @@ export default function Habitat(props){
             {fairiesRef.current.map((fairy,index)=><FairyAvatar {...fairy} key={index}/>)}
           </Box>
         }
-      </>
+      </div>
     )
   }
 

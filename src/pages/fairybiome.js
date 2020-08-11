@@ -1,47 +1,45 @@
-import React, {useEffect} from "react"
+import React, {useEffect} from "react";
 import { Router } from "@reach/router";
 
-import FirebaseProvider from '../components/Firebase/FirebaseProvider';
-import BotProvider from '../components/ChatBot/BotProvider';
-import Dashboard from '../components/Dashboard/Dashboard';
-import Editor from '../components/Editor/Editor';
-import Home from '../components/ChatRoom/Home';
-import Hub from '../components/ChatRoom/Hub';
-import Habitat from '../components/ChatRoom/Habitat';
+import FirebaseProvider from "../components/Firebase/FirebaseProvider";
+import BotProvider from "../components/ChatBot/BotProvider";
+import Dashboard from "../components/Dashboard/Dashboard";
+import Editor from "../components/Editor/Editor";
+import Home from "../components/ChatRoom/Home";
+import Hub from "../components/ChatRoom/Hub";
+import Habitat from "../components/ChatRoom/Habitat";
 
 const isBrowser = () => typeof window !== "undefined";
 
-
-export default function index(props){
-
-  //------------------------------------------------------------------
+export default function Fairybiome() {
+  // ------------------------------------------------------------------
   //  body要素のバウンススクロールを無効化
 
   useEffect(() => {
-    if(isBrowser()){
+    if (isBrowser()) {
       const handler = (event) => {
-        if (handler.event.touches[0].target.tagName.toLowerCase() === "body"){
+        if (handler.event.touches[0].target.tagName.toLowerCase() === "body") {
           event.preventDefault();
         }
-      }
-  
-      window.addEventListener("touchstart",handler);
-      window.addEventListener("touchmove",handler);
-      window.addEventListener("touchend",handler);
-  
+      };
+
+      window.addEventListener("touchstart", handler);
+      window.addEventListener("touchmove", handler);
+      window.addEventListener("touchend", handler);
+
       return () => {
-        window.removeEventListener("touchstart",handler);
-        window.removeEventListener("touchmove",handler);
-        window.removeEventListener("touchend",handler);
-      }
+        window.removeEventListener("touchstart", handler);
+        window.removeEventListener("touchmove", handler);
+        window.removeEventListener("touchend", handler);
+      };
     }
-  },[]);
+  }, []);
 
   return (
     <FirebaseProvider>
       <BotProvider>
         <Router basepath="/fairybiome">
-          <Dashboard path="/Dashboard" default/> 
+          <Dashboard default path="/Dashboard"/>
           <Editor path="/Editor" />
           <Home path="/Home" />
           <Hub path="/Hub" />
@@ -49,8 +47,7 @@ export default function index(props){
         </Router>
       </BotProvider>
     </FirebaseProvider>
-    
-  )
+  );
 }
 
 /* {location}経由でclient-only-routeにパラメータを渡す場合、

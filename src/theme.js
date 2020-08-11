@@ -5,33 +5,33 @@ import { createMuiTheme } from "@material-ui/core/styles";
 
 const theme = createMuiTheme({
   overrides: {
-    MuiCssBaseline:{
-      '@global':{
+    MuiCssBaseline: {
+      "@global": {
         html: {
-          width: '100%',
-          height: '100%',
+          width: "100%",
+          height: "100%",
           margin: 0,
           padding: 0,
-          webkitFontSmoothing: 'antialiased',
-          mozOsxFontSmoothing: 'grayscale',
-          overscrollBehaviorY: 'none',
-          backgroundColor: '#eeeeee',
+          webkitFontSmoothing: "antialiased",
+          mozOsxFontSmoothing: "grayscale",
+          overscrollBehaviorY: "none",
+          backgroundColor: "#eeeeee",
         },
-        body:{
+        body: {
           position: "fixed",
           width: 480,
           height: "100%",
           marginLeft: "calc((100% - 480px)  * 0.3)",
-          marginRight : "calc((100% - 480px) * 0.7)",
+          marginRight: "calc((100% - 480px) * 0.7)",
         }
       }
     }
   },
   palette: {
-    primary: { main: '#212962' },
-    secondary: { main: '#BF360C' },
-    background: { default: '#D7D6D6'},
-    error: { main: '#a52228', },
+    primary: { main: "#212962" },
+    secondary: { main: "#BF360C" },
+    background: { default: "#D7D6D6"},
+    error: { main: "#a52228", },
   },
 });
 

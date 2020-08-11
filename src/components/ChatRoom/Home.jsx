@@ -130,7 +130,7 @@ export default function Home(props){
   );
 
   return (
-    <>
+    <div>
       <Box 
         className={classes.root}
         display="flex"
@@ -160,6 +160,6 @@ export default function Home(props){
       >
         <FairyBiomeIcon />
       </Fab>
-    </>
+    </div>
   )
 }

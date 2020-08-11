@@ -13,6 +13,7 @@ export function toTimestampString(timestamp){
 		という文字列に変換される。文字列からJavascriptのDate型を復元するため
 		正規表現を利用し、配列のkeyにできるようにミリ秒まで表示する。
 	
+		firebase deploy環境ではrの取得に失敗している。要調査
 	*/ 
 	if(timestamp){
 		let d;
@@ -23,6 +24,7 @@ export function toTimestampString(timestamp){
 		}
 		else {
 			const datestr = timestamp.toString();
+			console.log("timestamp",timestamp,"tostr",datestr);
 			const r = datestr.match(/seconds=([0-9]+), nanoseconds=([0-9][0-9][0-9])/);
 			d = new Date(r[1]*1000);
 			ms = r[2]

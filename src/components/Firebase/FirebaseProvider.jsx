@@ -1,3 +1,4 @@
+
 import React,{useEffect,useReducer,createContext} from 'react';
 import Landing from '../Landing/Landing';
 import AuthDialog from './AuthDialog';
@@ -172,7 +173,7 @@ export default function FirebaseProvider(props){
 
   function timestampNow(){
     if (typeof window !== `undefined`) {
-      return firebase.firestore.Timestamp.now
+      return firebase.firestore.Timestamp.now()
     }
   }
   

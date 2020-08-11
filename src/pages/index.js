@@ -1,13 +1,11 @@
 import React, {useEffect} from "react";
 import {navigate} from "gatsby";
 
-export default function index(props){
+export default function Index() {
   useEffect(()=>{
-    navigate('/fairybiome/')
-  },[]);
+    navigate("/fairybiome/");
+  }, []);
   return (
-    <div>
-
-    </div>
-  )
+    <div/>
+  );
 }

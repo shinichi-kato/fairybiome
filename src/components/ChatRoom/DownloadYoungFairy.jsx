@@ -131,7 +131,7 @@ export default function DownloadYoungFairy(props){
 
 
   return(
-    <>
+    <div>
       {pathsRef.current === undefined &&
         <StaticQuery
           query={query}
@@ -187,7 +187,7 @@ export default function DownloadYoungFairy(props){
           </Button>
         </Box>
       </Box>
-    </>
+    </div>
   )
 }
 
