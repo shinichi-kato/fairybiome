@@ -1,4 +1,5 @@
 import React ,{useContext,useState } from "react";
+import {navigate} from "gatsby";
 import { makeStyles } from '@material-ui/core/styles';
 import Box from '@material-ui/core/Box';
 

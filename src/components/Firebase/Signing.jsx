@@ -38,7 +38,7 @@ export default function Signing(props){
       props.handleSignUp();
     }
   }
-
+  console.log("<Signing />")
   return (
     <Box 
       display="flex"

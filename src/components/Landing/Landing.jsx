@@ -7,7 +7,7 @@ import LogoSvg from "../../../images/svg/logo.svg";
 const useStyles = makeStyles((theme) => ({
   root: {
     width: "100%",
-    backgroundImage: "url(../images/landing-bg.png)",
+    backgroundImage: "url(../png/landing-bg.png)",
     backgroundPosition: "center bottom",
   },
   logoBox: {
@@ -25,8 +25,10 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 
-export default function Index(props){
+export default function Landing(props){
   const classes = useStyles();
+
+  console.log("<Landing/>")
   return (
     <Box className={classes.root}
       display="flex"

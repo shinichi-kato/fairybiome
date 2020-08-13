@@ -177,7 +177,7 @@ export default function FirebaseProvider(props){
     }
   }
   
-
+  console.log("<FirebaseProvider>",state);
   return (
     <FirebaseContext.Provider 
       value={{

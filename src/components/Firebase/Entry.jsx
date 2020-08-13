@@ -36,8 +36,9 @@ const useStyles = makeStyles((theme) => ({
   
 }));
 
-export default function Entry(props){
+export default function Entry(){
   const classes = useStyles();
+  console.log("<Entry />")
   return (
     <Box 
       display="flex"

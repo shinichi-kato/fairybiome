@@ -93,6 +93,7 @@ export default function UserSettings(props){
     props.handleChangeUserInfo(nameRef.current,photoURL)
   }
 
+  console.log("<UserSetting/>")
   return(
     <div>
       {photoURLsRef.current === null &&

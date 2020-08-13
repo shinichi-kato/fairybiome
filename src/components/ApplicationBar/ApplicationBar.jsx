@@ -1,6 +1,6 @@
-import React,{useState} from "react";
+import React, { useState } from "react";
 
-import {navigate} from 'gatsby';
+import { navigate } from 'gatsby';
 
 import { makeStyles } from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
@@ -23,33 +23,33 @@ const useStyles = makeStyles((theme) => ({
   title: {
     flexGrow: 1,
   },
-  color:{
-    
+  color: {
+
   },
-  
+
 }));
 
 
-export default function ApplicationBar(props){
+export default function ApplicationBar(props) {
   const classes = useStyles();
-  const [anchorEl,setAnchorEl] = useState(null);
-  
+  const [anchorEl, setAnchorEl] = useState(null);
+
   const handleClickSettingsMenu = (e) => {
     setAnchorEl(e.currentTarget);
   }
 
-  function handleCloseSettingsMenu(){
+  function handleCloseSettingsMenu() {
     setAnchorEl(null);
   }
-  
-  function handleClickNavBefore(){
-    if(props.handleBack){
-      props.handleBack();
+
+  function handleClickNavBefore() {
+    var nagivateDefault = -1;
+
+    if (props.setNavigateBefore) {
+      navigateDefault = props.setNavigateBefore();
 
     }
-    else{
-      navigate(-1);
-    } 
+    navigate(navigateDefault)
   }
 
   return (
@@ -72,16 +72,16 @@ export default function ApplicationBar(props){
         <IconButton color="inherit">
           <MenuBookIcon />
         </IconButton>
-        <IconButton 
+        <IconButton
           edge="end"
           color="inherit"
-          aria-controls="settings-menu" 
-          aria-haspopup="true" 
+          aria-controls="settings-menu"
+          aria-haspopup="true"
           onClick={handleClickSettingsMenu}
         >
           <SettingsOutlinedIcon />
         </IconButton>
-        <SettingsMenu 
+        <SettingsMenu
           anchorEl={anchorEl}
           open={Boolean(anchorEl)}
           handleClose={handleCloseSettingsMenu}

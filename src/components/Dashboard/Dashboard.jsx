@@ -28,7 +28,8 @@ export default function Dashboard(props){
   }
 
   
-
+  
+  console.log("<Dashboard />")
   return (
     <div>
       { 

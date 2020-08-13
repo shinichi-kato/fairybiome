@@ -7,7 +7,7 @@ import theme from "../../src/theme";
 
 export default function TopLayout(props) {
   return (
-    <div>
+    <>
       <Helmet>
         <meta
           name="viewport"
@@ -19,7 +19,7 @@ export default function TopLayout(props) {
         <CssBaseline />
         {props.children}
       </ThemeProvider>
-    </div>
+    </>
   );
 }
 

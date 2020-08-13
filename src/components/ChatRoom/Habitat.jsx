@@ -1,7 +1,7 @@
-import React ,{useContext,useCallback,useEffect,useState,useRef } from "react";
-import { StaticQuery,graphql ,navigate} from "gatsby"
+import React, { useContext, useCallback, useEffect, useState, useRef } from "react";
+import { StaticQuery, graphql } from "gatsby"
 
-import {localStorageIO} from '../../utils/localStorageIO';
+import { localStorageIO } from '../../utils/localStorageIO';
 
 import { makeStyles } from '@material-ui/core/styles';
 
@@ -12,11 +12,11 @@ import LinearProgress from '@material-ui/core/LinearProgress';
 import IconButton from '@material-ui/core/IconButton';
 import Card from '@material-ui/core/Card';
 import ApplicationBar from '../ApplicationBar/ApplicationBar';
-import {RightBalloon,LeftBalloon,SystemLog} from './balloons.jsx';
+import { RightBalloon, LeftBalloon, SystemLog } from './balloons.jsx';
 import Console from './console.jsx';
-import {toTimestampString} from '../to-timestamp-string.jsx';
-import {FirebaseContext} from '../Firebase/FirebaseProvider';
-import {BotContext} from '../ChatBot/BotProvider';
+import { toTimestampString } from '../to-timestamp-string.jsx';
+import { FirebaseContext } from '../Firebase/FirebaseProvider';
+import { BotContext } from '../ChatBot/BotProvider';
 
 
 function randomInt(max) {
@@ -67,31 +67,31 @@ const useStyles = makeStyles((theme) => ({
     height: 10,
     backgroundColor: ""
   },
-  avatar:{
-    width:40,
-    height:40
+  avatar: {
+    width: 40,
+    height: 40
   },
-  currentAvatar:{
+  currentAvatar: {
     width: 80,
     height: 80,
   },
-  avatarContainer:{
+  avatarContainer: {
     width: 120,
-    
+
   },
-  avatarSelector:{
+  avatarSelector: {
     height: 200,
     marginTop: 15,
   },
-  avatarCard:{
+  avatarCard: {
     padding: theme.spacing(1),
-    width:"95%",
+    width: "95%",
   },
   main: {
     height: 'calc( 100vh - 64px - 48px - 200px )',
-      overflowY:'scroll',
-    overscrollBehavior:'auto',
-    WebkitOverflowScrolling:'touch',
+    overflowY: 'scroll',
+    overscrollBehavior: 'auto',
+    WebkitOverflowScrolling: 'touch',
     padding: 0
   },
 
@@ -103,7 +103,7 @@ const useStyles = makeStyles((theme) => ({
 
 
 
-export default function Habitat(props){
+export default function Habitat(props) {
   /*
     妖精の生息地
 
@@ -126,41 +126,41 @@ export default function Habitat(props){
   const localLogLinesMaxRef = useRef(10);
   const chatLinesMaxRef = useRef(10);
   const fairiesRef = useRef([]);
-  const [currentFairy,setCurrentFairy] = useState(null);
-  const [botBusy,setBotBusy] = useState(false);
-  const [log,setLog] = useState([]);
-  const [pageWillChange,setPageWillChange] = useState(null);
+  const [currentFairy, setCurrentFairy] = useState(null);
+  const [botBusy, setBotBusy] = useState(false);
+  const [log, setLog] = useState([]);
+  const [pageWillChange, setPageWillChange] = useState(null);
 
   // const seed = Math.floor(fb.timestampNow().seconods/(60*HABITAT.update_interval));
 
   // ---------------------------------------------------
   // 初期は話し相手を指定しない状態で起動
 
-  useEffect(()=>{
+  useEffect(() => {
     bot.deployHabitat(null);
-  },[]);
+  }, []);
 
-  function handleCatchFairy(path){
-    
+  function handleCatchFairy(path) {
+
     setCurrentFairy(path);
-    
-    if(path === '__localStorage__'){
+
+    if (path === '__localStorage__') {
       const fairy = bot.getFairyFromLocalStorage();
       bot.deployHabitat(fairy);
       writeLog(`${fairy.config.displayName}があなたのすぐそばに来た`);
 
-    }else if(path.endsWith('.json')){
-       fetch(`../../fairy/${path}`)
-        .then(res=>res.json())
-        .then(fairy=>{
+    } else if (path.endsWith('.json')) {
+      fetch(`../../fairy/${path}`)
+        .then(res => res.json())
+        .then(fairy => {
           bot.deployHabitat(fairy);
           writeLog("妖精があなたのそばにやって来た");
 
         })
-        .catch(error=>{
+        .catch(error => {
           writeLog(error.message);
         })
-    }else{
+    } else {
       // firestoreからダウンロード
       // 未実装
       const fairy = {}
@@ -172,7 +172,7 @@ export default function Habitat(props){
   }
 
 
-  function FairyAvatar(props){
+  function FairyAvatar(props) {
     return (
       <Box
         display="flex"
@@ -181,20 +181,20 @@ export default function Habitat(props){
       >
         <Box>
           <IconButton
-            onClick={()=>handleCatchFairy(props.relativePath)}
+            onClick={() => handleCatchFairy(props.relativePath)}
           >
-            <Avatar 
+            <Avatar
               className={
-                currentFairy===props.relativePath 
-                ?
-                classes.currentAvatar : classes.avatar
-                }
-              src={`../../svg/${props.photoURL}`}/>
+                currentFairy === props.relativePath
+                  ?
+                  classes.currentAvatar : classes.avatar
+              }
+              src={`../../svg/${props.photoURL}`} />
           </IconButton>
-          
+
         </Box>
         <Box>
-          <Typography>{props.displayName||"まだ名前のない妖精"}</Typography>
+          <Typography>{props.displayName || "まだ名前のない妖精"}</Typography>
         </Box>
         <Box
           className={classes.avatarContainer}
@@ -210,197 +210,197 @@ export default function Habitat(props){
   }
 
 
-  function FairiesList(props){
+  function FairiesList(props) {
     // fairyディレクトリ、 ユーザのバディ、firestoreそれぞれの妖精を抽出し、
     // ランダムに数名を選んで表示
     // ※FairiesList中でuseStateは使用できない
 
-    if(fairiesListRef.current === null){
+    if (fairiesListRef.current === null) {
 
       // fairyディレクトリの妖精はgraphqlで抽出
-      const data = props.data.allFile.edges.map(edge=>{
-          const jsonData = edge.node.childFairyJson;
-          return {
-            relativePath:edge.node.relativePath,
-            displayName:jsonData.config.displayName,
-            photoURL:jsonData.config.photoURL,
-            buddyUser:jsonData.config.buddyUser,
-            hp:jsonData.state.hp,
-          }
-        });
+      const data = props.data.allFile.edges.map(edge => {
+        const jsonData = edge.node.childFairyJson;
+        return {
+          relativePath: edge.node.relativePath,
+          displayName: jsonData.config.displayName,
+          photoURL: jsonData.config.photoURL,
+          buddyUser: jsonData.config.buddyUser,
+          hp: jsonData.state.hp,
+        }
+      });
       const siteMetadata = props.data.site.siteMetadata;
       const hpMax = siteMetadata.habitat_fairy_hp_max;
       const numOfFairyMax = siteMetadata.habitat_num_of_fairy_max;
-      
+
       hpMaxRef.current = randomInt(hpMax);
       numOfFairyRef.current = randomInt(numOfFairyMax);
-          
-      
-      fairiesListRef.current=[...data];
+
+
+      fairiesListRef.current = [...data];
 
       // firestore上のbotをfetchして加える
       // 未実装
 
       // hp が 1d100値よりも小さい妖精に絞り込む
-      let allFairies = data.filter(fairy=>fairy.hp<hpMaxRef.current);
-      
+      let allFairies = data.filter(fairy => fairy.hp < hpMaxRef.current);
+
       //ユーザのバディがhabitatにいればこれに加える。
       const buddyState = bot.getBuddyState();
-      if(buddyState.buddy==='habitat'){
+      if (buddyState.buddy === 'habitat') {
         allFairies.push({
-          relativePath:'__localStorage__',
-          displayName:buddyState.displayName,
+          relativePath: '__localStorage__',
+          displayName: buddyState.displayName,
           photoURL: buddyState.photoURL,
-          buddyUser:fb.user.displayName,
-          hp:buddyState.hp         
+          buddyUser: fb.user.displayName,
+          hp: buddyState.hp
         })
       }
-      
+
       // そのうちの0〜4名をランダムに選ぶ
       let selectedFairies = [];
-      for(let i=0,num=Math.min(numOfFairyRef.current,allFairies.length); i<num; i++){
+      for (let i = 0, num = Math.min(numOfFairyRef.current, allFairies.length); i < num; i++) {
         let index = randomInt(allFairies.length);
         selectedFairies.push(allFairies[index])
-        allFairies.splice(index,1);
+        allFairies.splice(index, 1);
       }
       fairiesRef.current = [...selectedFairies];
-      console.log("all",allFairies,"hp",hpMaxRef.current,numOfFairyRef.current,selectedFairies);
-    
+      console.log("all", allFairies, "hp", hpMaxRef.current, numOfFairyRef.current, selectedFairies);
+
       // ついでにチャットログ用の定数をセット
       localLogLinesMaxRef.current = siteMetadata.local_log_lines_max;
       chatLinesMaxRef.current = siteMetadata.chat_lines_max;
 
     }
-    
+
     return (
       <div>
-       {
-          numOfFairyRef.current === 0 
-          ?
-          <Typography>今は誰もいないようだ・・・</Typography>
-          :
-          <Box 
-            display ="flex"
-            flexDirection="row"
-            justifyContent="space-evenly"
-          >
-            {fairiesRef.current.map((fairy,index)=><FairyAvatar {...fairy} key={index}/>)}
-          </Box>
+        {
+          numOfFairyRef.current === 0
+            ?
+            <Typography>今は誰もいないようだ・・・</Typography>
+            :
+            <Box
+              display="flex"
+              flexDirection="row"
+              justifyContent="space-evenly"
+            >
+              {fairiesRef.current.map((fairy, index) => <FairyAvatar {...fairy} key={index} />)}
+            </Box>
         }
       </div>
     )
   }
 
-  function handleWriteMessage(text){
-    if(text === null){
+  function handleWriteMessage(text) {
+    if (text === null) {
       return;
     }
-    const message={
-      displayName:fb.user.displayName,
-      photoURL:fb.user.photoURL,
-      text:text,
-      speakerId:fb.user.uid,
+    const message = {
+      displayName: fb.user.displayName,
+      photoURL: fb.user.photoURL,
+      text: text,
+      speakerId: fb.user.uid,
     };
 
     writeLog(message);
-    
+
     setBotBusy(true);
-    bot.replyHabitat(fb.user.displayName,text)
-      .then(reply=>{
-        if(reply.text !== null){
+    bot.replyHabitat(fb.user.displayName, text)
+      .then(reply => {
+        if (reply.text !== null) {
           let message = {
-            displayName:reply.displayName,
-            photoURL:reply.photoURL,
-            text:reply.text,
-            speakerId:reply.displayName,
+            displayName: reply.displayName,
+            photoURL: reply.photoURL,
+            text: reply.text,
+            speakerId: reply.displayName,
           };
 
-          if(reply.text.indexOf("{!BYE}") !== -1){
-            console.log("reply",reply)
-            message.text = reply.text.replace("{!BYE}","");
+          if (reply.text.indexOf("{!BYE}") !== -1) {
+            console.log("reply", reply)
+            message.text = reply.text.replace("{!BYE}", "");
 
             writeLog(message);
-            
-            bot.deployHabitat(null); 
+
+            bot.deployHabitat(null);
             setCurrentFairy(null);
 
-            writeLog("妖精は離れていった");    
-          }else{
+            writeLog("妖精は離れていった");
+          } else {
             writeLog(message);
           }
 
           setBotBusy(false);
         }
       })
-      // .catch(e=>{
-      //   writeLog({
-      //     displayName:"error",
-      //     photoURL:"",
-      //     text:e.message,
-      //     speakerId:bot.DisplayName,
-      //     timestamp:toTimestampString(fb.timestampNow())
-      //   })
-      //   setBotBusy(false);
-      // })
+    // .catch(e=>{
+    //   writeLog({
+    //     displayName:"error",
+    //     photoURL:"",
+    //     text:e.message,
+    //     speakerId:bot.DisplayName,
+    //     timestamp:toTimestampString(fb.timestampNow())
+    //   })
+    //   setBotBusy(false);
+    // })
   }
 
-  function writeLog(message){
+  function writeLog(message) {
     let newMessage;
-    if(typeof message === "string"){
-      newMessage={
-        displayName:null,
-        photoURL:null,
-        text:message,
-        speakerId:null,
-        timestamp:toTimestampString(fb.timestampNow())
+    if (typeof message === "string") {
+      newMessage = {
+        displayName: null,
+        photoURL: null,
+        text: message,
+        speakerId: null,
+        timestamp: toTimestampString(fb.timestampNow())
       }
-    }else{
-      newMessage={
+    } else {
+      newMessage = {
         ...message,
-        timestamp:toTimestampString(fb.timestampNow())
+        timestamp: toTimestampString(fb.timestampNow())
       }
     }
-    setLog(prevLog=>{
+    setLog(prevLog => {
       /* 連続selLog()で前のselLog()が後のsetLog()で上書きされるのを防止 */
-      const newLog = [...prevLog,newMessage];
+      const newLog = [...prevLog, newMessage];
       newLog.slice(-localLogLinesMaxRef.current);
-      localStorageIO.setJson('habitatLog',newLog);
+      localStorageIO.setJson('habitatLog', newLog);
       return newLog;
     });
 
   }
 
-  function handleToDashborad(){
+  function setNavigateBefore() {
     //ページが変わる前にバディの状態を保存
 
-    if(bot.ref.state.buddy==='follow' ){
+    if (bot.ref.state.buddy === 'follow') {
       bot.dumpToLocalStorage();
     }
-    navigate('/fairybiome/Dashboard/');
+    return ('/fairybiome/Dashboard/');
   }
 
   // --------------------------------------------------------
   // currentLogが変更されたら最下行へ自動スクロール
   const myRef = useCallback(node => {
-    if(node!== null){
-      node.scrollIntoView({behavior:"smooth",block:"end"});
+    if (node !== null) {
+      node.scrollIntoView({ behavior: "smooth", block: "end" });
     }
   })
 
-  const logSlice=log.slice(-chatLinesMaxRef.current);
-  const speeches = logSlice.map(speech =>{
-    if(speech.speakerId === null){
-      return <SystemLog speech={speech} key={speech.timestamp}/>
+  const logSlice = log.slice(-chatLinesMaxRef.current);
+  const speeches = logSlice.map(speech => {
+    if (speech.speakerId === null) {
+      return <SystemLog speech={speech} key={speech.timestamp} />
     }
-    if(speech.speakerId === fb.user.uid || speech.speakerId === -1 ){
-      return <RightBalloon speech={speech} key={speech.timestamp}/>
+    if (speech.speakerId === fb.user.uid || speech.speakerId === -1) {
+      return <RightBalloon speech={speech} key={speech.timestamp} />
     } else {
-      return <LeftBalloon speech={speech} key={speech.timestamp}/>
+      return <LeftBalloon speech={speech} key={speech.timestamp} />
     }
   });
 
   return (
-    <Box 
+    <Box
       display="flex"
       flexDirection="column"
       flexWrap="nowrap"
@@ -409,14 +409,14 @@ export default function Habitat(props){
       className={classes.root}
     >
       <Box>
-        <ApplicationBar 
-          title="妖精の生息地" 
-          handleBack={handleToDashborad}
+        <ApplicationBar
+          title="妖精の生息地"
+          setNavigateBefore={setNavigateBefore}
           busy={botBusy}
         />
       </Box>
 
-      <Box 
+      <Box
         display="flex"
         flexDirection="row"
         justifyContent="space-evenly"
@@ -429,9 +429,9 @@ export default function Habitat(props){
             誰とお話する？
           </Typography>
           <StaticQuery
-              query={query}
-              render={data=><FairiesList data={data} />}
-            />
+            query={query}
+            render={data => <FairiesList data={data} />}
+          />
         </Card>
       </Box>
       <Box
@@ -442,8 +442,8 @@ export default function Habitat(props){
         <div ref={myRef}></div>
       </Box>
       <Box order={0} justifyContent="center">
-          <Console
-            handleWriteMessage={handleWriteMessage}/>
+        <Console
+          handleWriteMessage={handleWriteMessage} />
       </Box>
     </Box>
   )

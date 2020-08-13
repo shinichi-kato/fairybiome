@@ -50,7 +50,8 @@ export default function AuthDialog(props){
   function handleSignUp(){
     props.handleSignUp(email,password);
   }
-
+  
+  console.log("<AuthDialog/>")
   return (
 
     <Box className={classes.root}
@@ -60,6 +61,7 @@ export default function AuthDialog(props){
     >
       <Box className={classes.logoBox}>
         <LogoSvg className={classes.logo} height="100%"/>
+        {page}
       </Box>
       <Box>
         { page === 'entry' ?
