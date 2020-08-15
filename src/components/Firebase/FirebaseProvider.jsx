@@ -1,17 +1,16 @@
 
-import React,{useEffect,useReducer,createContext} from 'react';
-import Landing from '../Landing/Landing';
-import AuthDialog from './AuthDialog';
-import {localStorageIO} from '../../utils/localStorageIO';
+import React, {useEffect, useReducer, createContext} from "react";
+import Landing from "../Landing/Landing";
+import AuthDialog from "./AuthDialog";
+import {localStorageIO} from "../../utils/localStorageIO";
 
-import * as firebase from 'firebase/app';
-import 'firebase/auth';
-import 'firebase/firestore';
-
+import * as firebase from "firebase/app";
+import "firebase/auth";
+import "firebase/firestore";
 
 export const FirebaseContext = createContext();
 
-const initialState={
+const initialState = {
   user: {
     displayName: "",
     email: "",
@@ -20,56 +19,56 @@ const initialState={
     emailVerified: null,
     providerData: null,
   },
-  authState: 'notYet', // notYet-run-ok-error
-  message: '',
+  authState: "notYet", // notYet-run-ok-error
+  message: "",
   firestore: null,
   firebaseApp: null,
-}
+};
 
-function reducer(state,action){
-  switch(action.type){
-    case 'initFirebase' : {
+function reducer(state, action) {
+  switch (action.type) {
+    case "initFirebase" : {
       return {
         ...initialState,
-        firebaseApp:action.firebaseApp,
-      }
+        firebaseApp: action.firebaseApp,
+      };
     }
 
-    case 'run' : {
+    case "run" : {
       return {
         ...state,
-        authState:'run',
-      }
+        authState: "run",
+      };
     }
 
-    case 'ok' : {
+    case "ok" : {
       const user = action.user;
-      localStorageIO.setItem('auth.displayName',user.displayName);
-      localStorageIO.setItem('auth.email',user.email);
-      localStorageIO.setItem('auth.photoURL',user.photoURL);
+      localStorageIO.setItem("auth.displayName", user.displayName);
+      localStorageIO.setItem("auth.email", user.email);
+      localStorageIO.setItem("auth.photoURL", user.photoURL);
       return {
-        user:action.user,
-        authState:'ok',
-        message: '',
+        user: action.user,
+        authState: "ok",
+        message: "",
         firestore: action.firestore,
-        firebaseApp:state.firebaseApp,
-      }
+        firebaseApp: state.firebaseApp,
+      };
     }
 
-    case 'error' : {
+    case "error" : {
       return {
         ...initialState,
-        authState:'error',
+        authState: "error",
         message: action.message,
         firebaseApp: state.firebaseApp,
-      }
+      };
     }
 
-    case 'signOut' : {
+    case "signOut" : {
       return {
         ...initialState,
-        firebaseApp:state.firebaseApp,
-      }
+        firebaseApp: state.firebaseApp,
+      };
     }
 
     default :
@@ -77,9 +76,8 @@ function reducer(state,action){
   }
 }
 
-
-export default function FirebaseProvider(props){
-  const [state,dispatch] = useReducer(reducer,initialState);
+export default function FirebaseProvider(props) {
+  const [state, dispatch] = useReducer(reducer, initialState);
 
   useEffect(()=>{
     if (!state.firebaseApp && typeof window !== "undefined") {
@@ -91,119 +89,118 @@ export default function FirebaseProvider(props){
         projectId: process.env.GATSBY_FIREBASE_PROJECT_ID,
         storageBucket: process.env.GATSBY_FIREBASE_STORAGE_BUCKET,
         messagingSenderId: process.env.GATSBY_FIREBASE_MESSAGING_SENDER_ID,
-        appId: process.env.GATSBY_FIREBASE_APP_ID,    
+        appId: process.env.GATSBY_FIREBASE_APP_ID,
       });
-      dispatch({type:'initFirebase',firebaseApp:firebaseApp})
-      
+      dispatch({type: "initFirebase", firebaseApp: firebaseApp});
+
       // firestore initialization
       firebaseApp.auth().onAuthStateChanged(user=>{
-        if(user){
-          const fs = firebase.firestore()
-          dispatch({type:'ok',user:user,firestore:fs})
-        }
-        else{
+        if (user) {
+          const fs = firebase.firestore();
+          dispatch({type: "ok", user: user, firestore: fs});
+        } else {
           dispatch({
-            type:'error',
-            message:'ユーザが認証されていません',
-          })
-        }       
-      })
+            type: "error",
+            message: "ユーザが認証されていません",
+          });
+        }
+      });
     }
+  }, [state.firebaseApp]);
 
-  },[]);
+  function authenticate(email, password) {
+    dispatch({type: "run"});
+    console.log("auth", email, password);
 
-  function authenticate(email,password){
-    dispatch({type:'run'});
-    console.log("auth",email,password)
-
-    firebase.auth().signInWithEmailAndPassword(email,password)
+    firebase.auth().signInWithEmailAndPassword(email, password)
     .then(()=>{
       // userの更新はonAuthStateChangedで検出
     })
 		.catch(error=>{
-			switch(error.code){
-				case 'auth/user-not-found':
-					dispatch({type:'error',message:"ユーザが登録されていません"});
+			switch (error.code) {
+				case "auth/user-not-found":
+					dispatch({type: "error", message: "ユーザが登録されていません"});
 					break;
-				case 'auth/wrong-password' :
-					dispatch({type:'error',message:"パスワードが違います"});
+				case "auth/wrong-password" :
+					dispatch({type: "error", message: "パスワードが違います"});
 					break;
-				case 'auth/invalid-email' :
-					dispatch({type:'error',message:"不正なemailアドレスです"});
+				case "auth/invalid-email" :
+					dispatch({type: "error", message: "不正なemailアドレスです"});
 					break;
 				default:
-					dispatch({type:'error',message:`${error.code}: ${error.message}`});
+					dispatch({type: "error", message: `${error.code}: ${error.message}`});
 			}
 		});
   }
-  
-  function createUser(email,password){
-    dispatch({type:'run'});
-		firebase.auth().createUserWithEmailAndPassword(email,password)
+
+  function createUser(email, password) {
+    dispatch({type: "run"});
+		firebase.auth().createUserWithEmailAndPassword(email, password)
 		.then(user=>{
       // 成功したら自動でログインされる
       // userの更新はonAuthStateChangedで検出
 		})
 		.catch(error=>{
-			dispatch({type:'error',message:error.message})
-		})
+			dispatch({type: "error", message: error.message});
+		});
   }
 
-  function changeUserInfo(displayName,photoURL){
+  function changeUserInfo(displayName, photoURL) {
 		let user = firebase.auth().currentUser;
-		if(user){
+		if (user) {
 			user.updateProfile({
-				displayName:displayName || user.displayName,
+				displayName: displayName || user.displayName,
 				photoURL: photoURL || user.photoURL
 			}).then(()=>{
 				// userの更新はonAuthStateChangedで検出
 			}).catch(error=>{
-				dispatch({type:'error',message:error.code});
-			})
+				dispatch({type: "error", message: error.code});
+			});
 		}
   }
 
-  function signOut(){
+  function signOut() {
 		firebase.auth().signOut().then(()=>{
-			dispatch({type:'signOut'});
+			dispatch({type: "signOut"});
 		}).catch(error=>{
-			dispatch({type:'error',message:error.message})
-		});    
+			dispatch({type: "error", message: error.message});
+		});
   }
 
-  function timestampNow(){
-    if (typeof window !== `undefined`) {
-      return firebase.firestore.Timestamp.now()
+  function timestampNow() {
+    if (typeof window !== "undefined") {
+      return firebase.firestore.Timestamp.now();
     }
+    return null;
   }
-  
-  console.log("<FirebaseProvider>",state);
+
+  console.log("<FirebaseProvider>", state);
   return (
-    <FirebaseContext.Provider 
+    <FirebaseContext.Provider
       value={{
-        firebaseApp:state.firebaseApp,
-        firestore:state.firestore,
-        user:{...state.user},
-        changeUserInfo:changeUserInfo,
-        timestampNow:timestampNow,
+        firebaseApp: state.firebaseApp,
+        firestore: state.firestore,
+        user: {...state.user},
+        changeUserInfo: changeUserInfo,
+        timestampNow: timestampNow,
       }}
     >
-      { state.firebaseApp === null 
-        ? 
+      { state.firebaseApp === null
+        ?
         <Landing />
         :
-        (state.authState !== 'ok' ?
-          <AuthDialog 
-            user={state.user}
-            message={state.message}
+        (state.authState !== "ok" ?
+          <AuthDialog
+            handleChangeUserInfo={changeUserInfo}
             handleLogin={authenticate}
             handleSignUp={createUser}
-            handleChangeUserInfo={changeUserInfo}
-          /> 
+            message={state.message}
+            user={state.user}
+          />
           :
           props.children
         )
-      } 
+      }
     </FirebaseContext.Provider>
-  )
+  );
 }

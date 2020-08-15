@@ -1,20 +1,20 @@
 import React, { useState } from "react";
 
-import { navigate } from 'gatsby';
+import { navigate } from "gatsby";
 
-import { makeStyles } from '@material-ui/core/styles';
-import AppBar from '@material-ui/core/AppBar';
-import Toolbar from '@material-ui/core/Toolbar';
-import Typography from '@material-ui/core/Typography';
-import IconButton from '@material-ui/core/IconButton';
+import { makeStyles } from "@material-ui/core/styles";
+import AppBar from "@material-ui/core/AppBar";
+import Toolbar from "@material-ui/core/Toolbar";
+import Typography from "@material-ui/core/Typography";
+import IconButton from "@material-ui/core/IconButton";
 
-import NavigateBeforeIcon from '@material-ui/icons/NavigateBefore';
-import NavigateNextIcon from '@material-ui/icons/NavigateNext';
-import SettingsOutlinedIcon from '@material-ui/icons/SettingsOutlined';
-import MenuBookIcon from '@material-ui/icons/MenuBook';
-import TextsmsIcon from '@material-ui/icons/Textsms';
+import NavigateBeforeIcon from "@material-ui/icons/NavigateBefore";
+import NavigateNextIcon from "@material-ui/icons/NavigateNext";
+import SettingsOutlinedIcon from "@material-ui/icons/SettingsOutlined";
+import MenuBookIcon from "@material-ui/icons/MenuBook";
+import TextsmsIcon from "@material-ui/icons/Textsms";
 
-import SettingsMenu from './SettingsMenu';
+import SettingsMenu from "./SettingsMenu";
 
 const useStyles = makeStyles((theme) => ({
   menuButton: {
@@ -29,33 +29,32 @@ const useStyles = makeStyles((theme) => ({
 
 }));
 
-
 export default function ApplicationBar(props) {
   const classes = useStyles();
   const [anchorEl, setAnchorEl] = useState(null);
 
   const handleClickSettingsMenu = (e) => {
     setAnchorEl(e.currentTarget);
-  }
+  };
 
   function handleCloseSettingsMenu() {
     setAnchorEl(null);
   }
 
   function handleClickNavBefore() {
-    var nagivateDefault = -1;
+    let navigateDefault = -1;
 
     if (props.setNavigateBefore) {
       navigateDefault = props.setNavigateBefore();
-
     }
-    navigate(navigateDefault)
+    navigate(navigateDefault);
   }
 
   return (
     <AppBar position="static">
       <Toolbar>
-        <IconButton edge="start" color="inherit"
+        <IconButton
+color="inherit" edge="start"
           onClick={handleClickNavBefore}
         >
           <NavigateBeforeIcon />
@@ -64,7 +63,7 @@ export default function ApplicationBar(props) {
         <IconButton color="inherit">
           <NavigateNextIcon />
         </IconButton>
-        <Typography variant="h6" className={classes.title}>
+        <Typography className={classes.title} variant="h6">
           {props.icon}
           {props.title}
         </Typography>
@@ -73,20 +72,20 @@ export default function ApplicationBar(props) {
           <MenuBookIcon />
         </IconButton>
         <IconButton
-          edge="end"
-          color="inherit"
           aria-controls="settings-menu"
           aria-haspopup="true"
+          color="inherit"
+          edge="end"
           onClick={handleClickSettingsMenu}
         >
           <SettingsOutlinedIcon />
         </IconButton>
         <SettingsMenu
           anchorEl={anchorEl}
-          open={Boolean(anchorEl)}
           handleClose={handleCloseSettingsMenu}
+          open={Boolean(anchorEl)}
         />
       </Toolbar>
     </AppBar>
-  )
-};
+  );
+}

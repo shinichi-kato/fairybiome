@@ -1,10 +1,10 @@
-import React,{useState} from "react";
-import { makeStyles } from '@material-ui/core/styles';
-import Box from '@material-ui/core/Box';
+import React, { useState } from "react";
+import { makeStyles } from "@material-ui/core/styles";
+import Box from "@material-ui/core/Box";
 
 import LogoSvg from "../../../images/svg/logo.svg";
-import Entry from './Entry';
-import Signing from './Signing';
+import Entry from "./Entry";
+import Signing from "./Signing";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -20,68 +20,69 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function AuthDialog(props){
-  const user=props.user;
+export default function AuthDialog(props) {
+  const user = props.user;
   const classes = useStyles();
-  const [email,setEmail] = useState(user.email);
-  const [password,setPassword] = useState("");
-  const [page,setPage] = useState("entry"); // entry-login-signUp
+  const [email, setEmail] = useState(user.email);
+  const [password, setPassword] = useState("");
+  const [page, setPage] = useState("entry"); // entry-login-signUp
 
-  function handleChangeEmail(value){
+  function handleChangeEmail(value) {
     setEmail(value);
   }
 
-  function handleChangePassword(value){
+  function handleChangePassword(value) {
     setPassword(value);
   }
 
-  function handleChangePage(value){
+  function handleChangePage(value) {
     setPage(value);
   }
 
-  function handleClose(){
-    setPage('entry');
+  function handleClose() {
+    setPage("entry");
   }
 
-  function handleLogin(){
-    props.handleLogin(email,password);
+  function handleLogin() {
+    props.handleLogin(email, password);
   }
 
-  function handleSignUp(){
-    props.handleSignUp(email,password);
+  function handleSignUp() {
+    props.handleSignUp(email, password);
   }
-  
-  console.log("<AuthDialog/>")
+
+  console.log("<AuthDialog/>");
   return (
 
-    <Box className={classes.root}
+    <Box
+className={classes.root}
       display="flex"
       flexDirection="column"
       flexWrap="nowrap"
     >
       <Box className={classes.logoBox}>
-        <LogoSvg className={classes.logo} height="100%"/>
+        <LogoSvg className={classes.logo} height="100%" />
         {page}
       </Box>
       <Box>
-        { page === 'entry' ?
-          <Entry 
+        {page === "entry" ?
+          <Entry
             handleChangePage={handleChangePage}
           />
           :
-          <Signing 
-            page={page}
+          <Signing
             email={email}
-            password={password}
-            message={props.message}
             handleChangeEmail={handleChangeEmail}
             handleChangePassword={handleChangePassword}
+            handleClose={handleClose}
             handleLogin={handleLogin}
             handleSignUp={handleSignUp}
-            handleClose={handleClose}
+            message={props.message}
+            page={page}
+            password={password}
           />
         }
       </Box>
     </Box>
-  )
+  );
 }

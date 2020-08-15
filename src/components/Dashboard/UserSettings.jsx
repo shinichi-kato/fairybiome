@@ -1,13 +1,12 @@
-import React ,{useState,useRef} from "react";
-import { StaticQuery,graphql } from "gatsby"
-import { makeStyles } from '@material-ui/core/styles';
-import Box from '@material-ui/core/Box';
-import Avatar from '@material-ui/core/Avatar';
-import Button from '@material-ui/core/Button';
-import Typography from '@material-ui/core/Typography';
-import TextField from '@material-ui/core/TextField';
-import ApplicationBar from '../ApplicationBar/ApplicationBar';
-
+import React, {useState, useRef} from "react";
+import { StaticQuery, graphql } from "gatsby";
+import { makeStyles } from "@material-ui/core/styles";
+import Box from "@material-ui/core/Box";
+import Avatar from "@material-ui/core/Avatar";
+import Button from "@material-ui/core/Button";
+import Typography from "@material-ui/core/Typography";
+import TextField from "@material-ui/core/TextField";
+import ApplicationBar from "../ApplicationBar/ApplicationBar";
 
 const query = graphql`
 query {
@@ -22,11 +21,11 @@ query {
 `;
 
 const useStyles = makeStyles((theme) => ({
-  content:{
+  content: {
     padding: theme.spacing(1),
   },
-  iconContainer:{
-    borderRadius:"50%"
+  iconContainer: {
+    borderRadius: "50%"
   },
   icon: {
     width: 60,
@@ -37,77 +36,73 @@ const useStyles = makeStyles((theme) => ({
     padding: theme.spacing(2),
     fontSize: 22,
   },
-  button:{
+  button: {
     padding: "1em",
   },
 }));
 
-
-export default function UserSettings(props){
-  /* 
+export default function UserSettings(props) {
+  /*
     displayName: ユーザ名
     photoURL: ユーザアイコンのURL
     handleChangeUserInfo: 名前とアイコンの設定を変更する関数
   */
   const classes = useStyles();
   const nameRef = useRef();
-  const [photoURL,setPhotoURL] = useState(props.photoURL || "");
+  const [photoURL, setPhotoURL] = useState(props.photoURL || "");
   const photoURLsRef = useRef();
 
-
-  function GetPhotoURLsList(props){
+  function GetPhotoURLsList(localprops) {
     // avatarListをuseStateで構成すると、「render内でのsetState」
     // というwarningになる。これは useStaticQuery()で回避できるが、
     // 2020.7現在ではuseStaticQuery() 自体にバグがあり、undefined
     // しか帰ってこない。
     // https://github.com/gatsbyjs/gatsby/issues/24394
-    // そこで useRef を代替とし、データ取得のみのサブコンポーネントを用いる。  
-    if(props.data){
-      photoURLsRef.current = [...props.data.allFile.edges];
+    // そこで useRef を代替とし、データ取得のみのサブコンポーネントを用いる。
+    if (localprops.data) {
+      photoURLsRef.current = [...localprops.data.allFile.edges];
     }
     return null;
   }
 
-
-  function AvatarButton(props){
-    const path=props.path;
-    return(
+  function AvatarButton(localprops) {
+    const path = localprops.path;
+    return (
         <Button
           className={classes.iconContainer}
           color={photoURL === path ? "primary" : "default" }
-          variant="contained"
-          disableRipple
           disableElevation={photoURL !== path}
+          disableRipple
           onClick={()=>setPhotoURL(path)}
+          variant="contained"
         >
-          <Avatar 
-            src={`../../svg/${path}`} 
-            className={classes.icon}/>
+          <Avatar
+            className={classes.icon}
+            src={`../../svg/${path}`}/>
         </Button>
 
-      )
-    
+      );
   }
 
-  function handleClick(){
-    props.handleChangeUserInfo(nameRef.current,photoURL)
+  function handleClick() {
+    props.handleChangeUserInfo(nameRef.current, photoURL);
   }
 
-  console.log("<UserSetting/>")
-  return(
+  console.log("<UserSetting/>");
+  return (
     <div>
       {photoURLsRef.current === null &&
-        <StaticQuery  
+        <StaticQuery
           query={query}
           render={data=><GetPhotoURLsList data={data}/>}
         />
       }
-    <Box 
+    <Box
+      alignContent="flex-start"
       display="flex"
       flexDirection="column"
       flexWrap="nowrap"
       justifyContent="flex-start"
-      alignContent="flex-start"
     >
       <Box>
         <ApplicationBar title="ユーザ設定" />
@@ -117,11 +112,11 @@ export default function UserSettings(props){
       </Box>
       <Box
 
-        className={classes.content}
         alignItems="center"
+        className={classes.content}
       >
-        { photoURLsListRef.current !== null && 
-          photoURLsListRef.current.map((n,index)=>(
+        { photoURLsRef.current !== null &&
+          photoURLsRef.current.map((n, index)=>(
             <AvatarButton key={index} path={n.node.relativePath} />
           ))
         }
@@ -129,34 +124,34 @@ export default function UserSettings(props){
       </Box>
       <Box className={classes.content}>
         <Typography variant="h5">あなたの名前</Typography>
-      </Box>      
-      <Box 
+      </Box>
+      <Box
         className={classes.content}
         flexGrow={1}
       >
-        <TextField 
+        <TextField
           className={classes.name}
-          required
-          inputRef={nameRef}
-          variant="outlined"
           defaultValue={props.displayName}
+          inputRef={nameRef}
+          required
+          variant="outlined"
         />
-      </Box>      
+      </Box>
       <Box className={classes.content}>
         <Button
           className={classes.button}
           color="primary"
-          size="large"
-          onClick={handleClick}
           disable={
-            nameRef.current === null || 
+            nameRef.current === null ||
             nameRef.current === "" ||
             photoURL === ""}
+          onClick={handleClick}
+          size="large"
         >
           ユーザの設定を変更
         </Button>
       </Box>
     </Box>
     </div>
-  )
+  );
 }

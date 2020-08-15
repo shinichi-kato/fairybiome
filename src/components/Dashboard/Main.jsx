@@ -1,19 +1,18 @@
 import React from "react";
-import {navigate} from 'gatsby';
+import { navigate } from "gatsby";
 
-import { makeStyles } from '@material-ui/core/styles';
-import Button from '@material-ui/core/Button';
-import Box from '@material-ui/core/Box';
+import { makeStyles } from "@material-ui/core/styles";
+import Button from "@material-ui/core/Button";
+import Box from "@material-ui/core/Box";
 
-import ApplicationBar from '../ApplicationBar/ApplicationBar';
-import ChatAvatar from './ChatAvatar';
-import MeetFairy from './MeetFairy';
+import ApplicationBar from "../ApplicationBar/ApplicationBar";
+import ChatAvatar from "./ChatAvatar";
+import MeetFairy from "./MeetFairy";
 
 import HomeIcon from "../../icons/Home";
 // import HubFairiesIcon from "../../icons/HubFairies";
 import HubIcon from "../../icons/Hub";
 import HabitatIcon from "../../icons/Habitat";
-
 
 const useStyles = makeStyles((theme) => ({
   rootWhoseChildUsesFlexGrow: {
@@ -28,49 +27,49 @@ const useStyles = makeStyles((theme) => ({
   avatars: {
     marginTop: "20%",
   },
-  caption:{
+  caption: {
     margin: "10px auto",
   },
   habitatButton: {
     width: 180,
     height: 180,
-    margin: 'auto',
-    padding: 'auto 10',
-    borderRadius: '100% 0% 0% 100% /  0% 0% 100% 100%',
+    margin: "auto",
+    padding: "auto 10",
+    borderRadius: "100% 0% 0% 100% /  0% 0% 100% 100%",
     backgroundColor: theme.palette.secondary.main,
   },
   homeButton: {
     width: 180,
     height: 180,
-    margin: 'auto',
-    padding: 'auto 10',
-    borderRadius: '0% 100% 100% 0% / 100% 100% 0% 0% ',
+    margin: "auto",
+    padding: "auto 10",
+    borderRadius: "0% 100% 100% 0% / 100% 100% 0% 0% ",
     backgroundColor: theme.palette.primary.main
   },
   hubButton: {
     width: 180,
     height: 180,
-    margin: 'auto',
-    padding: 'auto 10',
-    borderRadius: '100% 0% 0% 100% / 100% 100% 0% 0% ',
+    margin: "auto",
+    padding: "auto 10",
+    borderRadius: "100% 0% 0% 100% / 100% 100% 0% 0% ",
     backgroundColor: theme.palette.primary.main,
   },
-  
+
 }));
 
-export default function Main(props){
+export default function Main(props) {
   const classes = useStyles();
-  const userDisplayName=props.user.displayName;
+  const userDisplayName = props.user.displayName;
   const userPhotoURL = props.user.photoURL;
-  console.log("<Main/>")
-  return(
-    <Box 
+  console.log("<Main/>");
+  return (
+    <Box
+      alignContent="flex-start"
       className={classes.rootWhoseChildUsesFlexGrow}
       display="flex"
       flexDirection="column"
       flexWrap="nowrap"
       justifyContent="flex-start"
-      alignContent="flex-start"
     >
       <Box>
         <ApplicationBar title="" />
@@ -78,17 +77,18 @@ export default function Main(props){
       <Box
         alignSelf="flex-end"
       >
-        <Button className={classes.habitatButton}
-          onClick={()=>navigate('/fairybiome/Habitat/')}
+        <Button
+          className={classes.habitatButton}
+          onClick={() => navigate("/fairybiome/Habitat/")}
         >
-          <HabitatIcon style={{fontSize:90}} />
+          <HabitatIcon style={{ fontSize: 90 }} />
         </Button>
       </Box>
       <Box
         className={classes.avatars}
-        flexGrow={1}
         display="flex"
         flexDirection="row"
+        flexGrow={1}
         justifyContent="space-evenly"
       >
         <Box>
@@ -116,19 +116,21 @@ export default function Main(props){
         justifyContent="space-between"
       >
         <Box>
-          <Button className={classes.homeButton}
-            onClick={()=>navigate('/fairybiome/Home/')}>
-            <HomeIcon style={{fontSize:90}} />
+          <Button
+            className={classes.homeButton}
+            onClick={() => navigate("/fairybiome/Home/")}>
+            <HomeIcon style={{ fontSize: 90 }} />
           </Button>
         </Box>
         <Box>
-          <Button className={classes.hubButton}
-            onClick={()=>navigate('/fairybiome/Hub/')}
+          <Button
+            className={classes.hubButton}
+            onClick={() => navigate("/fairybiome/Hub/")}
           >
-            <HubIcon style={{fontSize:90}} />
+            <HubIcon style={{ fontSize: 90 }} />
           </Button>
         </Box>
-      </Box>       
+      </Box>
     </Box>
-  )
+  );
 }

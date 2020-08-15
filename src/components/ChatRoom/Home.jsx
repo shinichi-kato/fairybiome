@@ -1,23 +1,22 @@
 import React, { useContext, useEffect, useState, useCallback } from "react";
-import { navigate } from 'gatsby';
+import { navigate } from "gatsby";
 
-import { localStorageIO } from '../../utils/localStorageIO';
+import { localStorageIO } from "../../utils/localStorageIO";
 
-import { makeStyles } from '@material-ui/core/styles';
-import Box from '@material-ui/core/Box';
-import Fab from '@material-ui/core/Fab';
-import FairyBiomeIcon from '../../icons/FairyBiome';
+import { makeStyles } from "@material-ui/core/styles";
+import Box from "@material-ui/core/Box";
+import Fab from "@material-ui/core/Fab";
+import FairyBiomeIcon from "../../icons/FairyBiome";
 
-import ApplicationBar from '../ApplicationBar/ApplicationBar';
-import { RightBalloon, LeftBalloon } from './balloons.jsx';
-import Console from './console.jsx';
-import { toTimestampString } from '../to-timestamp-string.jsx';
-import { FirebaseContext } from '../Firebase/FirebaseProvider';
-import { BotContext } from '../ChatBot/BotProvider';
+import ApplicationBar from "../ApplicationBar/ApplicationBar";
+import { RightBalloon, LeftBalloon } from "./balloons.jsx";
+import Console from "./console.jsx";
+import { toTimestampString } from "../to-timestamp-string.jsx";
+import { FirebaseContext } from "../Firebase/FirebaseProvider";
+import { BotContext } from "../ChatBot/BotProvider";
 
 const CHAT_WINDOW = 10;
 const LOG_WINDOW = 100;
-
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -27,10 +26,10 @@ const useStyles = makeStyles((theme) => ({
     backgroundPosition: "center bottom",
   },
   main: {
-    height: 'calc( 100vh - 64px - 48px )',
-    overflowY: 'scroll',
-    overscrollBehavior: 'auto',
-    WebkitOverflowScrolling: 'touch',
+    height: "calc( 100vh - 64px - 48px )",
+    overflowY: "scroll",
+    overscrollBehavior: "auto",
+    WebkitOverflowScrolling: "touch",
     padding: 0
   },
   floatingButton: {
@@ -40,12 +39,11 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-
-export default function Home(props) {
+export default function Home() {
   const classes = useStyles();
   const fb = useContext(FirebaseContext);
   const bot = useContext(BotContext);
-  const [log, setLog] = useState(localStorageIO.getJson('homeLog', []));
+  const [log, setLog] = useState(localStorageIO.getJson("homeLog", []));
   const [botBusy, setBotBusy] = useState(false);
 
   const user = fb.user;
@@ -58,13 +56,12 @@ export default function Home(props) {
       .then(() => {
         setBotBusy(false);
       });
-
   }, []);
 
-  function setNavigateBefore(){
+  function setNavigateBefore() {
     /* 戻るボタンを押したときの動作を記述し、戻り先アドレスを返す */
     bot.dumpToLocalStorage();
-    return ('/fairybiome/Dashboard')
+    return ("/fairybiome/Dashboard");
   }
 
   function writeLog(message) {
@@ -72,10 +69,9 @@ export default function Home(props) {
       /* 連続selLog()で前のselLog()が後のsetLog()で上書きされるのを防止 */
       const newLog = [...prevLog, message];
       newLog.slice(-CHAT_WINDOW);
-      localStorageIO.setJson('homeLog', newLog);
+      localStorageIO.setJson("homeLog", newLog);
       return newLog;
     });
-
   }
 
   function handleWriteMessage(text) {
@@ -105,7 +101,7 @@ export default function Home(props) {
           });
           setBotBusy(false);
         }
-      })
+      });
     // .catch(e=>{
     //   writeLog({
     //     displayName:"error",
@@ -124,54 +120,53 @@ export default function Home(props) {
     if (node !== null) {
       node.scrollIntoView({ behavior: "smooth", block: "end" });
     }
-  })
+  }, [log]);
 
   const logSlice = log.slice(-CHAT_WINDOW);
   const speeches = logSlice.map(speech => {
     return (speech.speakerId === user.uid || speech.speakerId === -1) ?
-      <RightBalloon speech={speech} key={speech.timestamp} />
+      <RightBalloon key={speech.timestamp} speech={speech} />
       :
-      <LeftBalloon speech={speech} key={speech.timestamp} />
+      <LeftBalloon key={speech.timestamp} speech={speech} />;
   }
   );
-
 
   return (
     <div>
       <Box
+        alignContent="flex-start"
         className={classes.root}
         display="flex"
         flexDirection="column"
         flexWrap="nowrap"
         justifyContent="flex-start"
-        alignContent="flex-start"
       >
         <Box>
-          <ApplicationBar 
-            title="ホーム" 
-            busy={botBusy} 
-            setNavigateBefore={setNavigateBefore}/>
+          <ApplicationBar
+            busy={botBusy}
+            setNavigateBefore={setNavigateBefore}
+            title="ホーム"/>
         </Box>
-        <Box flexGrow={1} order={0} className={classes.main}>
+        <Box className={classes.main} flexGrow={1} order={0}>
           {speeches}
-          <div ref={myRef}></div>
+          <div ref={myRef} />
         </Box>
-        <Box order={0} justifyContent="center">
+        <Box justifyContent="center" order={0}>
           <Console
-            position={"0"}
-            handleWriteMessage={handleWriteMessage} />
+            handleWriteMessage={handleWriteMessage}
+            position={"0"} />
         </Box>
       </Box>
       {bot.ref.state.buddy !== null &&
         <Fab
+          aria-label="edit"
           className={classes.floatingButton}
           color="secondary"
-          aria-label="edit"
-          onClick={() => navigate('/fairybiome/Editor')}
+          onClick={() => navigate("/fairybiome/Editor")}
         >
           <FairyBiomeIcon />
         </Fab>
       }
     </div>
-  )
+  );
 }

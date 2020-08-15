@@ -1,102 +1,101 @@
-import React,{useState} from "react";
-import { makeStyles } from '@material-ui/core/styles';
-import Typography from '@material-ui/core/Typography';
-import Button from '@material-ui/core/Button';
-import Box from '@material-ui/core/Box';
-import TextInput from '../TextInput.jsx';
-import MailOutlineIcon from '@material-ui/icons/MailOutline';
-import VpnKeyIcon from '@material-ui/icons/VpnKey';
+import React from "react";
+import { makeStyles } from "@material-ui/core/styles";
+import Typography from "@material-ui/core/Typography";
+import Button from "@material-ui/core/Button";
+import Box from "@material-ui/core/Box";
+import TextInput from "../TextInput.jsx";
+import MailOutlineIcon from "@material-ui/icons/MailOutline";
+import VpnKeyIcon from "@material-ui/icons/VpnKey";
 
 const useStyles = makeStyles((theme) => ({
-  caption:{
+  caption: {
     margin: "10px auto",
   },
-  message:{
+  message: {
     color: theme.palette.error.main
   },
-  inputContainer:{
+  inputContainer: {
     width: "90%",
     padding: "20px 10%",
     margin: "auto",
   },
-  button:{
+  button: {
     padding: "1em",
   },
-  buttonContainer:{
+  buttonContainer: {
     padding: theme.spacing(2),
   },
 }));
 
-
-export default function Signing(props){
+export default function Signing(props) {
   const classes = useStyles();
 
-  function handleClick(){
-    if(props.page === 'login'){
+  function handleClick() {
+    if (props.page === "login") {
       props.handleLogin();
     } else {
       props.handleSignUp();
     }
   }
-  console.log("<Signing />")
+  console.log("<Signing />");
   return (
-    <Box 
+    <Box
       display="flex"
       flexDirection="column"
       flexWrap="nowrap"
     >
       <Box className={classes.inputContainer}>
-        <TextInput 
-          size="large"
+        <TextInput
           fullWidth
-          label="メールアドレス"
+          handleChange={e => props.handleChangeEmail(e.target.value)}
           icon={<MailOutlineIcon />}
-          value={props.email}
+          label="メールアドレス"
           required
-          handleChange={e=>props.handleChangeEmail(e.target.value)}
+          size="large"
+          value={props.email}
         />
       </Box>
       <Box className={classes.inputContainer}>
         <TextInput
-          size="large"
           fullWidth
-          label="パスワード"
+          handleChange={e => props.handleChangePassword(e.target.value)}
           icon={<VpnKeyIcon />}
-          value={props.password}
-          type="password"
+          label="パスワード"
           required
-          handleChange={e=>props.handleChangePassword(e.target.value)}
+          size="large"
+          type="password"
+          value={props.password}
         />
       </Box>
       <Box className={classes.buttonContainer}>
         <Button
           className={classes.button}
-          variant="contained"
           color="primary"
           fullWidth
-          size="large"
           onClick={handleClick}
+          size="large"
+          variant="contained"
         >
-          {props.page === 'login' && 'ログイン'}
-          {props.page === 'signUp' && '新規ユーザ登録'}
+          {props.page === "login" && "ログイン"}
+          {props.page === "signUp" && "新規ユーザ登録"}
         </Button>
-       </Box>
+      </Box>
       <Box><Typography className={classes.message}>{props.message}</Typography></Box>
       <Box
         className={classes.buttonContainer}
       >
         <Button
           className={classes.button}
-          variant="contained"
           color="default"
           fullWidth
-          size="large"
           onClick={props.handleClose}
+          size="large"
+          variant="contained"
         >
           Cancel
         </Button>
       </Box>
-     
+
     </Box>
-  )
+  );
 }

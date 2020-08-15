@@ -21,19 +21,20 @@ export default function Fairybiome() {
         if (handler.event.touches[0].target.tagName.toLowerCase() === "body") {
           event.preventDefault();
         }
+        return null;
       };
 
       window.addEventListener("touchstart", handler);
       window.addEventListener("touchmove", handler);
       window.addEventListener("touchend", handler);
 
-      return () => {
+      return (() => {
         window.removeEventListener("touchstart", handler);
         window.removeEventListener("touchmove", handler);
         window.removeEventListener("touchend", handler);
-      };
+      });
     }
-  }, []);
+  });
 
   return (
     <FirebaseProvider>

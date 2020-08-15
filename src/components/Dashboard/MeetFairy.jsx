@@ -1,7 +1,7 @@
-import React ,{useState} from "react";
-import { makeStyles } from '@material-ui/core/styles';
-import Typography from '@material-ui/core/Typography';
-import Box from '@material-ui/core/Box';
+import React from "react";
+import { makeStyles } from "@material-ui/core/styles";
+import Typography from "@material-ui/core/Typography";
+import Box from "@material-ui/core/Box";
 
 import HabitatIcon from "../../icons/Habitat";
 
@@ -26,29 +26,29 @@ const useStyles = makeStyles((theme) => ({
 
 }));
 
-export default function MeetFairy(props){
+export default function MeetFairy() {
   const classes = useStyles();
 
   return (
-    <Box 
+    <Box
+      alignItems="center"
       display="flex"
       flexDirection="column"
-      alignItems="center"
     >
       <Box className={classes.iconContainer}>
-        <img 
+        <img
           className={classes.icon}
           src="../../svg/fairy-blank.svg"
         />
       </Box>
       <Box className={classes.nameContainer}>
         <Typography className={classes.name}>
-        生息地<HabitatIcon />で
+          生息地<HabitatIcon />で
         </Typography>
         <Typography className={classes.name}>
-        妖精を見つけよう！
+          妖精を見つけよう！
         </Typography>
       </Box>
-    </Box>      
-  )
+    </Box>
+  );
 }

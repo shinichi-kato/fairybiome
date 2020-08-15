@@ -1,12 +1,12 @@
-import React ,{useState,useContext} from "react";
+import React, { useContext } from "react";
 
-import UserSettings from './UserSettings';
-import Main from './Main';
+import UserSettings from "./UserSettings";
+import Main from "./Main";
 
-import {FirebaseContext} from '../Firebase/FirebaseProvider';
-import {BotContext} from '../ChatBot/BotProvider';
+import { FirebaseContext } from "../Firebase/FirebaseProvider";
+import { BotContext } from "../ChatBot/BotProvider";
 
-export default function Dashboard(props){
+export default function Dashboard() {
   /*
     新規ユーザはUserSetting→BotSettingののちメイン画面へ。
     メイン画面ではhome,hub,cloudほかへのアクセスを提供。
@@ -21,30 +21,26 @@ export default function Dashboard(props){
   const user = fb.user;
   const buddyState = bot.getBuddyState();
 
-
-
-  function handleChangeUserInfo(displayName,photoURL){
-    fb.changeUserInfo(displayName,photoURL)
+  function handleChangeUserInfo(displayName, photoURL) {
+    fb.changeUserInfo(displayName, photoURL);
   }
 
-  
-  
-  console.log("<Dashboard />")
+  console.log("<Dashboard />");
   return (
     <div>
-      { 
-        (user.displayName === "" && user.photoURL === "") && 
-        <UserSettings 
+      {
+        (user.displayName === "" && user.photoURL === "") &&
+        <UserSettings
           displayName={user.displayName}
-          photoURL={user.photoURL}
           handleChangeUserInfo={handleChangeUserInfo}
+          photoURL={user.photoURL}
         />
-        || 
-        <Main 
-          user={user}
+        ||
+        <Main
           bot={buddyState}
+          user={user}
         />
       }
     </div>
-  )
+  );
 }

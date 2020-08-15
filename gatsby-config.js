@@ -1,11 +1,11 @@
-require("dotenv").config()
+require("dotenv").config();
 
 module.exports = {
   // Customize me!
   siteMetadata: {
     company: "人工無脳は考える",
     domain: "",
-    site:"",
+    site: "",
     title:
       "FairyBiome",
     // preamble:
@@ -16,34 +16,34 @@ module.exports = {
     //   email: "",
     // },
     // menuLinks: [],
- 
-    local_log_lines_max:200,  /* ローカルのログに記録する最大行数 */
-    chat_lines_max:20,        /* 画面上に表示するログの最大行数 */
-    habitat_fairy_hp_max:120, /* habitatで出現する妖精の最大数 */
-    habitat_num_of_fairy_max:4  /* habitatで出現する妖精の最大HPを決める乱数の最大値 */
-        /*  妖精の最大HPは100で、HP100の妖精も存在する。
-            しかしHP_MAXを100にするとHP100の妖精が出現する確率が
-            低くなりすぎるため、HP_MAXは100より大きくする。
-            HP_MAXを大きくするほどHPの高い妖精が出現しやすくなる */
-    
+
+    localLogLinesMax: 200, /* ローカルのログに記録する最大行数 */
+    chatLinesMax: 20, /* 画面上に表示するログの最大行数 */
+    habitatFairyHpMax: 120, /* habitatで出現する妖精の最大数 */
+    habitatNumOfFairyMax: 4 /* habitatで出現する妖精の最大HPを決める乱数の最大値 */
+    /*  妖精の最大HPは100で、HP100の妖精も存在する。
+        しかしHP_MAXを100にするとHP100の妖精が出現する確率が
+        低くなりすぎるため、HP_MAXは100より大きくする。
+        HP_MAXを大きくするほどHPの高い妖精が出現しやすくなる */
+
   },
   pathPrefix: "/",
   plugins: [
-     "gatsby-plugin-top-layout",
+    "gatsby-plugin-top-layout",
     "gatsby-plugin-react-helmet",
-    'gatsby-plugin-workerize-loader',
+    "gatsby-plugin-workerize-loader",
     "gatsby-plugin-remove-serviceworker",
     {
       resolve: "gatsby-plugin-material-ui",
     },
     {
-      resolve: `gatsby-plugin-manifest`,
+      resolve: "gatsby-plugin-manifest",
       options: {
         name: "FairyBiome",
         short_name: "FairyBiome",
         start_url: "/",
         background_color: "#eeeeee",
-        //theme_color: "#6b37bf",
+        // theme_color: "#6b37bf",
         // Enables "Add to Homescreen" prompt and disables browser UI (including back button)
         // see https://developers.google.com/web/fundamentals/web-app-manifest/#display
         display: "standalone",
@@ -51,7 +51,7 @@ module.exports = {
         // An optional attribute which provides support for CORS check.
         // If you do not provide a crossOrigin option, it will skip CORS for manifest.
         // Any invalid keyword or empty string defaults to `anonymous`
-        //crossOrigin: `use-credentials`,
+        // crossOrigin: `use-credentials`,
       },
     },
     {
@@ -59,7 +59,7 @@ module.exports = {
       options: {
         path: `${__dirname}/src/pages`,
         name: "pages",
-        ignore: [`**/\.*`],
+        ignore: ["**/\.*"],
       },
     },
     {
@@ -67,7 +67,7 @@ module.exports = {
       options: {
         path: `${__dirname}/docs`,
         name: "docs",
-        ignore: [`**/\.*`],
+        ignore: ["**/\.*"],
       },
     },
     {
@@ -75,9 +75,9 @@ module.exports = {
       options: {
         path: `${__dirname}/static/fairy`,
         name: "fairy",
-        ignore: [`**/\.*`],
+        ignore: ["**/\.*"],
         plugins: [
-          `gatsby-transformer-json`,
+          "gatsby-transformer-json",
         ]
       },
     },
@@ -86,15 +86,15 @@ module.exports = {
       options: {
         path: `${__dirname}/static/svg`,
         name: "staticimages",
-        ignore: [`**/\.*`],
+        ignore: ["**/\.*"],
       },
     },
     {
-      resolve: `gatsby-transformer-remark`,
+      resolve: "gatsby-transformer-remark",
       options: {
         plugins: [
           {
-            resolve: `gatsby-remark-images`,
+            resolve: "gatsby-remark-images",
             options: {
               maxWidth: 590,
             },
@@ -105,14 +105,14 @@ module.exports = {
           //     wrapperStyle: `margin-bottom: 1.0725rem`,
           //   },
           // },
-          `gatsby-remark-prismjs`,
-          `gatsby-remark-copy-linked-files`,
-          `gatsby-remark-smartypants`,
+          "gatsby-remark-prismjs",
+          "gatsby-remark-copy-linked-files",
+          "gatsby-remark-smartypants",
         ],
       },
     },
-    `gatsby-transformer-sharp`,
-    `gatsby-plugin-sharp`,
+    "gatsby-transformer-sharp",
+    "gatsby-plugin-sharp",
     // {
     //   resolve: `gatsby-plugin-google-analytics`,
     //   options: {
@@ -121,7 +121,7 @@ module.exports = {
     // },
 
     {
-      resolve: `gatsby-plugin-favicon`,
+      resolve: "gatsby-plugin-favicon",
       options: {
         logo: "./images/logo.png",
       },

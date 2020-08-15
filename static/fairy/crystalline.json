@@ -7,7 +7,7 @@
         "updatedAt": "Sun Jul 12 2020 13:50:23 GMT+0900",
         "photoURL": "bot/blueCrystal/young.svg",
         "description": "小さな結晶の姿をした精霊",
-        "defaultPartOrder":["parrot"],
+        "defaultPartOrder":["greeting","firstcontact","parrot"],
         "# defaultPartOrder:[\"greeting\",\"firstcontact\",\"parrot\"]":"######",
         "hubBehavior":{
             "availability": 0.3,
@@ -27,8 +27,9 @@
         "{!CONFIRM_LEARN}":["「{!USER_UNKNOWN_INPUT}」って言われたときは「{!BOT_CAND_OUTPUT}」・・・でいい？"],
         "{!LEARN_FIZZLED}":["難しいんだね・・"],
         "{!I_GOT_IT}":["ありがとう！"],
+        "{!BOT_ACCEPT_SUMMON}": ["はーーーい","呼びました？"],
         "{!DISBAND}":["またね！"],
-        "{!ELIMINATE}":["・・・　・・・"],
+        "{!VANISHING}":["・・・　・・・"],
         "{!I_AM_COMMING_BACK}":["ただいまー"],
         "{!NOT_FOUND}":["？","そうなんだ"]      
         
@@ -86,8 +87,7 @@
         "activeInHub": false,
         "hp":10,
         "queue":[],
-        "buddy":"none",
-        "site":"habitat"
+        "buddy":"none"
     }
  
 }

@@ -1,137 +1,120 @@
-import {randomInt,clone, identity} from 'mathjs';
-import PartIO from './partIO';
-import {textToInternalRepr,dictToInternalRepr} from './internalRepr.js';
-import matrixizeWorker from  './matrixizeWorker';
-import {retrieve} from './retrieve';
-import {botTagDict,botTagDictKeys} from './tagdict';
-import {TinySegmenter} from './tinysegmenter.js';
-import {typeOf,matrix,reviver} from 'mathjs';
+import { randomInt } from "mathjs";
+import PartIO from "./partIO";
+import { textToInternalRepr, dictToInternalRepr } from "./internalRepr.js";
+import matrixizeWorker from "./matrixizeWorker";
+import { retrieve } from "./retrieve";
+import { botTagDict, botTagDictKeys } from "./tagdict";
+import { TinySegmenter } from "./tinysegmenter.js";
+import { reviver } from "mathjs";
 
 const segmenter = new TinySegmenter();
 // 注記: [<>{}+-]がアルファベットに分類されるよう変更したものを使用
 
-
-export default class Part extends PartIO{
-   
+export default class Part extends PartIO {
   compile = async () => {
-
     // inDict,outDictに分割
-    let inDict = this.dict.map(node=>(node.in));
-    this.outDict = this.dict.map(node=>(node.out));
-
+    let inDict = this.dict.map(node => (node.in));
+    this.outDict = this.dict.map(node => (node.out));
     // inDictの各テキストを分かち書き
-    inDict = inDict.map(item=>item.map(text=>segmenter.segment(text)));
-
+    inDict = inDict.map(item => item.map(text => segmenter.segment(text)));
     // inDictのtag化
     inDict = tagifyInDict(inDict);
-
     // 内部表現に変換
-    inDict = inDict.map(l=> dictToInternalRepr(l));
-
+    inDict = inDict.map(l => dictToInternalRepr(l));
     // 正規化tfidf行列,vocab,indexの生成
     inDict = await matrixizeWorker.matrixize(inDict);
     this.inDict = {
-      vocab:inDict.vocab,
-      wv:inDict.wv,
-      idf:JSON.parse(inDict.idf,reviver),
-      tfidf:JSON.parse(inDict.tfidf,reviver),
-      index:JSON.parse(inDict.index),
-    }
-    return  1;
+      vocab: inDict.vocab,
+      wv: inDict.wv,
+      idf: JSON.parse(inDict.idf, reviver),
+      tfidf: JSON.parse(inDict.tfidf, reviver),
+      index: JSON.parse(inDict.index),
+    };
+    return 1;
   }
 
   // 返答関数
   replier = (...args) => {
-    switch(this.type){
-      case 'recaller':
+    switch (this.type) {
+      case "recaller":
         return this.recallerReplier(...args);
-      case 'learner':
+      case "learner":
         return this.learnerReplier(...args);
-      default :
+      default:
         return this.defaultReplier(...args);
     }
   }
- 
+
   //  以下の返答関数を切り替えて使用
 
-  recallerReplier =　(username,text,state,wordDict) => {
+  recallerReplier = (username, text, state, wordDict) => {
     /*  辞書型の返答生成
         辞書の中からユーザのセリフに一番近いものを探し、
         それに対応する出力文字列を返す。
     */
 
     let result = {
-      text:"",      // 返答文字列
-      queue:[],     // キューに送る文字列
-      score:0,      // テキスト検索での一致度
-      ordering:"",  // top:このパートを先頭へ, bottom:このパートを末尾へ移動 
+      text: "", // 返答文字列
+      queue: [], // キューに送る文字列
+      score: 0, // テキスト検索での一致度
+      ordering: "", // top:このパートを先頭へ, bottom:このパートを末尾へ移動
     };
-    
+
     // queueがあればそれを返す
-    if(state.queue.length !== 0){
+    if (state.queue.length !== 0) {
       const queue = state.queue.shift();
       return {
-        text:queue,
-        queue:[],
-        score:1,
+        text: queue,
+        queue: [],
+        score: 1,
         ordering: "",
-      }
+      };
     }
 
     // availability check
-    const a =Math.random();
-    if(a > this.behavior.availability){
-      console.log(`recaller:avail. insufficient 1d1=${a} avail.=${this.behavior.availability}`)
+    const a = Math.random();
+    if (a > this.behavior.availability) {
+      console.log(`recaller:avail. insufficient 1d1=${a} avail.=${this.behavior.availability}`);
       return result;
     }
 
     // text retrieving
     const nodes = tagifyInMessage(segmenter.segment(text));
     const ir = textToInternalRepr(nodes);
-    const irResult = retrieve(ir,this.inDict);
+    const irResult = retrieve(ir, this.inDict);
 
-    if (irResult.index === null){
-      return result
+    if (irResult.index === null) {
+      return result;
     }
 
     // generosity check
-    if(irResult.score < 1-this.behavior.generosity){
-      console.log(`recaller:generos. insufficient score=${irResult.score},generosity=${this.behavior.generosity}`)
+    if (irResult.score < 1 - this.behavior.generosity) {
+      console.log(`recaller:generos. insufficient score=${irResult.score},generosity=${this.behavior.generosity}`);
       return result;
-    }  
+    }
 
     // 出力候補の中から一つを選ぶ
 
     let cands = [];
     cands = this.outDict[irResult.index];
     result.text = cands[randomInt(cands.length)];
-    console.log("result.text:",result.text)
-    
+    console.log("result.text:", result.text);
+
     // テキストに<BR>が含まれていたらqueueに送る
-    if(result.text.indexOf('<BR>') !== -1){
-      const replies = reply.text.split('<BR>');
-      reply.text = replies.shift();
-      reply.queue=[...replies];      
+    if (result.text.indexOf("<BR>") !== -1) {
+      const replies = result.text.split("<BR>");
+      result.text = replies.shift();
+      result.queue = [...replies];
     }
 
-    //retention check
+    // retention check
 
     result.ordering = Math.random() < this.behavior.retention ?
-      'bottom' : 'top';
+      "bottom" : "top";
     return result;
   }
 
-
-
-
-
-
-
-
-      
-
-        
-  learnerReplier = (usernName,text,state,wordDict) => {
+  learnerReplier = (usernName, text, state, wordDict) => {
     /* learner型
     1. availabilityチェックを行う。
     2. ユーザの発言Xに似た行があるか辞書を探し、スコアを計算する。
@@ -142,7 +125,7 @@ export default class Part extends PartIO{
     5. queueに{!PARSE_USER_INPUT}があったらパターンを使ってユーザ入力から
        答えと思われる文字列を抽出し、wordDict['{BOT_CAND_OUTPUT}']に格納する。
        botは確認メッセージ{!CONFIRM_LEARN}を出力、queueを{!CONFIRM_LEARN}にする
-  　6. queueが{!CONFIRM_LEARN}だった場合、ユーザの入力がyesかどうか調べ、
+    6. queueが{!CONFIRM_LEARN}だった場合、ユーザの入力がyesかどうか調べ、
        yes出会った場合このパートのinDictに
        in:[ユーザ入力],out:[ボット出力]
        を追加。コンパイルする。
@@ -150,145 +133,130 @@ export default class Part extends PartIO{
 
     // ↓将来実装したい
     //  2.ユーザのセリフ□□に対して自分が△△と返事をし、ユーザが笑った場合、
-    // 　{in:["□□"],
+    //  {in:["□□"],
     //    out:["△△"]}
     // という記憶を追加する。
-    */ 
+    */
 
     let result = {
-      text:"",      // 返答文字列
-      queue:[],     // キューに送る文字列
-      score:0,      // テキスト検索での一致度
-      ordering:"",  // top:このパートを先頭へ, bottom:このパートを末尾へ移動 
+      text: "", // 返答文字列
+      queue: [], // キューに送る文字列
+      score: 0, // テキスト検索での一致度
+      ordering: "", // top:このパートを先頭へ, bottom:このパートを末尾へ移動
     };
-
-    if(state.queue.length !== 0){
+    console.log("learner replier:",state);
+    if (state.queue.length !== 0) {
       const queue = state.queue.shift();
-      if(queue === '{!PARSE_USER_INPUT}'){
-
-
-
-        //手順5
+      if (queue === "{!PARSE_USER_INPUT}") {
+        // 手順5
         // 返答が入力されたとみなし、前後の不要語を除去して返答を抽出
-        const regexps =  [
+        const regexps = [
           /^(そういうときは|そういう時は)?[「 、]*/,
-          /[」 、]*(と|って)(いう|言ったら|言う|)*[。！!]?$/,
+          /[」 、]*(と|って)(いう|言ったら|言う|)(と思います|と思いますよ|)[。！!]?$/,
         ];
-        
-        const responseCand = regexps.reduce( (accum,val) =>{
-          return accum.replace(val,"");
-        },text);
 
-        const appendDict={"{!BOT_CAND_OUTPUT}":[responseCand]};
-        console.log("text",text)
+        const responseCand = regexps.reduce((accum, val) => {
+          return accum.replace(val, "");
+        }, text);
+
+        const appendDict = { "{!BOT_CAND_OUTPUT}": [responseCand] };
+        console.log("text", text);
         return {
-          text:"{!CONFIRM_LEARN}",
-          queue:["{!CONFIRM_LEARN}"],
-          score:1,
-          ordering:"top",  
-          appendDict:appendDict
-        }
+          text: "{!CONFIRM_LEARN}",
+          queue: ["{!CONFIRM_LEARN}"],
+          score: 1,
+          ordering: "top",
+          appendDict: appendDict
+        };
       }
 
-      if(queue==='{!CONFIRM_LEARN}'){
-        if(text.search(
+      if (queue === "{!CONFIRM_LEARN}") {
+        if (text.search(
           /(いやいや|ちがう|NO|No|no|そうじゃない|違う|違います|違った|違えた|ごめん)(がな|な|よ)?[。!！ー-]*$/
-        ) !== -1){
+        ) !== -1) {
           // 否定の明示・・・学習のキャンセル
           return {
-            text:"{!LEARN_FIZZLED}",
-            queue:[],
-            ordering:"bottom",
-            score:1,
-          }
-        }else{
-          // 学習成功
-          this.dict.push({
-            in:wordDict['{!USER_UNKNOWN_INPUT}'],
-            out:wordDict['{!BOT_CAND_OUTPUT}']
-          })
-          this.compile().then(()=>{});
-
-          return {
-            text:"{!I_GOT_IT}",
-            queue:[],
-            score:1,
-            ordering:"bottom",
-          }
-
-
+            text: "{!LEARN_FIZZLED}",
+            queue: [],
+            ordering: "bottom",
+            score: 1,
+          };
         }
+        // 学習成功
+        this.dict.push({
+          in: wordDict["{!USER_UNKNOWN_INPUT}"],
+          out: wordDict["{!BOT_CAND_OUTPUT}"]
+        });
+        this.compile().then(() => { });
+
+        return {
+          text: "{!I_GOT_IT}",
+          queue: [],
+          score: 1,
+          ordering: "bottom",
+        };
       }
 
       // queueからshiftした内容を返答にする
       return {
-        text:queue,
-        queue:[],
-        score:1,
-        ordering:"",
-      }
-  
+        text: queue,
+        queue: [],
+        score: 1,
+        ordering: "",
+      };
     }
     // availability check
-    if(Math.random() > this.behavior.availability){
-      console.log("learner:avail. insufficient")
+    if (Math.random() > this.behavior.availability) {
+      console.log("learner:avail. insufficient");
       return result;
     }
 
     // text retrieving
     const nodes = tagifyInMessage(segmenter.segment(text));
     const ir = textToInternalRepr(nodes);
-    const irResult = retrieve(ir,this.inDict);
-    
+    const irResult = retrieve(ir, this.inDict);
+
     // generosity check
-    if(irResult.index === null || irResult.score <= 1-this.behavior.generosity){
+    if (irResult.index === null || irResult.score <= 1 - this.behavior.generosity) {
       // 手順4 返答できない場合尋ねる
-      console.log(`learner:generos. ${this.behavior.generosity} score:${irResult.score}`)
-      const appendDict={'{!USER_UNKNOWN_INPUT}':[text]};
+      console.log(`learner:generos. ${this.behavior.generosity} score:${irResult.score}`);
+      const appendDict = { "{!USER_UNKNOWN_INPUT}": [text] };
       return {
-        text:"{!TELL_ME_WHAT_TO_SAY}",
-        queue:["{!PARSE_USER_INPUT}"],
-        ordering:"top",
-        score:irResult.score,
-        appendDict:appendDict
-      }
-    }  
+        text: "{!TELL_ME_WHAT_TO_SAY}",
+        queue: ["{!PARSE_USER_INPUT}"],
+        ordering: "top",
+        score: irResult.score,
+        appendDict: appendDict
+      };
+    }
 
     // 出力候補の中から一つを選ぶ
     let cands = [];
     cands = this.outDict[irResult.index];
     result.text = cands[randomInt(cands.length)];
-    console.log("result.text:",result.text)  
+    console.log("result.text:", result.text);
 
     // テキストに<BR>が含まれていたらqueueに送る
-    if(result.text.indexOf('<BR>') !== -1){
-      const replies = reply.text.split('<BR>');
-      reply.text = replies.shift();
-      reply.queue=[...replies];      
+    if (result.text.indexOf("<BR>") !== -1) {
+      const replies = result.text.split("<BR>");
+      result.text = replies.shift();
+      result.queue = [...replies];
     }
 
-    //retention check
+    // retention check
 
     result.ordering = Math.random() > this.behavior.retention ?
-      'bottom' : 'top';
+      "bottom" : "top";
 
     return result;
   }
 
-
-
-
-
-
-
-
-
-  defaultReplier = (text,username,state) => {
+  defaultReplier = (text, username, state) => {
     let result = {
-      text:"default replier",      // 返答文字列
-      queue:[],     // キューに送る文字列
-      score:0,      // テキスト検索での一致度
-      ordering:"",  // top:このパートを先頭へ, bottom:このパートを末尾へ移動 
+      text: `default replier,echo ${text}`, // 返答文字列
+      queue: [], // キューに送る文字列
+      score: 0, // テキスト検索での一致度
+      ordering: "", // top:このパートを先頭へ, bottom:このパートを末尾へ移動
     };
     return result;
   }
@@ -297,29 +265,29 @@ export default class Part extends PartIO{
 const tagifyInDict = (inDict) => {
   /* this.inDictに現れるボットを表す文字列を{bot}タグに置換する。
     this.inDictに現れる「あなた」などの人称を{user}タグに置き換える。
-    
+
   */
 
-  return inDict.map(line => 
-    line.map(text=>tagifyInMessage(text))
+  return inDict.map(line =>
+    line.map(text => tagifyInMessage(text))
   );
-  /* this.outDictのレンダリングは出力直前に実行　*/
-
-}
+  /* this.outDictのレンダリングは出力直前に実行 */
+};
 
 const tagifyInMessage = (text) => {
-
   let newText = [];
-  for(let j in text){
-    let str = text[j];
-    for (let key of botTagDictKeys){
-      for(let word of botTagDict[key]){
-        str = str.replace(new RegExp(word,"g"),key);
+
+  for (let j in text) {
+    if (Object.prototype.hasOwnProperty.call(text, j)) {
+      let str = text[j];
+      for (let key of botTagDictKeys) {
+        for (let word of botTagDict[key]) {
+          str = str.replace(new RegExp(word, "g"), key);
+        }
       }
+      newText[j] = str;
     }
-    newText[j] = str;
-    
   }
   return newText;
-}
+};
 
