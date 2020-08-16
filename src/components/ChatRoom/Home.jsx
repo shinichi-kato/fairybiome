@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState, useCallback } from "react";
+import React, { useContext, useEffect, useState, useRef } from "react";
 import { navigate } from "gatsby";
 
 import { localStorageIO } from "../../utils/localStorageIO";
@@ -116,11 +116,12 @@ export default function Home() {
 
   // --------------------------------------------------------
   // currentLogが変更されたら最下行へ自動スクロール
-  const myRef = useCallback(node => {
-    if (node !== null) {
-      node.scrollIntoView({ behavior: "smooth", block: "end" });
+  const chatBottomEl = useRef(null);
+  useEffect(() => {
+    if (chatBottomEl) {
+      chatBottomEl.current.scrollIntoView({ behavior: "smooth", block: "end" });
     }
-  }, [log]);
+  }, [logSlice]);
 
   const logSlice = log.slice(-CHAT_WINDOW);
   const speeches = logSlice.map(speech => {
@@ -145,11 +146,11 @@ export default function Home() {
           <ApplicationBar
             busy={botBusy}
             setNavigateBefore={setNavigateBefore}
-            title="ホーム"/>
+            title="ホーム" />
         </Box>
         <Box className={classes.main} flexGrow={1} order={0}>
           {speeches}
-          <div ref={myRef} />
+          <div ref={chatBottomEl} />
         </Box>
         <Box justifyContent="center" order={0}>
           <Console

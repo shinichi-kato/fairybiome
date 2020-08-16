@@ -18,6 +18,7 @@
     "wordDict":{
         "{animal}":["犬","猫","ユニコーン"],
         "{me}":["わたし","私","{botName}"],
+        "{!NICE_TO_MEET_YOU}":["こんにちは！"],
         "{!NAME_ME}":["よろしくね！それじゃ私に名前をつけてください！"],
         "{!IGNORE_BUDDY_FORMATION}":["うーん。ごめんなさい・・・","また今度ね。","もう誰か仲間がいるんじゃない？"],
         "{!QUERY_NAME_OK}":["{botName}でいい？"],
@@ -30,7 +31,7 @@
         "{!BOT_ACCEPT_SUMMON}": ["はーーーい","呼びました？"],
         "{!DISBAND}":["またね！"],
         "{!VANISHING}":["・・・　・・・"],
-        "{!I_AM_COMMING_BACK}":["ただいまー"],
+        "{!BOT_COMING_BACK}":["ただいまー"],
         "{!NOT_FOUND}":["？","そうなんだ"]      
         
     },

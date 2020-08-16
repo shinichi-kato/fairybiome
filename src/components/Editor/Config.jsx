@@ -1,14 +1,14 @@
-import React ,{useState,useEffect } from "react";
-import { makeStyles } from '@material-ui/core/styles';
+import React, { useState, useEffect } from "react";
+import { makeStyles } from "@material-ui/core/styles";
 
-import Box from '@material-ui/core/Box';
-import Grid from '@material-ui/core/Grid';
-import Button from '@material-ui/core/Button';
-import Input from '@material-ui/core/Input';
-import Typography from '@material-ui/core/Typography';
+import Box from "@material-ui/core/Box";
+import Grid from "@material-ui/core/Grid";
+import Button from "@material-ui/core/Button";
+import Input from "@material-ui/core/Input";
+import Typography from "@material-ui/core/Typography";
 
-import {toTimestampString} from '../to-timestamp-string.jsx';
-import FairyPanel from './FairyPanel';
+import { toTimestampString } from "../to-timestamp-string.jsx";
+import FairyPanel from "./FairyPanel";
 import HubIcon from "../../icons/Hub";
 
 const useStyles = makeStyles((theme) => ({
@@ -26,60 +26,59 @@ const useStyles = makeStyles((theme) => ({
 
   },
 
-
 }));
 
-export default function Config(props){
+export default function Config(props) {
   const classes = useStyles();
   const config = props.config;
-  const [displayName,setDisplayName] = useState(config.displayName || "");
-  const [photoURL,setPhotoURL] = useState(config.photoURL);
-  const [description,setDescription] = useState(config.description || "");
-  const [availability,setAvailability] = useState(config.hubBehavior.availability);
-  const [generosity,setGenerosity]=useState(config.hubBehavior.generosity);
-  const [retention,setRetention]=useState(config.hubBehavior.retention);
+  const [displayName, setDisplayName] = useState(config.displayName || "");
+  const [photoURL, setPhotoURL] = useState(config.photoURL);
+  const [description, setDescription] = useState(config.description || "");
+  const [availability, setAvailability] = useState(config.hubBehavior.availability);
+  const [generosity, setGenerosity] = useState(config.hubBehavior.generosity);
+  const [retention, setRetention] = useState(config.hubBehavior.retention);
 
-  useEffect(()=>{
-    if(props.pageWillChange){
+  useEffect(() => {
+    if (props.pageWillChange) {
       handleSave();
     }
-  },[props.pageWillChange]);
-  
-  function handleSave(){
+  }, [props.pageWillChange]);
+
+  function handleSave() {
     props.handleSave(
       {
-      ...config,
-      displayName:displayName,
-      photoURL:photoURL,
-      description:description,
-      hubBehavior:{
-        availability:parseFloat(availability),
-        generosity:parseFloat(generosity),
-        retention:parseFloat(retention)
-      }
-    })
+        ...config,
+        displayName: displayName,
+        photoURL: photoURL,
+        description: description,
+        hubBehavior: {
+          availability: parseFloat(availability),
+          generosity: parseFloat(generosity),
+          retention: parseFloat(retention)
+        }
+      });
   }
-  
+
   return (
     <Box className={classes.content}>
-      <Grid 
+      <Grid
         alignItems="center"
-        container 
+        container
         spacing={2}>
         <Grid item xs={12}>
           <FairyPanel
-            photoURL={photoURL}
-            hp={props.state.hp}
             displayName={displayName}
+            hp={props.state.hp}
+            photoURL={photoURL}
             updatedAt={toTimestampString(props.updatedAt)}
           />
         </Grid>
         <Grid item xs={5}>
           <Input
             className={classes.input}
-            value={displayName}
+            onChange={e => setDisplayName(e.target.value)}
             required
-            onChange={e=>setDisplayName(e.target.value)}
+            value={displayName}
           />
         </Grid>
         <Grid item xs={7}>
@@ -89,23 +88,23 @@ export default function Config(props){
         <Grid item xs={5}>
           <Input
             className={classes.input}
+            onChange={e => setDescription(e.target.value)}
             value={description}
-            onChange={e=>setDescription(e.target.value)}
           />
         </Grid>
         <Grid item xs={7}>
           <Typography variant="subtitle1">妖精の説明</Typography>
         </Grid>
         <Grid item xs={12}>
-          集まる場所<HubIcon/>での妖精の行動
+          集まる場所<HubIcon />での妖精の行動
         </Grid>
 
         <Grid item xs={5}>
           <Input
             className={classes.input}
-            value={availability}
+            onChange={e => setAvailability(e.target.value)}
             required
-            onChange={e=>setAvailability(e.target.value)}
+            value={availability}
           />
         </Grid>
         <Grid item xs={7}>
@@ -120,9 +119,9 @@ export default function Config(props){
         <Grid item xs={5}>
           <Input
             className={classes.input}
-            value={generosity}
+            onChange={e => setGenerosity(e.target.value)}
             required
-            onChange={e=>setGenerosity(e.target.value)}
+            value={generosity}
           />
         </Grid>
         <Grid item xs={7}>
@@ -137,9 +136,9 @@ export default function Config(props){
         <Grid item xs={5}>
           <Input
             className={classes.input}
-            value={retention}
+            onChange={e => setRetention(e.target.value)}
             required
-            onChange={e=>setRetention(e.target.value)}
+            value={retention}
           />
         </Grid>
         <Grid item xs={7}>
@@ -157,16 +156,16 @@ export default function Config(props){
           >
             保存する
           </Button>
-          {props.message && 
+          {props.message &&
             <Grid item xs={12}>
-            <Typography color="error">
-              {props.message}
-            </Typography>
+              <Typography color="error">
+                {props.message}
+              </Typography>
             </Grid>
           }
         </Grid>
-        
+
       </Grid>
     </Box>
-  )
+  );
 }
