@@ -18,6 +18,8 @@
     "wordDict":{
         "{animal}":["犬","猫","ユニコーン"],
         "{me}":["わたし","私","{botName}"],
+        "{userName}":["{!USER_NAME}さん","{!USER_NAME}"],
+        "{botName}":["{!BOT_NAME}","私"],
         "{!NICE_TO_MEET_YOU}":["こんにちは！"],
         "{!NAME_ME}":["よろしくね！それじゃ私に名前をつけてください！"],
         "{!IGNORE_BUDDY_FORMATION}":["うーん。ごめんなさい・・・","また今度ね。","もう誰か仲間がいるんじゃない？"],

@@ -1,9 +1,10 @@
-import React, { useReducer, useEffect } from "react";
+import React, { useReducer, useEffect, useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 
 import Box from "@material-ui/core/Box";
 import Typography from "@material-ui/core/Typography";
 import Input from "@material-ui/core/Input";
+import Button from "@material-ui/core/Button";
 import TreeView from "@material-ui/lab/TreeView";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import ChevronRightIcon from "@material-ui/icons/ChevronRight";
@@ -81,7 +82,7 @@ const SYSTEM_WORD_DICT = {
           defaultValue: "はーーい。呼びました？"
         },
         {
-          id: "{!BOT_COMMING_BACK}",
+          id: "{!BOT_COMING_BACK}",
           description: "妖精が自分から帰ってきた",
           defaultValue: "ただいまー"
         }
@@ -154,14 +155,15 @@ function initialize(wordDict) {
       ([key, ]) => key.startsWith("{!")).map(
         ([key, val]) => ({ [key]: val }))
   );
-
+  console.log("userDict", userDict);
+  console.log("sysDict", sysDict);
   return {
-    sysDict: { sysDict },
-    userDict: { userDict },
+    sysDict: { ...sysDict },
+    userDict: { ...userDict },
     sysNode: null,
-    sysValue: null,
+    // sysValue: null,
     userKey: null,
-    userValue: null,
+    // userValue: null,
   };
 }
 
@@ -169,96 +171,108 @@ function reducer(state, action) {
   switch (action.type) {
     case "selectSysNode": {
       // treeViewでノードを選択
-      if (state.node) {
+      if (action.sysValue) {
         // 過去に選択したノードがあれば値をライトバック
         return {
           ...state,
           sysDict: {
             ...state.sysDict,
-            [state.sysNode.id]: state.sysValue.split("|")
+            [state.sysNode.id]: action.sysValue.split("|")
           },
-          sysNode: action.node,
-          sysValue: state.sysDict[action.node.id].join("|")
+          sysNode: action.sysNode,
+          // sysValue: state.sysDict[action.node.id].join("|")
         };
       }
       return {
         ...state,
-        sysNode: action.node,
-        sysValue: state.sysDict[action.node.id].join("|")
+        sysNode: action.sysNode,
+        // sysValue: state.sysDict[action.node.id].join("|")
       };
     }
 
     case "unselectSysNode": {
-      if (state.sysNode) {
+      if (action.sysValue) {
         // 過去に選択したノードがあれば値をライトバック
         return {
           ...state,
           sysDict: {
             ...state.sysDict,
-            [state.sysNode.id]: state.sysValue.split("|")
+            [state.sysNode.id]: action.sysValue.split("|")
           },
           sysNode: null,
-          sysValue: null,
+          // sysValue: null,
         };
       }
       return {
         ...state,
-        node: null,
-        sysValue: null,
+        sysNode: null,
+        // sysValue: null,
       };
     }
-    case "editSysValue": {
-      return {
-        ...state,
-        sysValue: action.value
-      };
-    }
+    // case "editSysValue": {
+    //   return {
+    //     ...state,
+    //     sysValue: action.value
+    //   };
+    // }
 
     case "selectUserNode": {
       // treeViewでノードを選択
-      if (state.userKey) {
+      if (action.userKey) {
         // 過去に選択したノードがあれば値をライトバック
         return {
           ...state,
           userDict: {
             ...state.userDict,
-            [state.userKey]: state.userValue.split("|")
+            [state.userKey]: action.userValue.split("|")
           },
-          userKey: action.key,
-          userValue: state.userDict[action.key].join("|")
+          userKey: action.userKey,
+          // userValue: state.userDict[action.key].join("|")
         };
       }
       return {
         ...state,
-        userKey: action.key,
-        userValue: state.userDict[action.key].join("|")
+        userKey: action.userKey,
+        // userValue: state.userDict[action.key].join("|")
       };
     }
 
     case "unselectUserNode": {
-      if (state.userKey) {
+      if (action.userKey) {
         // 過去に選択したノードがあれば値をライトバック
         return {
           ...state,
           userDict: {
             ...state.userDict,
-            [state.userKey]: state.userValue.split("|")
+            [state.userKey]: action.userValue.split("|")
           },
           userKey: null,
-          userValue: null,
+          // userValue: null,
         };
       }
       return {
         ...state,
         userKey: null,
-        userValue: null,
+        // userValue: null,
       };
     }
 
-    case "editUserValue": {
+    // case "editUserValue": {
+    //   return {
+    //     ...state,
+    //     userValue: action.value
+    //   };
+    // }
+
+    case "deleteUserKey": {
+      // action.keyで与えられたデータを削除
+      let newDict = {...state.userDict};
+      delete newDict[action.key];
       return {
         ...state,
-        userValue: action.value
+        userDict: newDict,
+        userKey: null,
+        // userValue: null
       };
     }
 
@@ -266,12 +280,12 @@ function reducer(state, action) {
       return {
         ...state,
         sysDict: {
-          ...state.sysDict,
-          [state.node.id]: state.value.split("|")
+          ...action.sysDict,
+          [action.sysNode.id]: action.sysValue.split("|")
         },
         userDict: {
-          ...state.userDict,
-          [state.userKey]: state.userValue.split("|")
+          ...action.userDict,
+          [action.userKey]: action.userValue.split("|")
         },
       };
     }
@@ -284,10 +298,20 @@ function reducer(state, action) {
 export default function WordDict(props) {
   const classes = useStyles();
   const [state, dispatch] = useReducer(reducer, initialize(props.wordDict));
+  const [sysNode, setSysNode] = useState(null);
+  const [sysValue, setSysValue] = useState(null);
+  const [userKey, setUserKey] = useState(null);
+  const [userValue, setUserValue] = useState(null);
 
   useEffect(() => {
     if (props.pageWillChange) {
-      dispatch({ type: "writeback" });
+      dispatch({
+        type: "writeback",
+        sysNode: sysNode,
+        sysValue: sysValue,
+        userKey: userKey,
+        userValue: userValue
+      });
       props.handleSave({ ...state.sysDict, ...state.userDict });
     }
   }, [props.pageWillChange]);
@@ -295,27 +319,60 @@ export default function WordDict(props) {
   function handleClickSysLabel(event, node) {
     if (node.defaultValue) {
       event.preventDefault();
-      dispatch({ type: "selectSysNode", node: node });
+      dispatch({
+        type: "selectSysNode",
+        sysNode: node,
+        sysValue: sysValue
+      });
+      setSysNode(node);
+      setSysValue(state.sysDict[node.id].join("|"));
     } else {
-      dispatch({ type: "unselectSysNode" });
+      dispatch({
+        type: "unselectSysNode",
+        sysNode: node,
+        sysValue: sysValue
+      });
+      setSysNode(null);
+      setSysValue(null);
     }
   }
 
   function handleClickUserLabel(event, key) {
     if (key === "_root") {
-      dispatch({ type: "unselectUserNode" });
+      dispatch({
+        type: "unselectUserNode",
+        userKey: key,
+        userValue: userValue
+      });
+      setUserKey(null);
+      setUserValue(null);
     } else {
       event.preventDefault();
-      dispatch({ type: "selectUserNode", key: key });
+      dispatch({
+        type: "selectUserNode",
+        userKey: key,
+        userValue: userValue
+      });
+      setUserKey(key);
+      setUserValue(state.userDict[key].join("|"));
     }
   }
 
-  function handleSysChange(event) {
-    dispatch({ type: "editSysValue", value: event.target.value });
+  function handleChangeSysValue(event) {
+    setSysValue(event.target.value);
   }
 
-  function handleUserChange(event) {
-    dispatch({type: "editUserValue", value: event.target.value });
+  function handleChangeUserKey(event) {
+    setUserKey(event.target.value);
+  }
+  function handleChangeUserValue(event) {
+    setUserValue(event.target.value);
+  }
+
+  function handleDeleteUserDictKey(key) {
+    dispatch({ type: "deleteUserKey", key: key});
+    setUserKey(null);
+    setUserValue(null);
   }
 
   const renderSysTree = (nodes) => (
@@ -370,23 +427,27 @@ export default function WordDict(props) {
         </TreeView>
       </Box>
       <Box>
-        <Typography>{state.sysNode && state.sysNode.deafultValue && state.sysNode.description}</Typography>
+        <Typography>{sysNode && sysNode.deafultValue && sysNode.description}</Typography>
         <form>
           <Input
             className={classes.input}
             fullWidth
-            onChange={handleSysChange}
-            placeholder={state.sysNode && state.sysNode.defaultValue}
-            value={state.sysValue || ""}
+            onChange={handleChangeSysValue}
+            placeholder={sysNode && sysNode.defaultValue}
+            value={sysValue || ""}
           />
           <Typography
             variant="subtitle1"
-          >返答の候補が複数ある場合は|で区切ってください</Typography>
+          >
+            場面に応じた妖精のセリフを設定します。返答の中にタグが含まれていたら、
+            そのタグはタグの値文字列に置き換えられます。
+            返答の候補が複数ある場合は|で区切ってください。
+          </Typography>
         </form>
 
       </Box>
       <Box>
-        <Typography>単語辞書</Typography>
+        <Typography>タグ</Typography>
       </Box>
       <Box>
         <TreeView
@@ -400,20 +461,38 @@ export default function WordDict(props) {
         </TreeView>
       </Box>
       <Box>
-        <Typography>{state.userKey}</Typography>
         <form>
+          <Typography>ユーザ辞書のキー</Typography>
           <Input
             className={classes.input}
             fullWidth
-            onChange={handleUserChange}
-            placeholder={state.userValue}
-            value={state.userValue || ""}
+            onChange={handleChangeUserKey}
+            placeholder={userKey}
+            value={userKey || ""}
+          />
+          <Typography>ユーザ辞書の値</Typography>
+          <Input
+            className={classes.input}
+            fullWidth
+            onChange={handleChangeUserValue}
+            placeholder={userValue}
+            value={userValue || ""}
           />
           <Typography
             variant="subtitle1"
-          >返答の候補が複数ある場合は|で区切ってください</Typography>
+          >
+            妖精のセリフの中に上の文字列があった場合、下の文字列に置き換わります。
+            上の文字列は{"{ }"}でくくり、中の文字は小文字(a〜z)と下線(_)だけが使えます
+            返答の候補が複数ある場合は|で区切ってください
+          </Typography>
+          <Button onClick={()=>handleDeleteUserDictKey(state.userKey)}>
+            この項目を削除
+          </Button>
         </form>
 
+      </Box>
+      <Box>
+        <Button>キーを新規に作成</Button>
       </Box>
     </Box>
 
