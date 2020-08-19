@@ -1,9 +1,10 @@
-import React, { useReducer, useEffect, useState } from "react";
+import React, { useReducer, useEffect, useState, useMemo } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 
 import Box from "@material-ui/core/Box";
 import Typography from "@material-ui/core/Typography";
 import Input from "@material-ui/core/Input";
+import InputAdornment from "@material-ui/core/InputAdornment";
 import Button from "@material-ui/core/Button";
 import TreeView from "@material-ui/lab/TreeView";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
@@ -155,8 +156,6 @@ function initialize(wordDict) {
       ([key, ]) => key.startsWith("{!")).map(
         ([key, val]) => ({ [key]: val }))
   );
-  console.log("userDict", userDict);
-  console.log("sysDict", sysDict);
   return {
     sysDict: { ...sysDict },
     userDict: { ...userDict },
@@ -218,7 +217,7 @@ function reducer(state, action) {
 
     case "selectUserNode": {
       // treeViewでノードを選択
-      if (action.userKey) {
+      if (action.userKey && action.userValue) {
         // 過去に選択したノードがあれば値をライトバック
         return {
           ...state,
@@ -266,7 +265,7 @@ function reducer(state, action) {
 
     case "deleteUserKey": {
       // action.keyで与えられたデータを削除
-      let newDict = {...state.userDict};
+      let newDict = { ...state.userDict };
       delete newDict[action.key];
       return {
         ...state,
@@ -297,11 +296,13 @@ function reducer(state, action) {
 
 export default function WordDict(props) {
   const classes = useStyles();
-  const [state, dispatch] = useReducer(reducer, initialize(props.wordDict));
+  const memorizedInitialState = useMemo(() => initialize(props.wordDict), [props.wordDict]);
+  const [state, dispatch] = useReducer(reducer, memorizedInitialState);
   const [sysNode, setSysNode] = useState(null);
   const [sysValue, setSysValue] = useState(null);
   const [userKey, setUserKey] = useState(null);
   const [userValue, setUserValue] = useState(null);
+  const [message, setMessage] = useState(null);
 
   useEffect(() => {
     if (props.pageWillChange) {
@@ -314,6 +315,7 @@ export default function WordDict(props) {
       });
       props.handleSave({ ...state.sysDict, ...state.userDict });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.pageWillChange]);
 
   function handleClickSysLabel(event, node) {
@@ -354,7 +356,10 @@ export default function WordDict(props) {
         userValue: userValue
       });
       setUserKey(key);
-      setUserValue(state.userDict[key].join("|"));
+      const val = state.userDict[key];
+      if (val) {
+        setUserValue(state.userDict[key].join("|"));
+      }
     }
   }
 
@@ -363,14 +368,29 @@ export default function WordDict(props) {
   }
 
   function handleChangeUserKey(event) {
-    setUserKey(event.target.value);
+    // "}"が入力されたらuserDict検索を行い、値があれば反映
+    const key = event.target.value;
+    setUserKey(key);
+    if (key.startsWith("{!")) {
+      // "{!"で始まったらエラー
+      setMessage("{!で始まる名前はつかえません");
+    } else {
+      setMessage(null);
+    }
+    if (!message && key.endsWith("}")) {
+      const val = state.userDict[key];
+      if (val) {
+        setUserValue(val.join("|"));
+      }
+    }
   }
+
   function handleChangeUserValue(event) {
     setUserValue(event.target.value);
   }
 
   function handleDeleteUserDictKey(key) {
-    dispatch({ type: "deleteUserKey", key: key});
+    dispatch({ type: "deleteUserKey", key: key });
     setUserKey(null);
     setUserValue(null);
   }
@@ -468,14 +488,19 @@ export default function WordDict(props) {
             fullWidth
             onChange={handleChangeUserKey}
             placeholder={userKey}
+            startAdornment={
+              <InputAdornment position="start">
+                <FaceIcon />
+              </InputAdornment>
+            }
             value={userKey || ""}
           />
+          <Typography color="error">{message}</Typography>
           <Typography>ユーザ辞書の値</Typography>
           <Input
             className={classes.input}
             fullWidth
             onChange={handleChangeUserValue}
-            placeholder={userValue}
             value={userValue || ""}
           />
           <Typography
@@ -485,14 +510,14 @@ export default function WordDict(props) {
             上の文字列は{"{ }"}でくくり、中の文字は小文字(a〜z)と下線(_)だけが使えます
             返答の候補が複数ある場合は|で区切ってください
           </Typography>
-          <Button onClick={()=>handleDeleteUserDictKey(state.userKey)}>
+          <Button onClick={() => handleDeleteUserDictKey(state.userKey)}>
             この項目を削除
           </Button>
         </form>
 
       </Box>
       <Box>
-        <Button>キーを新規に作成</Button>
+        <Button>項目を新規に作成</Button>
       </Box>
     </Box>
 
