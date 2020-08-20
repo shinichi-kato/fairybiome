@@ -96,7 +96,7 @@ export default function Config(props) {
           <Typography variant="subtitle1">妖精の説明</Typography>
         </Grid>
         <Grid item xs={12}>
-          集まる場所<HubIcon />での妖精の行動
+          集まる場所<HubIcon />での妖精のふるまい
         </Grid>
 
         <Grid item xs={5}>
