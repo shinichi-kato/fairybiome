@@ -3,13 +3,14 @@ import { makeStyles } from "@material-ui/core/styles";
 
 import Box from "@material-ui/core/Box";
 import Grid from "@material-ui/core/Grid";
-import Button from "@material-ui/core/Button";
 import Input from "@material-ui/core/Input";
 import Typography from "@material-ui/core/Typography";
 
 import { toTimestampString } from "../to-timestamp-string.jsx";
 import FairyPanel from "./FairyPanel";
 import HubIcon from "../../icons/Hub";
+
+import PartOrder from "./PartOrder";
 
 const useStyles = makeStyles((theme) => ({
   content: {
@@ -37,26 +38,48 @@ export default function Config(props) {
   const [availability, setAvailability] = useState(config.hubBehavior.availability);
   const [generosity, setGenerosity] = useState(config.hubBehavior.generosity);
   const [retention, setRetention] = useState(config.hubBehavior.retention);
+  const [defaultPartOrder, setDefaultPartOrder] = useState(config.defaultPartOrder);
+  const [currentPartName, setCurrentPartName] = useState(null);
+  const [currentPartDict, setCurrentPartDict] = useState(null);
+  const [currentPartMisc, setCurrentPartMisc] = useState(null);
 
   useEffect(() => {
     if (props.pageWillChange) {
-      handleSave();
+      handleSaveConfig();
+      if (currentPartName) {
+        handleSavePart();
+      }
     }
   }, [props.pageWillChange]);
 
-  function handleSave() {
-    props.handleSave(
+  function handleSaveConfig() {
+    props.handleSaveConfig(
       {
         ...config,
         displayName: displayName,
         photoURL: photoURL,
         description: description,
+        defaultPartOrder: defaultPartOrder,
         hubBehavior: {
           availability: parseFloat(availability),
           generosity: parseFloat(generosity),
           retention: parseFloat(retention)
         }
       });
+  }
+
+  function handleSavePart() {
+    props.handleSavePart(currentPartName,
+      {
+        ...currentPartMisc,
+        behavior: {
+          availability: parseFloat(currentPartMisc.availability),
+          generosity: parseFloat(currentPartMisc.generosity),
+          retention: parseFloat(currentPartMisc.retention)
+        },
+        dict: currentPartDict
+      }
+    );
   }
 
   return (
@@ -151,18 +174,17 @@ export default function Config(props) {
         </Grid>
 
         <Grid item xs={12}>
-          <Button
-            onClick={handleSave}
-          >
-            保存する
-          </Button>
           {props.message &&
-            <Grid item xs={12}>
               <Typography color="error">
                 {props.message}
               </Typography>
-            </Grid>
           }
+        </Grid>
+        <Grid item xs={12}>
+          <PartOrder
+            partOrder={defaultPartOrder}
+            parts={props.parts}
+          />
         </Grid>
 
       </Grid>

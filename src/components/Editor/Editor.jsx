@@ -6,7 +6,8 @@ import Box from "@material-ui/core/Box";
 import ApplicationTabBar from "./ApplicationTabBar";
 import Config from "./Config";
 import WordDict from "./WordDict";
-import Parts from "./Parts";
+// import Parts from "./Parts";
+
 import Misc from "./Misc";
 
 import { FirebaseContext } from "../Firebase/FirebaseProvider";
@@ -33,7 +34,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function Editor(props) {
+export default function Editor() {
   const classes = useStyles();
   const fb = useContext(FirebaseContext);
   const bot = useContext(BotContext);
@@ -56,7 +57,8 @@ export default function Editor(props) {
     pageTransition();
   }
 
-  function handleSaveParts(parts, partOrder) {
+  function handleSavePart(partName, part) {
+    bot.setPart(partName, part);
     pageTransition();
   }
 
@@ -94,9 +96,11 @@ export default function Editor(props) {
         {page === "config" &&
           <Config
             config={bot.ref.config}
-            handleSave={handleSaveConfig}
+            handleSaveConfig={handleSaveConfig}
+            handleSavePart = {handleSavePart}
             message={message}
             pageWillChange={pageWillChange}
+            parts={bot.ref.parts}
             state={bot.ref.state}
             updatedAt={bot.ref.updatedAt}
           />
@@ -109,7 +113,7 @@ export default function Editor(props) {
 
           />
         }
-        {page === "parts" &&
+        {/* {page === "parts" &&
           <Parts
             handleSave={handleSaveParts}
             pageWillChange={pageWillChange}
@@ -117,7 +121,7 @@ export default function Editor(props) {
             parts={bot.ref.parts}
 
           />
-        }
+        } */}
         {page === "misc" &&
           <Misc
             handleSave={handleSaveMisc}

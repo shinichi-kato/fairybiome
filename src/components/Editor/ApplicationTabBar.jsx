@@ -1,15 +1,13 @@
-import React from 'react';
-import {navigate} from 'gatsby';
-import { makeStyles } from '@material-ui/core/styles';
-import AppBar from '@material-ui/core/AppBar';
-import Toolbar from '@material-ui/core/Toolbar';
-import Typography from '@material-ui/core/Typography';
-import Button from '@material-ui/core/Button';
-import IconButton from '@material-ui/core/IconButton';
-import Tabs from '@material-ui/core/Tabs';
-import Tab from '@material-ui/core/Tab';
-import NavigateBeforeIcon from '@material-ui/icons/NavigateBefore';
-import MenuBookIcon from '@material-ui/icons/MenuBook';
+import React from "react";
+import { makeStyles } from "@material-ui/core/styles";
+import AppBar from "@material-ui/core/AppBar";
+import Toolbar from "@material-ui/core/Toolbar";
+import Typography from "@material-ui/core/Typography";
+import IconButton from "@material-ui/core/IconButton";
+import Tabs from "@material-ui/core/Tabs";
+import Tab from "@material-ui/core/Tab";
+import NavigateBeforeIcon from "@material-ui/icons/NavigateBefore";
+import MenuBookIcon from "@material-ui/icons/MenuBook";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -26,71 +24,71 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-
 export default function ApplicationTabBar(props) {
   const classes = useStyles();
 
-  function handleChangePage(event,newValue){
+  function handleChangePage(event, newValue) {
     props.handleChangePage(newValue);
   }
 
-  function handleExit(){
-    props.handleChangePage('exit');
+  function handleExit() {
+    props.handleChangePage("exit");
   }
 
-  return(
+  return (
     <AppBar position="static">
       <Toolbar color="inherit">
-        <IconButton 
-          edge="start" 
+        <IconButton
           color="inherit"
+          edge="start"
           onClick={handleExit}
         >
           <NavigateBeforeIcon />
 
         </IconButton>
-        <Typography 
-          variant="h6" 
+        <Typography
           className={classes.title}
+          variant="h6"
         >
           {props.botName}
         </Typography>
-        <IconButton 
-          edge="end"
+        <IconButton
           color="inherit"
+          edge="end"
         >
            <MenuBookIcon />
         </IconButton>
 
       </Toolbar>
-      <Tabs value={props.page}
-        onChange={handleChangePage} 
-        aria-label="editor tabs" >
-        <Tab 
+      <Tabs
+aria-label="editor tabs"
+        onChange={handleChangePage}
+        value={props.page} >
+        <Tab
+          aria-controls="editor-tabpanel-0"
           className={classes.tab}
-          value="config" 
-          label="基本" 
           id="editor-tab-0"
-          aria-controls="editor-tabpanel-0"/>
-        <Tab 
+          label="基本"
+          value="config"/>
+        <Tab
+          aria-controls="editor-tabpanel-1"
           className={classes.tab}
-          value="wordDict" 
-          label="単語辞書" 
           id="editor-tab-1"
-          aria-controls="editor-tabpanel-1"/>
-        <Tab 
+          label="単語辞書"
+          value="wordDict"/>
+        {/* <Tab
+          aria-controls="editor-tabpanel-2"
           className={classes.tab}
-          value="parts" 
-          label="パート" 
           id="editor-tab-2"
-          aria-controls="editor-tabpanel-2"/>
-        <Tab 
+          label="パート"
+          value="parts"/> */}
+        <Tab
+          aria-controls="editor-tabpanel-3"
           className={classes.tab}
-          value="misc" 
-          label="その他" 
           id="editor-tab-3"
-          aria-controls="editor-tabpanel-3"/>
+          label="その他"
+          value="misc"/>
       </Tabs>
-    </AppBar>      
-  )
+    </AppBar>
+  );
 }

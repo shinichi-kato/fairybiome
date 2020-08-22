@@ -32,6 +32,10 @@ export default function BotProvider(props) {
     bot.setWordDict(wordDict, fb.timestampNow());
   }
 
+  function handleSavePart(partName,part) {
+    bot.setPart(partName,part,fb.timestampNow());
+  }
+
   return (
     <BotContext.Provider
       value={{
@@ -40,6 +44,7 @@ export default function BotProvider(props) {
         ref: bot,
         setConfig: handleSaveConfig,
         setWordDict: handleSaveWordDict,
+        setPart: handleSavePart,
         upkeep: bot.upkeepToLocalStorage,
         getBuddyState: bot.getBuddyState,
         dumpToLocalStorage: bot.dumpToLocalStorage,
