@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useReducer } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 
 import Avatar from "@material-ui/core/Avatar";
 import Box from "@material-ui/core/Box";
 import Card from "@material-ui/core/Card";
 import CardActions from "@material-ui/core/CardActions";
+import Slide from "@material-ui/core/Slide";
 import Typography from "@material-ui/core/Typography";
 import CardHeader from "@material-ui/core/CardHeader";
 import IconButton from "@material-ui/core/IconButton";
@@ -36,9 +37,59 @@ const typeAvatar = {
   "learner": { "icon": <ContactIcon />, color: "#841460" }
 };
 
+function reducer(state, action) {
+  switch (action.type) {
+    case "raise": {
+      return {
+        ...state,
+        cursor: action.name,
+        move: "raise"
+      };
+    }
+    case "drop": {
+      return {
+        ...state,
+        cursor: action.name,
+        move: "drop"
+      };
+    }
+    case "changed": {
+      if (state.move === "raise") {
+        const index = state.partOrder.indexOf(state.cursor);
+        if (index > 0) {
+          let order = [...state.partOrder];
+          order.splice(index, 1);
+          order.splice(index - 1, 0, state.cursor);
+          return {
+            partOrder: order,
+            cursor: null,
+            move: null
+          };
+        }
+      }
+      if (state.move === "drop") {
+        const index = state.partOrder.indexOf(state.cursor);
+        if (index >= 0 && index < state.partOrder.length) {
+          let order = [...state.partOrder];
+          order.splice(index, 1);
+          order.splice(index + 1, 0, state.cursor);
+          return {
+            partOrder: order,
+            cursor: null,
+            move: null
+          };
+        }
+      }
+      return {...state};
+    }
+    default:
+      throw new Error(`unknown action ${action.type}`);
+  }
+}
+
 export default function PartOrder(props) {
   const classes = useStyles();
-  const [partOrder, setPartOrder] = useState(props.partOrder);
+  const [state, dispatch] = useReducer(reducer, { partOrder: props.partOrder, cursor: null });
   const parts = props.parts;
 
   function PartCard(props) {
@@ -56,7 +107,6 @@ export default function PartOrder(props) {
       }
 
     */
-   console.log(props)
     const availability = props.behavior.availability.toFixed(2);
     const generosity = props.behavior.generosity.toFixed(2);
     const retention = props.behavior.retention.toFixed(2);
@@ -79,10 +129,13 @@ export default function PartOrder(props) {
         />
         <CardActions disableSpacing>
 
-          <IconButton >
+          <IconButton
+            onClick={e => dispatch({type: "raise", name: props.name})}
+          >
             <ArrowUpIcon />
           </IconButton>
           <IconButton
+            onClick={e => dispatch({type: "drop", name: props.name})}
           >
             <ArrowDownIcon />
           </IconButton>
@@ -90,15 +143,23 @@ export default function PartOrder(props) {
       </Card>
     );
   }
-
   return (
     <Box
       display="flex"
       flexDirection="column"
     >
-      {partOrder.map(part =>
+      {state.partOrder.map(part =>
         (<Box key={part}>
-          <PartCard {...parts[part]} name={part} />
+          <Slide
+            direction="right"
+            in={state.cursor !== part}
+            onExited={()=>dispatch({type: "changed"})}
+            timeout={300}
+          >
+            <div>
+              <PartCard {...parts[part]} name={part} />
+            </div>
+          </Slide>
         </Box>)
       )}
     </Box>
