@@ -34,7 +34,8 @@ const partTypeDescription = {
 
 export default function Parts(props) {
   const classes = useStyles();
-  const data = props.part;
+  const partName = props.pageName.split("-",1)[1];
+  const data = props.parts[partName];
   const [partType, setPartType] = useState(data.type);
   const [behavior, setBehavior] = useState(data.behavior);
   const [dict, setDict] = useState(data.dict);
@@ -85,6 +86,11 @@ export default function Parts(props) {
         container
         spacing={2}
       >
+        <Grid item xs={12}>
+          <Typography>
+            {partName}
+          </Typography>
+        </Grid>
         <Grid item xs={5}>
           <FormControl component="fieldset">
             <FormLabel component="legend">パートの種類</FormLabel>

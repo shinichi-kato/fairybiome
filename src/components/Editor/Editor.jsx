@@ -6,7 +6,7 @@ import Box from "@material-ui/core/Box";
 import ApplicationTabBar from "./ApplicationTabBar";
 import Config from "./Config";
 import WordDict from "./WordDict";
-// import Parts from "./Parts";
+import Parts from "./Parts";
 
 import Misc from "./Misc";
 
@@ -89,6 +89,7 @@ export default function Editor() {
         <ApplicationTabBar
           handleChangePage={handleChangePage}
           page={page}
+          partOrder={bot.ref.config.partOrder}
           title={`${bot.displayName}の設定`}
         />
       </Box>
@@ -113,15 +114,14 @@ export default function Editor() {
 
           />
         }
-        {/* {page === "parts" &&
+        {page.startsWith("part-") &&
           <Parts
-            handleSave={handleSaveParts}
+            handleSavePart={handleSavePart}
+            pageName={page}
             pageWillChange={pageWillChange}
-            partOrder={bot.ref.config.partOrder}
             parts={bot.ref.parts}
-
           />
-        } */}
+        }
         {page === "misc" &&
           <Misc
             handleSave={handleSaveMisc}

@@ -56,38 +56,41 @@ export default function ApplicationTabBar(props) {
           color="inherit"
           edge="end"
         >
-           <MenuBookIcon />
+          <MenuBookIcon />
         </IconButton>
 
       </Toolbar>
       <Tabs
-aria-label="editor tabs"
+        aria-label="editor tabs"
         onChange={handleChangePage}
-        value={props.page} >
+        scrollButtons="auto"
+        value={props.page}
+        variant="scrollable" >
         <Tab
           aria-controls="editor-tabpanel-0"
           className={classes.tab}
-          id="editor-tab-0"
+          id="editor-tab-config"
           label="基本"
-          value="config"/>
+          value="config" />
         <Tab
           aria-controls="editor-tabpanel-1"
           className={classes.tab}
-          id="editor-tab-1"
+          id="editor-tab-worddict"
           label="単語辞書"
-          value="wordDict"/>
-        {/* <Tab
-          aria-controls="editor-tabpanel-2"
-          className={classes.tab}
-          id="editor-tab-2"
-          label="パート"
-          value="parts"/> */}
+          value="wordDict" />
+        {props.partOrder.map(partName =>
+          (<Tab
+            aria-controls={`editor-tabpanel-part-${partName}`}
+            className={classes.tab}
+            id={`editor-tab-part-${partName}`}
+            label={`『${partName}』`}
+            value={`parts-${partName}`} />))}
         <Tab
           aria-controls="editor-tabpanel-3"
           className={classes.tab}
-          id="editor-tab-3"
+          id="editor-tab-misc"
           label="その他"
-          value="misc"/>
+          value="misc" />
       </Tabs>
     </AppBar>
   );

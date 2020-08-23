@@ -144,7 +144,7 @@ export default class Part extends PartIO {
       score: 0, // テキスト検索での一致度
       ordering: "", // top:このパートを先頭へ, bottom:このパートを末尾へ移動
     };
-    console.log("learner replier:",state);
+    console.log("learner replier:", state);
     if (state.queue.length !== 0) {
       const queue = state.queue.shift();
       if (queue === "{!PARSE_USER_INPUT}") {

@@ -32,8 +32,14 @@ export default function BotProvider(props) {
     bot.setWordDict(wordDict, fb.timestampNow());
   }
 
-  function handleSavePart(partName,part) {
-    bot.setPart(partName,part,fb.timestampNow());
+  function handleSavePart(partName, part) {
+    if (part) {
+      // 追加
+      bot.setPart(partName, part, fb.timestampNow());
+    } else {
+      // 削除
+      bot.removePart(partName);
+    }
   }
 
   return (

@@ -91,15 +91,20 @@ export default class BiomeBotIO {
     console.log("setConfig:", this.config);
   };
 
-  setPart = (partName,part,updatedAt) => {
+  setPart = (partName, part, updatedAt) => {
     this.parts[partName] = {
       ...part
-    }
+    };
     this.updatedAt = updatedAt;
-    localStorageIO.setItem(`Biomebot.config[${partName}]`, JSON.stringify(part));
+    localStorageIO.setItem(`Biomebot.part[${partName}]`, JSON.stringify(part));
     localStorageIO.setItem("Biomebot.updatedAt", JSON.stringify(this.updatedAt));
     console.log(`setPart(${partName})`);
   };
+
+  removePart = (partName) => {
+    delete this.parts[partName];
+    localStorageIO.removeItem(`Biomebot.part[${partName}]`);
+  }
 
   setWordDict = (wordDict, updatedAt) => {
     this.wordDict = { ...wordDict };

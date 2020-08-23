@@ -12,6 +12,22 @@ import HubIcon from "../../icons/Hub";
 
 import PartOrder from "./PartOrder";
 
+function partDiff(prevArr, currArr) {
+  let added = [];
+  let removed = [];
+  for (let elem of currArr) {
+    if (prevArr.indexOf(elem) === -1) {
+      added.push(elem);
+    }
+  }
+  for (let elem of prevArr) {
+    if (currArr.indexOf(elem) === -1) {
+      removed.push(elem);
+    }
+  }
+  return { added: added, removed: removed };
+}
+
 const useStyles = makeStyles((theme) => ({
   content: {
     padding: theme.spacing(2),
@@ -39,16 +55,10 @@ export default function Config(props) {
   const [generosity, setGenerosity] = useState(config.hubBehavior.generosity);
   const [retention, setRetention] = useState(config.hubBehavior.retention);
   const [defaultPartOrder, setDefaultPartOrder] = useState(config.defaultPartOrder);
-  const [currentPartName, setCurrentPartName] = useState(null);
-  const [currentPartDict, setCurrentPartDict] = useState(null);
-  const [currentPartMisc, setCurrentPartMisc] = useState(null);
 
   useEffect(() => {
     if (props.pageWillChange) {
       handleSaveConfig();
-      if (currentPartName) {
-        handleSavePart();
-      }
     }
   }, [props.pageWillChange]);
 
@@ -68,18 +78,40 @@ export default function Config(props) {
       });
   }
 
-  function handleSavePart() {
-    props.handleSavePart(currentPartName,
-      {
-        ...currentPartMisc,
-        behavior: {
-          availability: parseFloat(currentPartMisc.availability),
-          generosity: parseFloat(currentPartMisc.generosity),
-          retention: parseFloat(currentPartMisc.retention)
-        },
-        dict: currentPartDict
+  function handleSavePartOrder(newPartOrder, newParts) {
+    // パートのメンバーが変わっていたらパートも保存
+    // Config.jsxでのパート書き換えは追加/削除した時点で実行する。
+    // そのため追加されたパートは必ず初期状態。
+    // 同名で一度削除した後追加されることで更新が漏れることは避ける
+    setDefaultPartOrder(prevOrder =>{
+      let diffs = partDiff(prevOrder, newPartOrder);
+      if (diffs.added.length !== 0) {
+        // 追加されたパートのデータを保存
+        for (let name of diffs.added) {
+          props.handleSavePart(name, newParts[name]);
+        }
       }
-    );
+      if (diffs.removes.length !== 0) {
+        // 削除されたパートのデータを削除
+        for (let name of diffs.removed) {
+          props.handleSavePart(name, null);
+        }
+      }
+      return newPartOrder;
+    });
+    props.handleSaveConfig(
+      {
+        ...config,
+        displayName: displayName,
+        photoURL: photoURL,
+        description: description,
+        defaultPartOrder: newPartOrder,
+        hubBehavior: {
+          availability: parseFloat(availability),
+          generosity: parseFloat(generosity),
+          retention: parseFloat(retention)
+        }
+      });
   }
 
   return (
@@ -175,13 +207,19 @@ export default function Config(props) {
 
         <Grid item xs={12}>
           {props.message &&
-              <Typography color="error">
-                {props.message}
-              </Typography>
+            <Typography color="error">
+              {props.message}
+            </Typography>
           }
         </Grid>
         <Grid item xs={12}>
+          <Typography>
+            パート
+          </Typography>
+        </Grid>
+        <Grid item xs={12}>
           <PartOrder
+            handleSavePartOrder={handleSavePartOrder}
             partOrder={defaultPartOrder}
             parts={props.parts}
           />

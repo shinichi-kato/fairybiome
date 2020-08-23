@@ -1,14 +1,26 @@
 export default class PartIO {
   constructor(obj) {
-    this.type = obj.type;
-    this.behavior = {
-      availability: parseFloat(obj.behavior.availability),
-      generosity: parseFloat(obj.behavior.generosity),
-      retention: parseFloat(obj.behavior.retention),
-    };
-    this.dict = [...obj.dict];
-    this.inDict = {};
-    this.outDict = null;
+    if (obj) {
+      this.type = obj.type;
+      this.behavior = {
+        availability: parseFloat(obj.behavior.availability),
+        generosity: parseFloat(obj.behavior.generosity),
+        retention: parseFloat(obj.behavior.retention),
+      };
+      this.dict = [...obj.dict];
+      this.inDict = {};
+      this.outDict = null;
+    } else {
+      this.type = "recaller";
+      this.behavior = {
+        availability: 1.0,
+        generosity: 0.5,
+        retention: 0.4
+      };
+      this.dict = [];
+      this.inDict = {};
+      this.outDict = null;
+    }
   }
 
   readObj = (obj) => {
@@ -31,4 +43,5 @@ export default class PartIO {
       dict: this.dict
     };
   }
+  
 }
