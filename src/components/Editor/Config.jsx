@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 
 import Box from "@material-ui/core/Box";
@@ -11,6 +11,7 @@ import FairyPanel from "./FairyPanel";
 import HubIcon from "../../icons/Hub";
 
 import PartOrder from "./PartOrder";
+import Behavior from "./Behavior";
 
 function partDiff(prevArr, currArr) {
   let added = [];
@@ -51,9 +52,7 @@ export default function Config(props) {
   const [displayName, setDisplayName] = useState(config.displayName || "");
   const [photoURL, setPhotoURL] = useState(config.photoURL);
   const [description, setDescription] = useState(config.description || "");
-  const [availability, setAvailability] = useState(config.hubBehavior.availability);
-  const [generosity, setGenerosity] = useState(config.hubBehavior.generosity);
-  const [retention, setRetention] = useState(config.hubBehavior.retention);
+  const [hubBehavior, setHubBehavior] = useState(config.hubBehavior);
   const [defaultPartOrder, setDefaultPartOrder] = useState(config.defaultPartOrder);
 
   useEffect(() => {
@@ -71,9 +70,9 @@ export default function Config(props) {
         description: description,
         defaultPartOrder: defaultPartOrder,
         hubBehavior: {
-          availability: parseFloat(availability),
-          generosity: parseFloat(generosity),
-          retention: parseFloat(retention)
+          availability: parseFloat(hubBehavior.availability),
+          generosity: parseFloat(hubBehavior.generosity),
+          retention: parseFloat(hubBehavior.retention)
         }
       });
   }
@@ -83,7 +82,7 @@ export default function Config(props) {
     // Config.jsxでのパート書き換えは追加/削除した時点で実行する。
     // そのため追加されたパートは必ず初期状態。
     // 同名で一度削除した後追加されることで更新が漏れることは避ける
-    setDefaultPartOrder(prevOrder =>{
+    setDefaultPartOrder(prevOrder => {
       let diffs = partDiff(prevOrder, newPartOrder);
       if (diffs.added.length !== 0) {
         // 追加されたパートのデータを保存
@@ -107,12 +106,45 @@ export default function Config(props) {
         description: description,
         defaultPartOrder: newPartOrder,
         hubBehavior: {
-          availability: parseFloat(availability),
-          generosity: parseFloat(generosity),
-          retention: parseFloat(retention)
+          availability: parseFloat(hubBehavior.availability),
+          generosity: parseFloat(hubBehavior.generosity),
+          retention: parseFloat(hubBehavior.retention)
         }
       });
   }
+
+  function handleChangeDescription(e) {
+    setDescription(e.target.value);
+  }
+
+  function handleChangeDisplayName(e) {
+    setDisplayName(e.target.value);
+  }
+
+  const MemorizedFairyPanel = useMemo(() => (
+    <FairyPanel
+      displayName={displayName}
+      hp={props.state.hp}
+      partOrdedr={defaultPartOrder}
+      photoURL={photoURL}
+
+      setPartOrder={setDefaultPartOrder}
+      updatedAt={updatedAt}
+    />),
+    [displayName, props.state.hp, defaultPartOrder, photoURL, updatedAt]);
+
+  const MemorizedPartOrder = useMemo(() => (
+    <PartOrder
+      handleChangePage={props.handleChangePage}
+      handleSavePart={props.handleSavePart}
+      handleSavePartOrder={handleSavePartOrder}
+      partOrder={defaultPartOrder}
+      parts={props.parts}
+      setPartOrder={setDefaultPartOrder}
+    />),
+    [defaultPartOrder, props.parts]);
+
+  const updatedAt = toTimestampString(props.updatedAt);
 
   return (
     <Box className={classes.content}>
@@ -121,17 +153,12 @@ export default function Config(props) {
         container
         spacing={2}>
         <Grid item xs={12}>
-          <FairyPanel
-            displayName={displayName}
-            hp={props.state.hp}
-            photoURL={photoURL}
-            updatedAt={toTimestampString(props.updatedAt)}
-          />
+          {MemorizedFairyPanel}
         </Grid>
         <Grid item xs={5}>
           <Input
             className={classes.input}
-            onChange={e => setDisplayName(e.target.value)}
+            onChange={handleChangeDisplayName}
             required
             value={displayName}
           />
@@ -143,86 +170,25 @@ export default function Config(props) {
         <Grid item xs={5}>
           <Input
             className={classes.input}
-            onChange={e => setDescription(e.target.value)}
+            onChange={handleChangeDescription}
             value={description}
           />
         </Grid>
         <Grid item xs={7}>
           <Typography variant="subtitle1">妖精の説明</Typography>
         </Grid>
-        <Grid item xs={12}>
-          集まる場所<HubIcon />での妖精のふるまい
-        </Grid>
-
-        <Grid item xs={5}>
-          <Input
-            className={classes.input}
-            onChange={e => setAvailability(e.target.value)}
-            required
-            value={availability}
-          />
-        </Grid>
-        <Grid item xs={7}>
-          <Typography variant="subtitle1">
-            起動率(0.00〜1.00)
-          </Typography>
-          <Typography variant="subtitle2">
-            0だと妖精はしゃべろうとしない。1だと常にしゃべろうとする。
-          </Typography>
-        </Grid>
-
-        <Grid item xs={5}>
-          <Input
-            className={classes.input}
-            onChange={e => setGenerosity(e.target.value)}
-            required
-            value={generosity}
-          />
-        </Grid>
-        <Grid item xs={7}>
-          <Typography variant="subtitle1">
-            寛容性(0.00〜1.00)
-          </Typography>
-          <Typography variant="subtitle2">
-            0だと正確な場合だけ返答する。1だと適当なことにも返事をする。
-          </Typography>
-        </Grid>
-
-        <Grid item xs={5}>
-          <Input
-            className={classes.input}
-            onChange={e => setRetention(e.target.value)}
-            required
-            value={retention}
-          />
-        </Grid>
-        <Grid item xs={7}>
-          <Typography variant="subtitle1">
-            継続率(0.00〜1.00)
-          </Typography>
-          <Typography variant="subtitle2">
-            0だと話題を続けない。1だと同じ話題をずっと続けようとする。
-          </Typography>
-        </Grid>
-
-        <Grid item xs={12}>
-          {props.message &&
-            <Typography color="error">
-              {props.message}
-            </Typography>
-          }
-        </Grid>
+        <Behavior
+          behavior={hubBehavior}
+          setBehavior={setHubBehavior}
+          title="集まる場所での妖精のふるまい"
+        />
         <Grid item xs={12}>
           <Typography>
             パート
           </Typography>
         </Grid>
         <Grid item xs={12}>
-          <PartOrder
-            handleSavePartOrder={handleSavePartOrder}
-            partOrder={defaultPartOrder}
-            parts={props.parts}
-          />
+          {MemorizedPartOrder}
         </Grid>
 
       </Grid>

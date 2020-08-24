@@ -43,8 +43,8 @@ export default function Editor() {
   const [pageWillChange, setPageWillChange] = useState(false);
   const [message, setMessage] = useState("");
 
-  function handleChangePage(page) {
-    setPageWillChange(page);
+  function handleChangePage(currentPage) {
+    setPageWillChange(currentPage);
   }
 
   function handleSaveConfig(config) {
@@ -67,15 +67,14 @@ export default function Editor() {
   }
 
   function pageTransition() {
-    const page = pageWillChange;
+    const nextPage = pageWillChange;
     setPageWillChange(false);
-    if (page === "exit") {
+    if (nextPage === "exit") {
       navigate("/fairybiome/Home/");
     } else {
-      setPage(page);
+      setPage(nextPage);
     }
   }
-
   return (
     <Box
       alignContent="flex-start"
@@ -89,7 +88,7 @@ export default function Editor() {
         <ApplicationTabBar
           handleChangePage={handleChangePage}
           page={page}
-          partOrder={bot.ref.config.partOrder}
+          partOrder={bot.ref.config.defaultPartOrder}
           title={`${bot.displayName}の設定`}
         />
       </Box>
@@ -97,6 +96,7 @@ export default function Editor() {
         {page === "config" &&
           <Config
             config={bot.ref.config}
+            handleChangePage={handleChangePage}
             handleSaveConfig={handleSaveConfig}
             handleSavePart = {handleSavePart}
             message={message}

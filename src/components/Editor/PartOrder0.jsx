@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useReducer } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 
 import Avatar from "@material-ui/core/Avatar";
@@ -46,6 +46,61 @@ const typeAvatar = {
   "learner": { "icon": <ContactIcon />, color: "#841460" }
 };
 
+function reducer(state, action) {
+  switch (action.type) {
+    case "raise": {
+      return {
+        ...state,
+        cursor: action.name,
+        move: "raise"
+      };
+    }
+
+    case "drop": {
+      return {
+        ...state,
+        cursor: action.name,
+        move: "drop"
+      };
+    }
+
+    case "changed": {
+      let order = [...state.partOrder];
+      const index = state.partOrder.indexOf(state.cursor);
+
+      if (state.move === "raise") {
+        if (index > 0) {
+          order.splice(index, 1);
+          order.splice(index - 1, 0, state.cursor);
+        }
+      } else if (state.move === "drop") {
+        if (index >= 0 && index < state.partOrder.length) {
+          order.splice(index, 1);
+          order.splice(index + 1, 0, state.cursor);
+        }
+      }
+
+      return {
+        partOrder: order,
+        cursor: null,
+        move: null
+      };
+    }
+
+    case "add": {
+      let order = [...state.partOrder, action.name];
+      return {
+        partOrder: order,
+        cursor: null,
+        move: null
+      };
+    }
+
+    default:
+      throw new Error(`unknown action ${action.type}`);
+  }
+}
+
 function NewPartButton(props) {
   const classes = useStyles();
   const [value, setValue] = useState("");
@@ -87,65 +142,24 @@ function NewPartButton(props) {
 
 export default function PartOrder(props) {
   const classes = useStyles();
-
-  // partOrder, setPartOrderはpropsからもらう
-  // parts, setPartsはpropsからもらう
-  const [cursor, setCursor] = useState();
-  const [move, setMove] = useState();
-
-  function handleRaise(name) {
-    setCursor(name);
-    setMove("raise");
-  }
-
-  function handleDrop(name) {
-    setCursor(name);
-    setMove("drop");
-  }
-
-  function handleChanged() {
-    props.setPartOrder(prevOrder => {
-      let order = [...prevOrder];
-      const index = order.indexOf(cursor);
-
-      if (move === "raise") {
-        if (index > 0) {
-          order.splice(index, 1);
-          order.splice(index - 1, 0, cursor);
-        }
-      } else if (move === "drop") {
-        if (index >= 0 && index < order.length) {
-          order.splice(index, 1);
-          order.splice(index + 1, 0, cursor);
-        }
-      }
-      return order;
-    });
-    setCursor(null);
-    setMove(null);
-  }
-
-  function handleCreatePart(name) {
-    let newPart = new Part();
-    props.handleSavePart({name, newPart});
-    props.setPartOrder(prevOrder => ([...prevOrder, name]));
-  }
+  const [state, dispatch] = useReducer(reducer, { partOrder: props.partOrder, cursor: null });
+  const [parts, setParts] = useState(props.parts);
 
   function PartCard(childProps) {
     /* props:
-     {
-       name: str,
-       type: str,
-       key: str,
-       behavior:{
-         availability: float,
-         generosity: float,
-         retention: float
-       },
-       dictSize: int
-     }
+      {
+        name: str,
+        type: str,
+        key: str,
+        behavior:{
+          availability: float,
+          generosity: float,
+          retention: float
+        },
+        dictSize: int
+      }
 
-   */
+    */
     const availability = childProps.behavior.availability.toFixed(2);
     const generosity = childProps.behavior.generosity.toFixed(2);
     const retention = childProps.behavior.retention.toFixed(2);
@@ -178,12 +192,12 @@ export default function PartOrder(props) {
         <CardActions disableSpacing>
 
           <IconButton
-            onClick={e => handleRaise(childProps.name)}
+            onClick={e => dispatch({ type: "raise", name: childProps.name })}
           >
             <ArrowUpIcon />
           </IconButton>
           <IconButton
-            onClick={e => handleDrop(childProps.name)}
+            onClick={e => dispatch({ type: "drop", name: props.name })}
           >
             <ArrowDownIcon />
           </IconButton>
@@ -192,22 +206,31 @@ export default function PartOrder(props) {
     );
   }
 
+  function handleCreatePart(name) {
+    setParts(prevParts => ({
+      ...prevParts,
+      [name]: new Part()
+    }));
+
+    dispatch({ type: "add", name: name });
+  }
+  console.log("<PartOrder/>")
   return (
     <Box
       display="flex"
       flexDirection="column"
     >
-      {props.partOrder.map(part =>
+      {state.partOrder.map(part =>
         (<Box key={part}>
           <Slide
             direction="right"
-            in={cursor !== part}
-            onExited={handleChanged}
+            in={state.cursor !== part}
+            onExited={() => dispatch({ type: "changed" })}
             timeout={300}
           >
             <div>
               <PartCard
-                {...props.parts[part]}
+                {...parts[part]}
                 handleChangePage={props.handleChangePage}
                 name={part}
               />
@@ -217,7 +240,7 @@ export default function PartOrder(props) {
       )}
       <NewPartButton
         handleCreatePart={handleCreatePart}
-        partOrder={props.partOrder}
+        partOrder={state.partOrder}
       />
     </Box>
 

@@ -83,8 +83,9 @@ export default function ApplicationTabBar(props) {
             aria-controls={`editor-tabpanel-part-${partName}`}
             className={classes.tab}
             id={`editor-tab-part-${partName}`}
+            key={`editor-tab-part-${partName}`}
             label={`『${partName}』`}
-            value={`parts-${partName}`} />))}
+            value={`part-${partName}`} />))}
         <Tab
           aria-controls="editor-tabpanel-3"
           className={classes.tab}

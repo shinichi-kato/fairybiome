@@ -43,5 +43,4 @@ export default class PartIO {
       dict: this.dict
     };
   }
-  
 }
