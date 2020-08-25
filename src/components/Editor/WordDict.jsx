@@ -410,6 +410,11 @@ export default function WordDict(props) {
     </TreeItem>
   );
 
+  const memorizedSysTree = useMemo(
+    ()=>renderSysTree(SYSTEM_WORD_DICT),
+    []
+  );
+
   const renderUserTree = (dict) => (
     <TreeItem
       key="_root"
@@ -443,7 +448,7 @@ export default function WordDict(props) {
           defaultExpandIcon={<ChevronRightIcon />}
           defaultExpanded={["_root", "_namingProtocol"]}
         >
-          {renderSysTree(SYSTEM_WORD_DICT)}
+          {memorizedSysTree}
         </TreeView>
       </Box>
       <Box>

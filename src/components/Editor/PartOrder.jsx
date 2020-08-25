@@ -11,12 +11,15 @@ import Typography from "@material-ui/core/Typography";
 import Input from "@material-ui/core/Input";
 import CardHeader from "@material-ui/core/CardHeader";
 import IconButton from "@material-ui/core/IconButton";
+import Menu from "@material-ui/core/Menu";
+import MenuItem from "@material-ui/core/MenuItem";
 import ArrowDownIcon from "@material-ui/icons/KeyboardArrowDown";
 import ArrowUpIcon from "@material-ui/icons/KeyboardArrowUp";
 import EditIcon from "@material-ui/icons/Edit";
 import AlbumIcon from "@material-ui/icons/Album";
 import ContactIcon from "@material-ui/icons/ContactSupport";
 import AddCircleOutlineIcon from "@material-ui/icons/AddCircleOutline";
+import DeleteIcon from "@material-ui/icons/DeleteForever";
 
 import Part from "../../biomebot/part.jsx";
 
@@ -29,7 +32,8 @@ const useStyles = makeStyles((theme) => ({
     margin: theme.spacing(1),
   },
   input: {
-    padding: theme.spacing(2),
+    padding: theme.spacing(1),
+    marginBottom: theme.spacing(1),
     backgroundColor: "#EEEEEE",
     borderRadius: 4,
 
@@ -52,7 +56,7 @@ function NewPartButton(props) {
 
   function handleSubmit(event) {
     event.preventDefault();
-    props.handleCreatePart(value);
+    props.handleCreate(value);
     setValue("");
   }
 
@@ -62,7 +66,9 @@ function NewPartButton(props) {
       className={classes.partCard}
     >
       <form onSubmit={handleSubmit}>
+        新しいパートの名前
         <Input
+          className={classes.input}
           onChange={e => setValue(e.target.value)}
           value={value}
         />
@@ -103,32 +109,51 @@ export default function PartOrder(props) {
     setMove("drop");
   }
 
+  function handleCreate(name) {
+    setCursor(name);
+    setMove(null);
+    const newPart = new Part();
+    props.handleSavePart(name, newPart);
+    props.setPartOrder(prevOrder => [...prevOrder, name]);
+    setCursor(null);
+  }
+
+  function handleDelete(name) {
+    setCursor(name);
+    setMove("delete");
+  }
+
   function handleChanged() {
     props.setPartOrder(prevOrder => {
       let order = [...prevOrder];
       const index = order.indexOf(cursor);
 
-      if (move === "raise") {
-        if (index > 0) {
-          order.splice(index, 1);
-          order.splice(index - 1, 0, cursor);
+      switch (move) {
+        case "raise": {
+          if (index > 0) {
+            order.splice(index, 1);
+            order.splice(index - 1, 0, cursor);
+          }
+          break;
         }
-      } else if (move === "drop") {
-        if (index >= 0 && index < order.length) {
-          order.splice(index, 1);
-          order.splice(index + 1, 0, cursor);
+        case "drop": {
+          if (index >= 0 && index < order.length) {
+            order.splice(index, 1);
+            order.splice(index + 1, 0, cursor);
+          }
+          break;
         }
+        case "delete": {
+          order = prevOrder.filter(part => part !== cursor);
+          break;
+        }
+        default :
+          throw new Error(`invalid move ${move}`);
       }
       return order;
     });
     setCursor(null);
     setMove(null);
-  }
-
-  function handleCreatePart(name) {
-    let newPart = new Part();
-    props.handleSavePart({name, newPart});
-    props.setPartOrder(prevOrder => ([...prevOrder, name]));
   }
 
   function PartCard(childProps) {
@@ -149,9 +174,23 @@ export default function PartOrder(props) {
     const availability = childProps.behavior.availability.toFixed(2);
     const generosity = childProps.behavior.generosity.toFixed(2);
     const retention = childProps.behavior.retention.toFixed(2);
+    const [anchorEl, setAnchorEl] = useState();
 
-    function handleClick() {
+    function handleClickEdit() {
       childProps.handleChangePage(`part-${childProps.name}`);
+    }
+
+    function handleOpenDeleteMenu(e) {
+      setAnchorEl(e.currentTarget);
+    }
+
+    function handleClickDelete(name) {
+      setAnchorEl(null);
+      childProps.handleDelete(name);
+    }
+
+    function handleCloseDeleteMenu() {
+      setAnchorEl(null);
     }
 
     return (
@@ -162,7 +201,7 @@ export default function PartOrder(props) {
           action={
             <IconButton
               aria-label="edit"
-              onClick={handleClick}
+              onClick={handleClickEdit}
             >
               <EditIcon />
             </IconButton>
@@ -187,6 +226,24 @@ export default function PartOrder(props) {
           >
             <ArrowDownIcon />
           </IconButton>
+          <IconButton
+            aria-controls="delete-menu"
+            aria-haspopup="true"
+            onClick={handleOpenDeleteMenu}
+          >
+            <DeleteIcon />
+          </IconButton>
+          <Menu
+            anchorEl={anchorEl}
+            id="delete-menu"
+            onClose={handleCloseDeleteMenu}
+            open={Boolean(anchorEl)}
+          >
+            <MenuItem
+              onClick={e => handleClickDelete(childProps.name)}>
+              このパートを削除
+              </MenuItem>
+          </Menu>
         </CardActions>
       </Card>
     );
@@ -209,6 +266,7 @@ export default function PartOrder(props) {
               <PartCard
                 {...props.parts[part]}
                 handleChangePage={props.handleChangePage}
+                handleDelete={handleDelete}
                 name={part}
               />
             </div>
@@ -216,7 +274,7 @@ export default function PartOrder(props) {
         </Box>)
       )}
       <NewPartButton
-        handleCreatePart={handleCreatePart}
+        handleCreate={name=>handleCreate(name)}
         partOrder={props.partOrder}
       />
     </Box>

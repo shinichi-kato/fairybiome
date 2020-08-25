@@ -67,14 +67,17 @@ export default function Editor() {
   }
 
   function pageTransition() {
-    const nextPage = pageWillChange;
-    setPageWillChange(false);
-    if (nextPage === "exit") {
-      navigate("/fairybiome/Home/");
-    } else {
-      setPage(nextPage);
+    if (pageWillChange) {
+      const nextPage = pageWillChange;
+      setPageWillChange(false);
+      if (nextPage === "exit") {
+        navigate("/fairybiome/Home/");
+      } else {
+        setPage(nextPage);
+      }
     }
   }
+  console.log("page", page)
   return (
     <Box
       alignContent="flex-start"
@@ -98,7 +101,7 @@ export default function Editor() {
             config={bot.ref.config}
             handleChangePage={handleChangePage}
             handleSaveConfig={handleSaveConfig}
-            handleSavePart = {handleSavePart}
+            handleSavePart={handleSavePart}
             message={message}
             pageWillChange={pageWillChange}
             parts={bot.ref.parts}
