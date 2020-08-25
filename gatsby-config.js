@@ -90,6 +90,14 @@ module.exports = {
       },
     },
     {
+      resolve: "gatsby-source-filesystem",
+      options: {
+        path: `${__dirname}/static/svg/bot`,
+        name: "boticons",
+        ignore: ["**/\.*"],
+      },
+    },
+    {
       resolve: "gatsby-transformer-remark",
       options: {
         plugins: [

@@ -77,7 +77,6 @@ export default function Editor() {
       }
     }
   }
-  console.log("page", page)
   return (
     <Box
       alignContent="flex-start"

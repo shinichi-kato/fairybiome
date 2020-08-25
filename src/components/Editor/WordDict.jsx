@@ -1,4 +1,4 @@
-import React, { useReducer, useEffect, useState, useMemo } from "react";
+import React, { useReducer, useEffect, useState, useMemo, useRef } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 
 import Box from "@material-ui/core/Box";
@@ -410,10 +410,7 @@ export default function WordDict(props) {
     </TreeItem>
   );
 
-  const memorizedSysTree = useMemo(
-    ()=>renderSysTree(SYSTEM_WORD_DICT),
-    []
-  );
+  const initialSysTree = useRef(renderSysTree(SYSTEM_WORD_DICT));
 
   const renderUserTree = (dict) => (
     <TreeItem
@@ -448,7 +445,7 @@ export default function WordDict(props) {
           defaultExpandIcon={<ChevronRightIcon />}
           defaultExpanded={["_root", "_namingProtocol"]}
         >
-          {memorizedSysTree}
+          {initialSysTree.current}
         </TreeView>
       </Box>
       <Box>

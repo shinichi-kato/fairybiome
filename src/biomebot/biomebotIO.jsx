@@ -147,7 +147,7 @@ export default class BiomeBotIO {
 
     let parts = new Object();
 
-    for (let partName of state.partOrder) {
+    for (let partName of config.defaultPartOrder) {
       parts[partName] = localStorageIO.getJson(`Biomebot.part[${partName}]`);
     }
 
@@ -183,7 +183,7 @@ export default class BiomeBotIO {
 
     this.wordDict = localStorageIO.getJson("Biomebot.wordDict");
     this.parts = { empty: false };
-    for (let partName of state.partOrder) {
+    for (let partName of config.defaultPartOrder) {
       let part = localStorageIO.getJson(`Biomebot.part[${partName}]`);
       if (this.parts[partName]) {
         this.parts[partName].readObj(part);
@@ -208,7 +208,7 @@ export default class BiomeBotIO {
     localStorageIO.setItem("Biomebot.config", JSON.stringify(this.config));
     localStorageIO.setItem("Biomebot.wordDict", JSON.stringify(this.wordDict));
 
-    for (let partName of this.state.partOrder) {
+    for (let partName of this.config.defaultPartOrder) {
       localStorageIO.setItem(`Biomebot.part[${partName}]`,
         JSON.stringify(this.parts[partName].dump()));
     }

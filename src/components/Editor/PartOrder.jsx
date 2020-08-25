@@ -248,7 +248,6 @@ export default function PartOrder(props) {
       </Card>
     );
   }
-
   return (
     <Box
       display="flex"
