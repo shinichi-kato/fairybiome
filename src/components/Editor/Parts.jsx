@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 
 import Box from "@material-ui/core/Box";
@@ -11,6 +11,7 @@ import FormControl from "@material-ui/core/FormControl";
 import FormLabel from "@material-ui/core/FormLabel";
 
 import Behavior from "./Behavior";
+import Dict from "./Dict";
 
 const useStyles = makeStyles((theme) => ({
   content: {
@@ -29,8 +30,14 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const partTypeDescription = {
-  "recaller": "事前問答集のような辞書を使ってユーザのセリフに返答します",
-  "learner": "辞書型の動作をしますが、わからない単語があればユーザに質問し、それを記憶していきます。"
+  "recaller": {
+    label: "辞書型",
+    description: "事前問答集のような辞書を使ってユーザのセリフに返答します"
+  },
+  "learner": {
+    label: "学習型",
+    description: "辞書型の動作をしますが、わからない単語があればユーザに質問し、それを記憶していきます。"
+  }
 };
 
 export default function Parts(props) {
@@ -41,6 +48,7 @@ export default function Parts(props) {
   const [partType, setPartType] = useState(data.type);
   const [behavior, setBehavior] = useState(data.behavior);
   const [dict, setDict] = useState(data.dict);
+  const [dictCursor, setDictCursor] = useState();
 
   useEffect(() => {
     if (props.pageWillChange) {
@@ -51,22 +59,34 @@ export default function Parts(props) {
   function handleSave() {
     props.handleSavePart(
       partName, {
-        type: partType,
-        behavior: {
-          availability: parseFloat(behavior.availability),
-          generosity: parseFloat(behavior.generosity),
-          retention: parseFloat(behavior.retention),
-        },
-        dict: dict,
-        indict: {},
-        outDict: null
-      });
+      type: partType,
+      behavior: {
+        availability: parseFloat(behavior.availability),
+        generosity: parseFloat(behavior.generosity),
+        retention: parseFloat(behavior.retention),
+      },
+      dict: dict,
+      indict: {},
+      outDict: null
+    });
   }
 
   function handleChangeType(event) {
     const value = event.target.value;
     setPartType(value);
   }
+
+  function itemHeight() {
+    return 50;
+  }
+
+  const MemorizedDict = useMemo(() => (
+    <Dict
+      dict={dict}
+      itemHeight={itemHeight}
+      setDict={setDict}
+    />
+  ), [dict]);
 
   return (
     <Box
@@ -93,21 +113,19 @@ export default function Parts(props) {
               onChange={handleChangeType}
               value={partType}
             >
-              <FormControlLabel
-                control={<Radio />}
-                label="辞書型"
-                value="recaller"
-              />
-              <FormControlLabel
-                control={<Radio />}
-                label="学習型"
-                value="learner" />
+              {Object.keys(partTypeDescription).map(item => (
+                <FormControlLabel
+                  control={<Radio />}
+                  key={item}
+                  label={partTypeDescription[item].label}
+                  value={item}
+                />))}
             </RadioGroup>
           </FormControl>
         </Grid>
         <Grid item xs={7}>
           <Typography variant="subtitle2">
-            {partTypeDescription[partType]}
+            {partTypeDescription[partType].description}
           </Typography>
         </Grid>
         <Behavior
@@ -115,6 +133,19 @@ export default function Parts(props) {
           setBehavior={setBehavior}
           title="妖精のふるまい"
         />
+      </Grid>
+      <Grid item xs={12}>
+        <Typography>辞書</Typography>
+      </Grid>
+      <Grid item xs={12}>
+        {MemorizedDict}
+      </Grid>
+      <Grid item xs={12}>
+        <Typography>ユーザのセリフ</Typography>
+
+      </Grid>
+      <Grid item xs={12}>
+        <Typography>妖精の返答</Typography>
       </Grid>
     </Box>
   );

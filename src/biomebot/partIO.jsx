@@ -17,7 +17,7 @@ export default class PartIO {
         generosity: 0.5,
         retention: 0.4
       };
-      this.dict = [];
+      this.dict = [{in: ["こんにちは"], out: ["こんにちは"]}];
       this.inDict = {};
       this.outDict = null;
     }
