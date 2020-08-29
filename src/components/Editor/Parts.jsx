@@ -12,6 +12,7 @@ import FormLabel from "@material-ui/core/FormLabel";
 
 import Behavior from "./Behavior";
 import Dict from "./Dict";
+import DictInputs from "./DictInputs";
 
 const useStyles = makeStyles((theme) => ({
   content: {
@@ -48,7 +49,7 @@ export default function Parts(props) {
   const [partType, setPartType] = useState(data.type);
   const [behavior, setBehavior] = useState(data.behavior);
   const [dict, setDict] = useState(data.dict);
-  const [dictCursor, setDictCursor] = useState();
+  const [dictCursor, setDictCursor] = useState(0);
 
   useEffect(() => {
     if (props.pageWillChange) {
@@ -76,17 +77,14 @@ export default function Parts(props) {
     setPartType(value);
   }
 
-  function itemHeight() {
-    return 50;
-  }
-
   const MemorizedDict = useMemo(() => (
     <Dict
       dict={dict}
-      itemHeight={itemHeight}
+      dictCursor={dictCursor}
       setDict={setDict}
+      setDictCursor={setDictCursor}
     />
-  ), [dict]);
+  ), [dict, dictCursor]);
 
   return (
     <Box
@@ -141,11 +139,12 @@ export default function Parts(props) {
         {MemorizedDict}
       </Grid>
       <Grid item xs={12}>
-        <Typography>ユーザのセリフ</Typography>
-
-      </Grid>
-      <Grid item xs={12}>
-        <Typography>妖精の返答</Typography>
+        <DictInputs
+          dict={dict}
+          dictCursor={dictCursor}
+          setDict={setDict}
+          setDictCursor={setDictCursor}
+        />
       </Grid>
     </Box>
   );
