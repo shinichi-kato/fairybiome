@@ -62,7 +62,8 @@ export default function Editor() {
     pageTransition();
   }
 
-  function handleSaveMisc(misc) {
+  function handleSaveMisc(state) {
+    bot.setState(state);
     pageTransition();
   }
 
@@ -126,8 +127,9 @@ export default function Editor() {
         }
         {page === "misc" &&
           <Misc
-            handleSave={handleSaveMisc}
+            handleSaveMisc={handleSaveMisc}
             pageWillChange={pageWillChange}
+            parts={bot.ref.parts}
             state={bot.ref.state}
 
           />

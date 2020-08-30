@@ -28,7 +28,6 @@ const useStyles = makeStyles((theme) => ({
 
 export default function FairyPanel(props) {
   const classes = useStyles();
-  console.log("fairypanel")
   return (
     <Paper
       className={classes.root}

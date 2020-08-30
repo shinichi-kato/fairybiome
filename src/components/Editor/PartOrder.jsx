@@ -45,7 +45,7 @@ const useStyles = makeStyles((theme) => ({
 
 }));
 
-const typeAvatar = {
+export const typeAvatar = {
   "recaller": { "icon": <AlbumIcon />, color: "#22547A" },
   "learner": { "icon": <ContactIcon />, color: "#841460" }
 };
@@ -248,6 +248,7 @@ export default function PartOrder(props) {
       </Card>
     );
   }
+
   return (
     <Box
       display="flex"

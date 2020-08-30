@@ -34,7 +34,7 @@ export default function ApplicationTabBar(props) {
   function handleExit() {
     props.handleChangePage("exit");
   }
-
+  console.log("<AppTabBar/>")
   return (
     <AppBar position="static">
       <Toolbar color="inherit">
@@ -50,7 +50,7 @@ export default function ApplicationTabBar(props) {
           className={classes.title}
           variant="h6"
         >
-          {props.botName}
+          {props.title}
         </Typography>
         <IconButton
           color="inherit"

@@ -113,6 +113,13 @@ export default class BiomeBotIO {
     localStorageIO.setItem("Biomebot.updatedAt", JSON.stringify(this.updatedAt));
   }
 
+  setState = (state, updatedAt) => {
+    this.state = { ...state };
+    this.updatedAt = updatedAt;
+    localStorageIO.setItem("Biomebot.state", JSON.stringify(this.state));
+    localStorageIO.setItem("Biomebot.updatedAt", JSON.stringify(this.updatedAt));
+  }
+
   readObj = (obj) => {
     const b = obj.config.hubBehavior;
     this.config = {

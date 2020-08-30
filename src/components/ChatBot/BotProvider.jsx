@@ -42,6 +42,10 @@ export default function BotProvider(props) {
     }
   }
 
+  function handleSaveState(state) {
+    bot.setState(state, fb.timestampNow());
+  }
+
   return (
     <BotContext.Provider
       value={{
@@ -51,6 +55,7 @@ export default function BotProvider(props) {
         setConfig: handleSaveConfig,
         setWordDict: handleSaveWordDict,
         setPart: handleSavePart,
+        setState: handleSaveState,
         upkeep: bot.upkeepToLocalStorage,
         getBuddyState: bot.getBuddyState,
         dumpToLocalStorage: bot.dumpToLocalStorage,
