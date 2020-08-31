@@ -6,8 +6,14 @@ import Grid from "@material-ui/core/Grid";
 import Typography from "@material-ui/core/Typography";
 import FirstPageIcon from "@material-ui/icons/FirstPage";
 import LinearProgress from "@material-ui/core/LinearProgress";
-
+import Radio from "@material-ui/core/Radio";
+import Button from "@material-ui/core/Button";
+import RadioGroup from "@material-ui/core/RadioGroup";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
+import FormControl from "@material-ui/core/FormControl";
+import FormLabel from "@material-ui/core/FormLabel";
 import PartOrderMini from "./PartOrderMini";
+import QueueList from "./QueueList";
 
 const buddyDescription = {
   null: "妖精がいない",
@@ -35,9 +41,29 @@ const useStyles = makeStyles((theme) => ({
 function reducer(state, action) {
   switch (action.type) {
     case "changePartOrder": {
+      if (typeof action.partOrder === "function") {
+        return {
+          ...state,
+          partOrder: action.partOrder(state.partOrder)
+        };
+      }
       return {
         ...state,
-        partOrder: action.partOrder
+        partOrder: [...action.partOrder]
+      };
+    }
+
+    case "changeBuddy": {
+      return {
+        ...state,
+        buddy: action.buddy
+      };
+    }
+
+    case "clearQueue": {
+      return {
+        ...state,
+        queue: []
       };
     }
 
@@ -74,10 +100,17 @@ export default function Misc(props) {
     return;
   }
 
-  function setPartOrder(partOrder) {
-    dispatch({type: "changePartOrder", partOrder: partOrder});
+  function setPartOrder(partorder) {
+    dispatch({ type: "changePartOrder", partOrder: partorder });
   }
 
+  function handleChangeBuddy(event) {
+    dispatch({type: "changeBuddy", buddy: event.target.value});
+  }
+
+  function handleClearQueue(e) {
+    dispatch({type: "clearQueue"});
+  }
   const MemorizedPartOrder = useMemo(() => (
     <PartOrderMini
       partOrder={state.partOrder}
@@ -98,10 +131,10 @@ export default function Misc(props) {
         </Grid>
         <Grid item xs={12}>
           HP:{props.hp}<LinearProgress
-              className={classes.bar}
-              size={100}
-              value={Number(props.hp)}
-              variant="determinate" />
+            className={classes.bar}
+            size={100}
+            value={Number(props.hp)}
+            variant="determinate" />
         </Grid>
         <Grid item xs={12}>
           <Typography variant="caption">
@@ -129,7 +162,13 @@ export default function Misc(props) {
           キュー
         </Grid>
         <Grid item xs={12}>
-
+          <QueueList queue={state.queue} />
+          <Button
+            disabled={state.queue.length === 0}
+            onClick={handleClearQueue}
+          >
+            消去
+          </Button>
         </Grid>
         <Grid item xs={12}>
           <FormControl component="fieldset">
@@ -140,7 +179,13 @@ export default function Misc(props) {
               onChange={handleChangeBuddy}
               value={state.buddy}
             >
-              
+              {Object.keys(buddyDescription).map(item => (
+                <FormControlLabel
+                  control={<Radio />}
+                  key={item}
+                  label={buddyDescription[item]}
+                  value={item}
+                />))}
             </RadioGroup>
           </FormControl>
         </Grid>

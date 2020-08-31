@@ -60,7 +60,7 @@ export default function PartOrderMini(props) {
         case "top": {
           if (index > 0) {
             order.splice(index, 1);
-            order.unshift(name);
+            order.unshift(cursor);
           }
           break;
         }
