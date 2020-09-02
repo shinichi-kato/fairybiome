@@ -97,7 +97,7 @@ export default function Misc(props) {
   }, [props.pageWillChange]);
 
   function handleSaveMisc() {
-    return;
+    props.handleSaveMisc(state);
   }
 
   function setPartOrder(partorder) {
@@ -130,19 +130,16 @@ export default function Misc(props) {
           <Typography>ヒットポイント</Typography>
         </Grid>
         <Grid item xs={12}>
-          HP:{props.hp}<LinearProgress
+          HP:{state.hp}<LinearProgress
             className={classes.bar}
             size={100}
-            value={Number(props.hp)}
+            value={Number(state.hp)}
             variant="determinate" />
         </Grid>
         <Grid item xs={12}>
           <Typography variant="caption">
             妖精の体力です。会話中にあるきっかけで増減します。
           </Typography>
-        </Grid>
-        <Grid item xs={12}>
-          <Typography>その他の設定</Typography>
         </Grid>
         <Grid item xs={12}>
           <Typography>現在のパートの順序</Typography>

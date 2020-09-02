@@ -7,7 +7,6 @@ import ApplicationTabBar from "./ApplicationTabBar";
 import Config from "./Config";
 import WordDict from "./WordDict";
 import Parts from "./Parts";
-
 import Misc from "./Misc";
 
 import { FirebaseContext } from "../Firebase/FirebaseProvider";
@@ -72,6 +71,7 @@ export default function Editor() {
       const nextPage = pageWillChange;
       setPageWillChange(false);
       if (nextPage === "exit") {
+        bot.dumpToFirestore(fb);
         navigate("/fairybiome/Home/");
       } else {
         setPage(nextPage);
@@ -131,7 +131,6 @@ export default function Editor() {
             pageWillChange={pageWillChange}
             parts={bot.ref.parts}
             state={bot.ref.state}
-
           />
         }
       </Box>

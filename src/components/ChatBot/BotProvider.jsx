@@ -59,6 +59,7 @@ export default function BotProvider(props) {
         upkeep: bot.upkeepToLocalStorage,
         getBuddyState: bot.getBuddyState,
         dumpToLocalStorage: bot.dumpToLocalStorage,
+        dumpToFirestore: bot.dumpToFirestore,
         isVacantInLocalStorage: bot.isVacantInLocalStorage,
         isFairyYoung: bot.isFairyYoung,
         deployHome: handleDeployHome,

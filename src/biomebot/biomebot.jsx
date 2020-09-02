@@ -54,7 +54,7 @@ export default class BiomeBot extends BiomeBotIO {
     };
   }
 
-  deploy = async (userName, fairy, site) => {
+  deploy = async (_userName, fairy, site) => {
     /*
       fairy:nullの場合妖精不在、Objectを渡した場合妖精のobj形式データとみなす。
       site:現在地
@@ -134,7 +134,7 @@ export default class BiomeBot extends BiomeBotIO {
 
     Promise.all(this.state.partOrder.map(partName => (
       this.parts[partName].compile()
-    ))).then(messages => {
+    ))).then(_messages => {
     });
 
     this.wordDict["{!PREV_USER_INPUT}"] = "・・・";
@@ -174,57 +174,55 @@ export default class BiomeBot extends BiomeBotIO {
 
       for (let i = 0, l = this.state.partOrder.length; i < l; i++) {
         const partName = this.state.partOrder[i];
-        console.log(partName);
         // 返答の生成を試みる
         reply = this.parts[partName].replier(userName, userInput, this.state, this.wordDict);
-        console.log(reply);
-        if (reply.text === "") { continue; }
+        console.log(partName, reply);
+        if (reply.text !== "") {
+          // queueに追加
+          this.state.queue = [...this.state.queue, ...reply.queue];
 
-        // queueに追加
-        this.state.queue = [...this.state.queue, ...reply.queue];
+          // 発言中に'{!BOT_WILL_SPLIT}'を検出したらbuddyはhomeかhabitatに
+          // 出かける
 
-        // 発言中に'{!BOT_WILL_SPLIT}'を検出したらbuddyはhomeかhabitatに
-        // 出かける
+          if (reply.text.indexOf("{!BOT_WILL_SPLIT}") !== -1) {
+            this.state.buddy = Math.random() > 0.5 ? "home" : "habitat";
+            this.dumpToLocalStorage();
+            if (this.state.buddy === "home") {
+              this.overwriteStandbyFairy();
+            } else {
+              this.init();
+            }
+            this.compile().then(() => { });
 
-        if (reply.text.indexOf("{!BOT_WILL_SPLIT}") !== -1) {
-          this.state.buddy = Math.random() > 0.5 ? "home" : "habitat";
-          this.dumpToLocalStorage();
-          if (this.state.buddy === "home") {
-            this.overwriteStandbyFairy();
-          } else {
-            this.init();
+            return resolve({
+              displayName: this.config.botName,
+              photoURL: this.config.photoURL,
+              text: this.untagify(reply.text, userName)
+            });
           }
-          this.compile().then(() => { });
 
-          return resolve({
-            displayName: this.config.botName,
-            photoURL: this.config.photoURL,
-            text: this.untagify(reply.text, userName)
-          });
-        }
+          // 発言中に'{!BOT_ACCEPT_SUMMON}'を検出したらbotはfollowに戻る
+          if (reply.text.indexOf("{!BOT_ACCEPT_SUMMON}") !== -1) {
+            this.state.buddy = "follow";
+          }
 
-        // 発言中に'{!BOT_ACCEPT_SUMMON}'を検出したらbotはfollowに戻る
-        if (reply.text.indexOf("{!BOT_ACCEPT_SUMMON}") !== -1) {
-          this.state.buddy = "follow";
-        }
+          if (reply.ordering === "top") {
+            // このパートを先頭に
+            this.state.partOrder.slice(i, 1);
+            this.state.partOrder.unshift(partName);
+            // partOrderの順番を破壊したのでループを抜ける
+            break;
+          }
 
-        if (reply.ordering === "top") {
-          // このパートを先頭に
-          this.state.partOrder.slice(i, 1);
-          this.state.partOrder.unshift(partName);
-          // partOrderの順番を破壊したのでループを抜ける
-          break;
-        }
-
-        if (reply.ordering === "bottom") {
-          // このパートを末尾に
-          this.state.partOrder.slice(i, 1);
-          this.state.partOrder.push(partName);
-          // partOrderの順番を破壊したのでループを抜ける
-          break;
+          if (reply.ordering === "bottom") {
+            // このパートを末尾に
+            this.state.partOrder.slice(i, 1);
+            this.state.partOrder.push(partName);
+            // partOrderの順番を破壊したのでループを抜ける
+            break;
+          }
         }
       }
-
       if (reply.text === "") {
         reply.text = "{!NOT_FOUND}";
       }
@@ -291,7 +289,7 @@ export default class BiomeBot extends BiomeBotIO {
             ...this.config,
             trueName: this.config.displayName,
             firstUser: userName,
-            buddyuser: userName,
+            buddyUser: userName,
           };
           this.state = {
             ...this.state,
@@ -315,10 +313,9 @@ export default class BiomeBot extends BiomeBotIO {
             photoURL: this.config.photoURL,
             text: this.untagify("{!RETRY_NAME_ENTRY}", userName)
           });
-        } else {
-          // 名前が再入力されたとみなして抽出を試みる
-          queue = "{!QUERY_BOT_NAME}";
         }
+        // 名前が再入力されたとみなして抽出を試みる
+        queue = "{!QUERY_BOT_NAME}";
       }
 
       if (queue === "{!QUERY_BOT_NAME}") {
@@ -334,6 +331,8 @@ export default class BiomeBot extends BiomeBotIO {
         }, userInput);
 
         this.config.displayName = nameCand;
+        this.config.trueName = nameCand;
+        this.config.firstuser = userName;
         this.state.queue.shift();
         this.state.queue = ["{!CONFIRM_NAME}"];
         return resolve({
@@ -458,7 +457,7 @@ export default class BiomeBot extends BiomeBotIO {
     if (text) {
       for (let _tag of this.wordDictKeys) {
         if (text.indexOf(_tag) !== -1) {
-          text = text.replace(/(\{[!a-zA-Z0-9_]+\})/g, (whole, tag) => (this._expand(tag)));
+          text = text.replace(/(\{[!a-zA-Z0-9_]+\})/g, (_whole, tag) => (this._expand(tag)));
         }
       }
     }
@@ -471,7 +470,7 @@ export default class BiomeBot extends BiomeBotIO {
     if (!items) { return _tag; }
     let item = items[Math.floor(Math.random() * items.length)];
 
-    item = item.replace(/(\{[!a-zA-Z0-9_]+\})/g, (whole, tag) => (this._expand(tag))
+    item = item.replace(/(\{[!a-zA-Z0-9_]+\})/g, (_whole, tag) => (this._expand(tag))
     );
     return item;
   }
