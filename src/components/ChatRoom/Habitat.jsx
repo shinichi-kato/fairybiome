@@ -19,6 +19,8 @@ import { toTimestampString } from "../to-timestamp-string.jsx";
 import { FirebaseContext } from "../Firebase/FirebaseProvider";
 import { BotContext } from "../ChatBot/BotProvider";
 
+import {readFromFirestore} from "../../biomebot/biomebot.jsx";
+
 // fairyディレクトリの妖精の中でHabitatにいるものを抽出
 const query = graphql`
 query Myq {
@@ -150,10 +152,11 @@ export default function Habitat() {
         });
     } else {
       // firestoreからダウンロード
-      // 未実装
-      const fairy = {};
-      bot.deployHabitat(fairy);
-      writeLog("妖精があなたのほうを見ている");
+      readFromFirestore(fb, path)
+        .then(fairy => {
+          bot.deployHabiat(fairy);
+          writeLog("妖精があなたのほうを見ている");
+        });
     }
   }
 
@@ -201,7 +204,7 @@ export default function Habitat() {
 
     if (fairiesListRef.current === null) {
       // fairyディレクトリの妖精はgraphqlで抽出
-      const data = props.data.allFile.edges.map(edge => {
+      let data = props.data.allFile.edges.map(edge => {
         const jsonData = edge.node.childFairyJson;
         return {
           relativePath: edge.node.relativePath,
@@ -220,7 +223,22 @@ export default function Habitat() {
       fairiesListRef.current = [...data];
 
       // firestore上のbotをfetchして加える
-      // 未実装
+      const botsRef = fb.firestore.collection("bots");
+      botsRef.where("buddy", "==", "habitat")
+        .limit(10)
+        .get()
+        .then(querySnapshot => {
+          querySnapshot.forEach(doc => {
+            const node = doc.data();
+            data.push({
+              relativePath: doc.id,
+              displayName: node.config.displayName,
+              photoURL: node.config.photoURL,
+              buddyUser: node.config.buddyUser,
+              hp: node.state.hp,
+            });
+          });
+        });
 
       // hp が 1d100値よりも小さい妖精に絞り込む
       let allFairies = data.filter(fairy => fairy.hp < hpMaxRef.current);
@@ -249,7 +267,6 @@ export default function Habitat() {
         }
         fairiesRef.current = [...selectedFairies];
       }
-      console.log("all", allFairies, "hp", hpMaxRef.current, numOfFairyRef.current, selectedFairies);
 
       // ついでにチャットログ用の定数をセット
       localLogLinesMaxRef.current = siteMetadata.localLogLinesMax;

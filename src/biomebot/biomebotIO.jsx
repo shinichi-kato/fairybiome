@@ -276,7 +276,13 @@ export default class BiomeBotIO {
       docRef.set({
         firestoreOwnerId: ownerId,
         config: this.config,
-        state: this.state,
+        state: {
+          partOrder: this.state.partOrder,
+          activeInHub: this.state.activeInHub,
+          hp: this.state.hp,
+          query: this.state.query
+        },
+        buddy: this.state.buddy,
         updatedAt: this.updatedAt
       });
       docRef.collection("wordDict")
@@ -291,7 +297,13 @@ export default class BiomeBotIO {
         .add({
           firestoreOwnerId: ownerId,
           config: this.config,
-          state: this.state,
+          state: {
+            partOrder: this.state.partOrder,
+            activeInHub: this.state.activeInHub,
+            hp: this.state.hp,
+            query: this.state.query
+          },
+          buddy: this.state.buddy,
           updatedAt: this.updatedAt
         })
         .then(docRef => {
@@ -308,3 +320,30 @@ export default class BiomeBotIO {
     }
   };
 }
+
+export const readFromFirestore = async (fb, docId) => {
+  const docRef = fb.firestore.collection("bots").doc(docId);
+  const data = await docRef.get();
+  let fairy = {
+    firestoreOwnerId: data.firestoreOwnerId,
+    config: {... data.config},
+    state: {
+      ... data.state,
+      buddy: data.buddy,
+    },
+    updatedAt: data.updatedAt
+  };
+
+  const wdRef = docRef.collection("wordDict");
+  const wdData = await wdRef.get();
+  fairy.wordDict = [...wdData.wordDict];
+
+  const partsRef = docRef.collection("parts");
+  const partsData = await partsRef.get();
+  for (let part of partsData.docs) {
+    let partData = part.data();
+    fairy.parts[part.id] = {...partData};
+  }
+
+  return fairy;
+};
