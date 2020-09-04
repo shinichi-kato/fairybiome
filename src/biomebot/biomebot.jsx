@@ -419,21 +419,94 @@ export default class BiomeBot extends BiomeBotIO {
     });
   }
 
-  replyHub = (name, text) => {
+  replyHub = (userName, userInput) => {
     /*
       Hubでの挙動
       ハブでは他のユーザ及び連れている妖精と会話を行う。
       妖精はhubBehaviorに従って会話を行う。
+
+      ■黙って記憶
+      誰かの発言-応答の組み合わせを聞いていて、自分の知らない
+      やり取りだった場合それを特に確認せず記憶する。
+      (未実装)
     */
     return new Promise(resolve => {
       if (this.state.partOrder.length === 0) {
         // 妖精不在
-        resolve({
+        return resolve({
           displayName: "",
           photoURL: "",
           text: null
         });
       }
+      // queueがあれば返す
+      if (this.state.queue.length !== 0) {
+        const queue = this.state.queue.shift();
+        return resolve({
+          displayName: this.config.displayName,
+          photoURL: this.config.photoURL,
+          text: this.untagify(queue, userName)
+        });
+      }
+
+      let reply = {
+        displayName: this.config.displayName,
+        photoURL: this.config.photoURL,
+        text: "",
+      };
+
+      const behavior = this.config.hubBehavior;
+
+      // hubBehavior availabilityチェック
+      if (!this.state.activeInHub && Math.random() > behavior.availability) {
+        return resolve(reply);
+      }
+
+      for (let i = 0, l = this.state.partOrder.length; i < l; i++) {
+        const partName = this.state.partOrder[i];
+
+        // 返答の生成を試みる
+        reply = this.parts[partName].replier(userName, userInput, this.state, this.wordDict);
+        if (reply.text && reply.text !== "") {
+          // queueに追加
+          this.state.queue = [...this.state.queue, ...reply.queue];
+
+          // さよなら
+          if (reply.text.indexOf("{!BYE}") !== -1) {
+            return resolve({
+              displayName: this.config.displayName,
+              photoURL: this.config.photoURL,
+              text: this.untagify(reply.text, userName)
+            }
+            );
+          }
+
+          if (reply.ordering === "top") {
+            // このパートを先頭に
+            this.state.partOrder.slice(i, 1);
+            this.state.partOrder.unshift(partName);
+            // hubActiveに
+            this.state.activeInHub = true;
+            // partOrderの順番を破壊したのでループを抜ける
+            break;
+          }
+          if (reply.ordering === "bottom") {
+            // このパートを末尾に
+            this.state.partOrder.slice(i, 1);
+            this.state.partOrder.push(partName);
+            this.state.activeInHub = false;
+            // currentPartsの順番を破壊するのでforループを抜ける
+            break;
+          }
+        }
+        // hubBehavior retentionチェック
+        this.state.activeInHub = Math.random() < behavior.retention;
+      }
+      return resolve({
+        displayName: this.config.botName,
+        photoURL: this.config.photoURL,
+        text: this.untagify(reply.text, userName)
+      });
     });
   }
 

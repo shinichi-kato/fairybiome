@@ -97,7 +97,7 @@ export default function Home() {
             photoURL: reply.photoURL,
             text: reply.text,
             speakerId: bot.displayName,
-            timestamp: toTimestampString(fb.timestampNow())
+            timestamp: fb.timestampNow()
           });
           setBotBusy(false);
         }
@@ -114,15 +114,6 @@ export default function Home() {
     // })
   }
 
-  // --------------------------------------------------------
-  // currentLogが変更されたら最下行へ自動スクロール
-  const chatBottomEl = useRef(null);
-  useEffect(() => {
-    if (chatBottomEl) {
-      chatBottomEl.current.scrollIntoView({ behavior: "smooth", block: "end" });
-    }
-  }, [logSlice]);
-
   const logSlice = log.slice(-CHAT_WINDOW);
   const speeches = logSlice.map(speech => {
     return (speech.speakerId === user.uid || speech.speakerId === -1) ?
@@ -131,6 +122,15 @@ export default function Home() {
       <LeftBalloon key={speech.timestamp} speech={speech} />;
   }
   );
+
+  // --------------------------------------------------------
+  // currentLogが変更されたら最下行へ自動スクロール
+  const chatBottomEl = useRef(null);
+  useEffect(() => {
+    if (chatBottomEl) {
+      chatBottomEl.current.scrollIntoView({ behavior: "smooth", block: "end" });
+    }
+  }, [logSlice]);
 
   return (
     <div>

@@ -1,40 +1,150 @@
-import React ,{useContext,useEffect } from "react";
-import { makeStyles } from '@material-ui/core/styles';
+import React, { useRef, useContext, useEffect, useState } from "react";
+import { makeStyles } from "@material-ui/core/styles";
 
-import Box from '@material-ui/core/Box';
+import Box from "@material-ui/core/Box";
 
-import ApplicationBar from '../ApplicationBar/ApplicationBar';
-import {FirebaseContext} from '../Firebase/FirebaseProvider';
-import {BotContext} from '../ChatBot/BotProvider';
+import ApplicationBar from "../ApplicationBar/ApplicationBar";
+import { RightBalloon, LeftBalloon } from "./balloons.jsx";
+import Console from "./console.jsx";
+import { FirebaseContext } from "../Firebase/FirebaseProvider";
+import { BotContext } from "../ChatBot/BotProvider";
+import { toTimestampString } from "../to-timestamp-string.jsx";
 
 const useStyles = makeStyles((theme) => ({
   root: {
     width: "100%",
     height: "100vh",
-    backgroundImage: "url(../images/landing-bg.png)",
-    backgroundPosition: "center bottom",
+    background: "linear-gradient(180deg, #8696a8 0%,#79a0bf 50%,#729bbe 58%,#7fbc6e 71%,#86a686 100%);"
   },
-
+  main: {
+    height: "calc( 100vh - 64px - 48px )",
+    overflowY: "scroll",
+    overscrollBehavior: "auto",
+    WebkitOverflowScrolling: "touch",
+    padding: 0
+  }
 }));
 
+const CHAT_WINDOW = 12;
 
-export default function Home(props){
+export default function Home() {
   const classes = useStyles();
 
   const fb = useContext(FirebaseContext);
   const bot = useContext(BotContext);
+  const user = fb.user;
+  const hubLogRef = fb.firestore.collection("hubLog");
+  const userDisplayName = user.displayName;
+
+  const [hubLog, setHubLog] = useState([]);
+  const [botBusy, setBotBusy] = useState(false);
+
+  function setNavigateBefore() {
+    /* 戻るボタンを押したときの動作を記述し、戻り先アドレスを返す */
+    bot.dumpToLocalStorage();
+    bot.dumpToFirestore(fb);
+    return ("/fairybiome/Dashboard");
+  }
+
+  useEffect(() => {
+    // botのデプロイ
+    setBotBusy(true);
+    bot.deployHub()
+      .then(() => {
+        setBotBusy(false);
+      });
+
+    // listen
+    hubLogRef.orderBy("timestamp", "desc")
+      .limit(CHAT_WINDOW)
+      .onShapshot(handleRecieveSnapshot);
+
+    return (() => {
+      hubLogRef.onShapshot(() => { });
+    });
+  }, []);
+
+  function handleRecieveSnapshot(query) {
+    const messages = query.docs.map(doc => {
+      const data = doc.data();
+      return {
+        ...data,
+        timestamp: toTimestampString(fb.timestampNow()),
+        id: doc.id,
+      };
+    });
+    setHubLog(messages.reverse());
+
+    // 最後の発言者がぼっと自身でなければ発言を試みる
+    const lastItem = messages[messages.length - 1];
+    if (lastItem && lastItem.speakerId !== bot.ref.firestoreDocId) {
+      bot.hubReply(lastItem)
+        .then(reply => {
+          if (reply.text !== null) {
+            fb.firestore.collection("hubLog").add({
+              displayName: `${reply.displayName} @ ${user.displayName}`,
+              photoURL: reply.photoURL,
+              text: reply.text,
+              speakerId: bot.ref.firestoreDocId,
+              timestamp: fb.firestore.FieldValue.serverTimestamp()
+            });
+            bot.upkeep();
+          }
+        });
+    }
+  }
+
+  function handleWriteMessage(text) {
+    hubLogRef.add({
+      displayName: userDisplayName,
+      photoURL: user.photoURL,
+      text: text,
+      speakerId: user.uid,
+      timestamp: fb.firestore.FieldValue.serverTimestamp()
+    });
+  }
+
+  const logSlice = hubLog.slice(-CHAT_WINDOW);
+  const speeches = logSlice.map(speech => {
+    return (speech.speakerId === user.uid || speech.speakerId === -1) ?
+      <RightBalloon key={speech.timestamp} speech={speech} />
+      :
+      <LeftBalloon key={speech.timestamp} speech={speech} />;
+  }
+  );
+
+  // --------------------------------------------------------
+  // currentLogが変更されたら最下行へ自動スクロール
+  const chatBottomEl = useRef(null);
+  useEffect(() => {
+    if (chatBottomEl) {
+      chatBottomEl.current.scrollIntoView({ behavior: "smooth", block: "end" });
+    }
+  }, [logSlice]);
 
   return (
-    <Box 
+    <Box
+      alignContent="flex-start"
       display="flex"
       flexDirection="column"
       flexWrap="nowrap"
       justifyContent="flex-start"
-      alignContent="flex-start"
     >
       <Box>
-        <ApplicationBar title="" />
+        <ApplicationBar
+          busy={botBusy}
+          setNavigateBefore={setNavigateBefore}
+          title="ハブ" />
+      </Box>
+      <Box className={classes.main} flexGrow={1} order={0}>
+        {speeches}
+        <div ref={chatBottomEl} />
+      </Box>
+      <Box justifyContent="center" order={0}>
+        <Console
+          handleWriteMessage={handleWriteMessage}
+          position={"0"} />
       </Box>
     </Box>
-  )
+  );
 }
