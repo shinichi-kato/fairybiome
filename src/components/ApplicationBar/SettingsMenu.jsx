@@ -1,24 +1,32 @@
-import React,{useState} from "react";
-import {navigate} from 'gatsby';
+import React, { useContext } from "react";
+import { navigate } from "gatsby";
 
-import Menu from '@material-ui/core/Menu';
-import MenuItem from '@material-ui/core/MenuItem';
+import Menu from "@material-ui/core/Menu";
+import MenuItem from "@material-ui/core/MenuItem";
+import { FirebaseContext } from "../Firebase/FirebaseProvider";
 
-export default function SettingsMenu(props){
-  function ToConfig(){
+export default function SettingsMenu(props) {
+  const fb = useContext(FirebaseContext);
+
+  function handleSignOut() {
+    fb.signOut();
     props.handleClose();
-    navigate('/fairybiome/ConfigEditor/');
+  }
+
+  function handleUserSettings() {
+    props.handleClose();
+    navigate("/fairybiome/UserSettings");
   }
 
   return (
     <Menu
-      id="settings-menu"
       anchorEl={props.anchorEl}
-      open={props.open}
+      id="settings-menu"
       onClose={props.handleClose}
+      open={props.open}
     >
-      <MenuItem onClick={ToConfig}>チャットボットの設定</MenuItem>
-      <MenuItem onClick={props.handleClose}>サインアウト</MenuItem>
+      <MenuItem onClick={handleUserSettings}>ユーザ設定</MenuItem>
+      <MenuItem onClick={handleSignOut}>サインアウト</MenuItem>
     </Menu>
-  )
+  );
 }

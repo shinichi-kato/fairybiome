@@ -182,6 +182,7 @@ export default function FirebaseProvider(props) {
         firestore: state.firestore,
         user: {...state.user},
         changeUserInfo: changeUserInfo,
+        signOut: signOut,
         timestampNow: timestampNow,
       }}
     >

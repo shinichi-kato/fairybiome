@@ -2,6 +2,7 @@ import React from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import Box from "@material-ui/core/Box";
+import IconButton from "@material-ui/core/IconButton";
 
 import HabitatIcon from "../../icons/Habitat";
 
@@ -36,10 +37,11 @@ export default function MeetFairy() {
       flexDirection="column"
     >
       <Box className={classes.iconContainer}>
-        <img
-          className={classes.icon}
-          src="../../svg/fairy-blank.svg"
-        />
+        <IconButton>
+          <HabitatIcon
+            className={classes.icon}
+          />
+        </IconButton>
       </Box>
       <Box className={classes.nameContainer}>
         <Typography className={classes.name}>

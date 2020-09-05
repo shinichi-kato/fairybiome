@@ -19,7 +19,7 @@ import { toTimestampString } from "../to-timestamp-string.jsx";
 import { FirebaseContext } from "../Firebase/FirebaseProvider";
 import { BotContext } from "../ChatBot/BotProvider";
 
-import {readFromFirestore} from "../../biomebot/biomebot.jsx";
+import {readFromFirestore} from "../../biomebot/biomebotIO.jsx";
 
 // fairyディレクトリの妖精の中でHabitatにいるものを抽出
 const query = graphql`

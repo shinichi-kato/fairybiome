@@ -1,4 +1,5 @@
 import React, {useState, useRef} from "react";
+
 import { StaticQuery, graphql } from "gatsby";
 import { makeStyles } from "@material-ui/core/styles";
 import Box from "@material-ui/core/Box";
@@ -50,7 +51,7 @@ export default function UserSettings(props) {
   const classes = useStyles();
   const nameRef = useRef();
   const [photoURL, setPhotoURL] = useState(props.photoURL || "");
-  const photoURLsRef = useRef();
+  const photoURLsRef = useRef(null);
 
   function GetPhotoURLsList(localprops) {
     // avatarListをuseStateで構成すると、「render内でのsetState」
@@ -105,7 +106,9 @@ export default function UserSettings(props) {
       justifyContent="flex-start"
     >
       <Box>
-        <ApplicationBar title="ユーザ設定" />
+        <ApplicationBar
+          setNavigateBefore={props.setNavigateBefore}
+          title="ユーザ設定"/>
       </Box>
       <Box className={classes.content}>
         <Typography variant="h5">アイコン</Typography>
@@ -141,7 +144,7 @@ export default function UserSettings(props) {
         <Button
           className={classes.button}
           color="primary"
-          disable={
+          disabled={
             nameRef.current === null ||
             nameRef.current === "" ||
             photoURL === ""}

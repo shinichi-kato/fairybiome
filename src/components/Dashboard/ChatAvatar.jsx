@@ -1,9 +1,8 @@
-import React ,{useState} from "react";
-import { makeStyles } from '@material-ui/core/styles';
-import Typography from '@material-ui/core/Typography';
-import Avatar from '@material-ui/core/Avatar';
-import Box from '@material-ui/core/Box';
-
+import React, {useState} from "react";
+import { makeStyles } from "@material-ui/core/styles";
+import Typography from "@material-ui/core/Typography";
+import Avatar from "@material-ui/core/Avatar";
+import Box from "@material-ui/core/Box";
 
 const useStyles = makeStyles((theme) => ({
   iconContainer: {
@@ -26,28 +25,26 @@ const useStyles = makeStyles((theme) => ({
 
 }));
 
-
-
-export default function ChatAvatar(props){
+export default function ChatAvatar(props) {
   const classes = useStyles();
 
   return (
-    <Box 
+    <Box
+      alignItems="center"
       display="flex"
       flexDirection="column"
-      alignItems="center"
     >
       <Box className={classes.iconContainer}>
-        <Avatar 
+        <Avatar
           className={classes.icon}
           src={`../../svg/${props.icon}`}
         />
       </Box>
       <Box className={classes.nameContainer}>
         <Typography className={classes.name}>
-          {  props.displayName }
+          { props.displayName }
         </Typography>
       </Box>
     </Box>
-  )
+  );
 }
