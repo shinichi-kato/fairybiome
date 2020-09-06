@@ -71,6 +71,14 @@ function reducer(state, action) {
       };
     }
 
+    case "changeUserInfo" : {
+      return {
+        ...state,
+        displayName: action.displayName,
+        photoURL: action.photoURL
+      };
+    }
+
     default :
     throw new Error(`invalid action ${action.type}`);
   }
@@ -152,7 +160,13 @@ export default function FirebaseProvider(props) {
 				displayName: displayName || user.displayName,
 				photoURL: photoURL || user.photoURL
 			}).then(()=>{
-				// userの更新はonAuthStateChangedで検出
+        // userの更新はonAuthStateChangedで検出するが、タイミングがUIに
+        // 追いつかないため内部的にも書き換えを実行
+        dispatch({
+          type: "changeUserInfo",
+          displayName: displayName,
+          photoURL: photoURL
+        });
 			}).catch(error=>{
 				dispatch({type: "error", message: error.code});
 			});
@@ -181,6 +195,8 @@ export default function FirebaseProvider(props) {
         firebaseApp: state.firebaseApp,
         firestore: state.firestore,
         user: {...state.user},
+        displayName: state.user.displayName,
+        photoURL: state.user.photoURL,
         changeUserInfo: changeUserInfo,
         signOut: signOut,
         timestampNow: timestampNow,

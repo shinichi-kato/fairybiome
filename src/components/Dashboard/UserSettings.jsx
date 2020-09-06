@@ -1,4 +1,4 @@
-import React, {useState, useRef} from "react";
+import React, { useState, useMemo } from "react";
 
 import { StaticQuery, graphql } from "gatsby";
 import { makeStyles } from "@material-ui/core/styles";
@@ -6,7 +6,7 @@ import Box from "@material-ui/core/Box";
 import Avatar from "@material-ui/core/Avatar";
 import Button from "@material-ui/core/Button";
 import Typography from "@material-ui/core/Typography";
-import TextField from "@material-ui/core/TextField";
+import TextInput from "../TextInput";
 import ApplicationBar from "../ApplicationBar/ApplicationBar";
 
 const query = graphql`
@@ -43,61 +43,55 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function UserSettings(props) {
-  /*
+  /* ユーザ名とアイコンを取得しfirebase.authに書き込む
     displayName: ユーザ名
     photoURL: ユーザアイコンのURL
     handleChangeUserInfo: 名前とアイコンの設定を変更する関数
   */
   const classes = useStyles();
-  const nameRef = useRef();
+  const [displayName, setDisplayName] = useState(props.displayName);
   const [photoURL, setPhotoURL] = useState(props.photoURL || "");
-  const photoURLsRef = useRef(null);
-
-  function GetPhotoURLsList(localprops) {
-    // avatarListをuseStateで構成すると、「render内でのsetState」
-    // というwarningになる。これは useStaticQuery()で回避できるが、
-    // 2020.7現在ではuseStaticQuery() 自体にバグがあり、undefined
-    // しか帰ってこない。
-    // https://github.com/gatsbyjs/gatsby/issues/24394
-    // そこで useRef を代替とし、データ取得のみのサブコンポーネントを用いる。
-    if (localprops.data) {
-      photoURLsRef.current = [...localprops.data.allFile.edges];
-    }
-    return null;
-  }
 
   function AvatarButton(localprops) {
     const path = localprops.path;
     return (
-        <Button
-          className={classes.iconContainer}
-          color={photoURL === path ? "primary" : "default" }
-          disableElevation={photoURL !== path}
-          disableRipple
-          onClick={()=>setPhotoURL(path)}
-          variant="contained"
-        >
-          <Avatar
-            className={classes.icon}
-            src={`../../svg/${path}`}/>
-        </Button>
+      <Button
+        className={classes.iconContainer}
+        color={photoURL === path ? "primary" : "default"}
+        disableElevation={photoURL !== path}
+        disableRipple
+        onClick={() => setPhotoURL(path)}
+        variant="contained"
+      >
+        <Avatar
+          className={classes.icon}
+          src={`../../svg/${path}`} />
+      </Button>
 
-      );
+    );
+  }
+
+  function handleChangeDisplayName(e) {
+    setDisplayName(e.target.value);
   }
 
   function handleClick() {
-    props.handleChangeUserInfo(nameRef.current, photoURL);
+    props.handleChangeUserInfo(displayName, photoURL);
   }
 
-  console.log("<UserSetting/>");
+  const MemorizedAvatarSelect = useMemo(() => (
+    <StaticQuery
+    query={query}
+    render={data => (
+      <>
+        {data.allFile.edges.map((n, index) => (
+          <AvatarButton key={index} path={n.node.relativePath} />
+        ))}
+      </>
+    )}
+  />), [photoURL]);
+
   return (
-    <div>
-      {photoURLsRef.current === null &&
-        <StaticQuery
-          query={query}
-          render={data=><GetPhotoURLsList data={data}/>}
-        />
-      }
     <Box
       alignContent="flex-start"
       display="flex"
@@ -108,22 +102,16 @@ export default function UserSettings(props) {
       <Box>
         <ApplicationBar
           setNavigateBefore={props.setNavigateBefore}
-          title="ユーザ設定"/>
+          title="ユーザ設定" />
       </Box>
       <Box className={classes.content}>
         <Typography variant="h5">アイコン</Typography>
       </Box>
       <Box
-
         alignItems="center"
         className={classes.content}
       >
-        { photoURLsRef.current !== null &&
-          photoURLsRef.current.map((n, index)=>(
-            <AvatarButton key={index} path={n.node.relativePath} />
-          ))
-        }
-
+        {MemorizedAvatarSelect}
       </Box>
       <Box className={classes.content}>
         <Typography variant="h5">あなたの名前</Typography>
@@ -132,11 +120,11 @@ export default function UserSettings(props) {
         className={classes.content}
         flexGrow={1}
       >
-        <TextField
+        <TextInput
           className={classes.name}
-          defaultValue={props.displayName}
-          inputRef={nameRef}
+          handleChange={handleChangeDisplayName}
           required
+          value={displayName}
           variant="outlined"
         />
       </Box>
@@ -145,8 +133,8 @@ export default function UserSettings(props) {
           className={classes.button}
           color="primary"
           disabled={
-            nameRef.current === null ||
-            nameRef.current === "" ||
+            displayName === null ||
+            displayName === "" ||
             photoURL === ""}
           onClick={handleClick}
           size="large"
@@ -155,6 +143,5 @@ export default function UserSettings(props) {
         </Button>
       </Box>
     </Box>
-    </div>
   );
 }

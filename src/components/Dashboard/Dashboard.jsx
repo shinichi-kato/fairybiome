@@ -31,14 +31,15 @@ export default function Dashboard() {
       {
         (user.displayName === "" && user.photoURL === "") &&
         <UserSettings
-          displayName={user.displayName}
+          displayName={fb.displayName}
           handleChangeUserInfo={handleChangeUserInfo}
-          photoURL={user.photoURL}
+          photoURL={fb.photoURL}
         />
         ||
         <Main
           bot={buddyState}
-          user={user}
+          displayName={fb.displayName}
+          photoURL={fb.photoURL}
         />
       }
     </div>

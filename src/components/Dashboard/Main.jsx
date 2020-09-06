@@ -59,8 +59,8 @@ const useStyles = makeStyles((theme) => ({
 
 export default function Main(props) {
   const classes = useStyles();
-  const userDisplayName = props.user.displayName;
-  const userPhotoURL = props.user.photoURL;
+  const userDisplayName = props.displayName;
+  const userPhotoURL = props.photoURL;
   console.log("<Main/>");
   return (
     <Box
