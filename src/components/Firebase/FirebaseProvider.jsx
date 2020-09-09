@@ -80,7 +80,7 @@ function reducer(state, action) {
     }
 
     default :
-    throw new Error(`invalid action ${action.type}`);
+      throw new Error(`invalid action ${action.type}`);
   }
 }
 
@@ -118,7 +118,6 @@ export default function FirebaseProvider(props) {
 
   function authenticate(email, password) {
     dispatch({type: "run"});
-    console.log("auth", email, password);
 
     firebase.auth().signInWithEmailAndPassword(email, password)
     .then(()=>{
@@ -144,11 +143,9 @@ export default function FirebaseProvider(props) {
   function createUser(email, password) {
     dispatch({type: "run"});
 		firebase.auth().createUserWithEmailAndPassword(email, password)
-		.then(user=>{
-      // 成功したら自動でログインされる
-      // userの更新はonAuthStateChangedで検出
-		})
 		.catch(error=>{
+      // 失敗したらエラーメッセージ出力
+      // ※成功したらonAuthStateChangeで捕捉
 			dispatch({type: "error", message: error.message});
 		});
   }
@@ -160,7 +157,7 @@ export default function FirebaseProvider(props) {
 				displayName: displayName || user.displayName,
 				photoURL: photoURL || user.photoURL
 			}).then(()=>{
-        // userの更新はonAuthStateChangedで検出するが、タイミングがUIに
+        // userの更新はonAuthStateChangedで捕捉するが、タイミングがUIに
         // 追いつかないため内部的にも書き換えを実行
         dispatch({
           type: "changeUserInfo",
@@ -187,8 +184,6 @@ export default function FirebaseProvider(props) {
     }
     return null;
   }
-
-  console.log("<FirebaseProvider>", state);
   return (
     <FirebaseContext.Provider
       value={{

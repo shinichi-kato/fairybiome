@@ -34,7 +34,6 @@ export default function ApplicationTabBar(props) {
   function handleExit() {
     props.handleChangePage("exit");
   }
-  console.log("<AppTabBar/>")
   return (
     <AppBar position="static">
       <Toolbar color="inherit">

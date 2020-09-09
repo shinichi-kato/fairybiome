@@ -18,6 +18,11 @@ export default function SettingsMenu(props) {
     navigate("/fairybiome/UserSettings");
   }
 
+  function handleCloudStorage() {
+    props.handleClose();
+    navigate("/fairybiome/CloudStorage");
+  }
+
   return (
     <Menu
       anchorEl={props.anchorEl}
@@ -25,6 +30,7 @@ export default function SettingsMenu(props) {
       onClose={props.handleClose}
       open={props.open}
     >
+      <MenuItem onClick={handleCloudStorage}>ファイル</MenuItem>
       <MenuItem onClick={handleUserSettings}>ユーザ設定</MenuItem>
       <MenuItem onClick={handleSignOut}>サインアウト</MenuItem>
     </Menu>

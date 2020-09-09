@@ -61,7 +61,6 @@ export default function Main(props) {
   const classes = useStyles();
   const userDisplayName = props.displayName;
   const userPhotoURL = props.photoURL;
-  console.log("<Main/>");
   return (
     <Box
       alignContent="flex-start"

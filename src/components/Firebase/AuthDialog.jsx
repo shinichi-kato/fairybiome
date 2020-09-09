@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
-import Box from "@material-ui/core/Box";
+import Grid from "@material-ui/core/Grid";
 
 import LogoSvg from "../../../images/svg/logo.svg";
 import Entry from "./Entry";
@@ -11,9 +11,8 @@ const useStyles = makeStyles((theme) => ({
     width: "100%",
     height: "100vh",
   },
-  logoBox: {
-    margin: "10% 5% 10px 5%",
-    height: "100%",
+  logoContainer: {
+    margin: "100px 5% 10px 5%",
   },
   logo: {
     width: "calc(100% - 10%)"
@@ -51,20 +50,21 @@ export default function AuthDialog(props) {
     props.handleSignUp(email, password);
   }
 
-  console.log("<AuthDialog/>");
   return (
-
-    <Box
-className={classes.root}
-      display="flex"
-      flexDirection="column"
-      flexWrap="nowrap"
+    <Grid
+      className={classes.root}
+      container
+      justify="center"
+      spacing={1}
     >
-      <Box className={classes.logoBox}>
+      <Grid
+        className={classes.logoContainer}
+        item
+        xs={12}
+      >
         <LogoSvg className={classes.logo} height="100%" />
-        {page}
-      </Box>
-      <Box>
+      </Grid>
+      <Grid item xs={12}>
         {page === "entry" ?
           <Entry
             handleChangePage={handleChangePage}
@@ -82,7 +82,7 @@ className={classes.root}
             password={password}
           />
         }
-      </Box>
-    </Box>
+      </Grid>
+    </Grid>
   );
 }

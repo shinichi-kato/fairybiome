@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import Box from "@material-ui/core/Box";
 import LogoSvg from "../../../images/svg/logo.svg";
@@ -11,7 +11,7 @@ const useStyles = makeStyles((theme) => ({
   },
   logoBox: {
     margin: "30% 5% 10px 5%",
-    height: "100%",
+    // height: "100%", // width 100%は safariで100vh的な動作をするバグがある
   },
   logo: {
     width: "calc(100% - 10%)"
@@ -22,10 +22,9 @@ const useStyles = makeStyles((theme) => ({
 
 }));
 
-export default function Landing(props) {
+export default function Landing() {
   const classes = useStyles();
 
-  console.log("<Landing/>");
   return (
     <Box
       className={classes.root}

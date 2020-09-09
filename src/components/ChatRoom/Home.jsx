@@ -133,7 +133,7 @@ export default function Home() {
   }, [logSlice]);
 
   return (
-    <div>
+    <>
       <Box
         alignContent="flex-start"
         className={classes.root}
@@ -168,6 +168,6 @@ export default function Home() {
           <FairyBiomeIcon />
         </Fab>
       }
-    </div>
+    </>
   );
 }

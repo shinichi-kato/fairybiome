@@ -274,7 +274,7 @@ export default function Habitat() {
     }
 
     return (
-      <div>
+      <>
         {
           numOfFairyRef.current === 0
             ?
@@ -288,7 +288,7 @@ export default function Habitat() {
               {fairiesRef.current.map((fairy, index) => <FairyAvatar {...fairy} key={index} />)}
             </Box>
         }
-      </div>
+      </>
     );
   }
 

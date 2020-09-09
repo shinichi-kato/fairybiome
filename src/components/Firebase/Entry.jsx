@@ -8,6 +8,20 @@ import HabitatIcon from "../../icons/Habitat";
 import HubFairiesIcon from "../../icons/HubFairies";
 
 const useStyles = makeStyles((theme) => ({
+  rootWhoseChildUsesFlexGrow: {
+    width: "100%",
+    height: "100vh",
+    // backgroundImage: "url(../images/landing-bg.png)",
+    // backgroundPosition: "center bottom",
+  },
+  main: {
+    width: "100%",
+    height: "clac( 100vh - 64px )",
+    overflowY: "scroll",
+    overscrollBehavior: "auto",
+    WebkitOverflowScrolling: "touch",
+    padding: theme.spacing(2),
+  },
   flavorTextContainer: {
     margin: "10px auto",
   },
@@ -37,92 +51,96 @@ const useStyles = makeStyles((theme) => ({
 
 export default function Entry(props) {
   const classes = useStyles();
-  console.log("<Entry />");
   return (
     <Box
+      className={classes.rootWhoseChildUsesFlexGrow}
       display="flex"
       flexDirection="column"
       flexWrap="nowrap"
     >
-      <Box className={classes.flavorTextContainer}>
-        <Typography variant="body1">
-          妖精チャットボットが住んでいる<br />
-          ちょっと不思議なチャットスペース
-        </Typography>
-
-      </Box>
-
-      <Box className={classes.captions}>
-        <Box
-          alignItems="center"
-          display="flex"
-          flexDirection="row"
-        >
-          <Box className={classes.iconContainer}>
-            <HabitatIcon style={{ fontSize: 60 }} />
-          </Box>
-          <Box className={classes.captionContainer}>
-            <Typography className={classes.caption}>
-              妖精を見つけに行こう
-            </Typography>
-          </Box>
-        </Box>
-
-        <Box
-          alignItems="center"
-          display="flex"
-          flexDirection="row"
-        >
-          <Box className={classes.iconContainer}>
-            <HomeIcon style={{ fontSize: 60 }} />
-          </Box>
-          <Box className={classes.captionContainer}>
-            <Typography className={classes.caption}>
-              自分だけの妖精チャット<br />ボットを育てよう
-            </Typography>
-          </Box>
-        </Box>
-
-        <Box
-          alignItems="center"
-          display="flex"
-          flexDirection="row"
-        >
-          <Box className={classes.iconContainer}>
-            <HubFairiesIcon style={{ fontSize: 60 }} />
-          </Box>
-          <Box className={classes.captionContainer}>
-            <Typography className={classes.caption}>
-              チャットボットと一緒に<br />みんなと話そう
+      <Box
+        className={classes.main}
+      >
+        <Box className={classes.flavorTextContainer}>
+          <Typography variant="body1">
+            妖精チャットボットが住んでいる<br />
+            ちょっと不思議なチャットスペース
           </Typography>
-          </Box>
 
         </Box>
 
-      </Box>      <Box flexGrow={1}> </Box>
-      <Box className={classes.buttonContainer}>
-        <Button
-          className={classes.button}
-          color="primary"
-          fullWidth
-          onClick={e => props.handleChangePage("login")}
-          size="large"
-          variant="contained"
-        >
-          ログイン
-        </Button>
-      </Box>
-      <Box className={classes.buttonContainer}>
-        <Button
-          className={classes.button}
-          color="default"
-          fullWidth
-          onClick={e => props.handleChangePage("signUp")}
-          size="large"
-          variant="contained"
-        >
-          新規ユーザ登録
-        </Button>
+        <Box className={classes.captions}>
+          <Box
+            alignItems="center"
+            display="flex"
+            flexDirection="row"
+          >
+            <Box className={classes.iconContainer}>
+              <HabitatIcon style={{ fontSize: 60 }} />
+            </Box>
+            <Box className={classes.captionContainer}>
+              <Typography className={classes.caption}>
+                妖精を見つけに行こう
+              </Typography>
+            </Box>
+          </Box>
+
+          <Box
+            alignItems="center"
+            display="flex"
+            flexDirection="row"
+          >
+            <Box className={classes.iconContainer}>
+              <HomeIcon style={{ fontSize: 60 }} />
+            </Box>
+            <Box className={classes.captionContainer}>
+              <Typography className={classes.caption}>
+                自分だけの妖精を育てよう
+              </Typography>
+            </Box>
+          </Box>
+
+          <Box
+            alignItems="center"
+            display="flex"
+            flexDirection="row"
+          >
+            <Box className={classes.iconContainer}>
+              <HubFairiesIcon style={{ fontSize: 60 }} />
+            </Box>
+            <Box className={classes.captionContainer}>
+              <Typography className={classes.caption}>
+                妖精と一緒にみんなと話そう
+            </Typography>
+            </Box>
+
+          </Box>
+
+        </Box>      <Box flexGrow={1}> </Box>
+        <Box className={classes.buttonContainer}>
+          <Button
+            className={classes.button}
+            color="primary"
+            fullWidth
+            onClick={e => props.handleChangePage("login")}
+            size="large"
+            variant="contained"
+          >
+            ログイン
+          </Button>
+        </Box>
+        <Box className={classes.buttonContainer}>
+          <Button
+            className={classes.button}
+            color="default"
+            fullWidth
+            onClick={e => props.handleChangePage("signUp")}
+            size="large"
+            variant="contained"
+          >
+            新規ユーザ登録
+          </Button>
+        </Box>
       </Box>
     </Box>
   );

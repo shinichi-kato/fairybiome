@@ -263,6 +263,7 @@ export default function PartOrder(props) {
             timeout={300}
           >
             <div>
+              {/* Slideの動作に直下のdivが必要 */}
               <PartCard
                 {...props.parts[part]}
                 handleChangePage={props.handleChangePage}

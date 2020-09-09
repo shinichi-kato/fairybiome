@@ -27,7 +27,7 @@ export default function Dashboard() {
 
   console.log("<Dashboard />");
   return (
-    <div>
+    <>
       {
         (user.displayName === "" && user.photoURL === "") &&
         <UserSettings
@@ -42,6 +42,6 @@ export default function Dashboard() {
           photoURL={fb.photoURL}
         />
       }
-    </div>
+    </>
   );
 }

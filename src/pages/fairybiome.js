@@ -5,6 +5,7 @@ import FirebaseProvider from "../components/Firebase/FirebaseProvider";
 import BotProvider from "../components/ChatBot/BotProvider";
 import Dashboard from "../components/Dashboard/Dashboard";
 import UserSettingsDialog from "../components/Dashboard/UserSettingsDialog";
+import CloudStorage from "../components/CloudStorage/CloudStorage";
 import Editor from "../components/Editor/Editor";
 import Home from "../components/ChatRoom/Home";
 import Hub from "../components/ChatRoom/Hub";
@@ -50,6 +51,7 @@ export default function Fairybiome() {
         <Router basepath="/fairybiome">
           <Dashboard default path="/Dashboard"/>
           <UserSettingsDialog path="/UserSettings"/>
+          <CloudStorage path="/CloudStorage"/>
           <Editor path="/Editor" />
           <Home path="/Home" />
           <Hub path="/Hub" />
