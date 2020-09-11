@@ -11,8 +11,11 @@ export default function TopLayout(props) {
       <Helmet>
         <meta
           name="viewport"
-          content="minimum-scale=1, initial-scale=1, width=device-width"
+          content="width=device-width, initial-scale=1, shrink-to-fit=no"
         />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="#D0E0D8" />
+        <meta name="apple-mobile-web-app-title" content="FairyBiome" />
       </Helmet>
 
       <ThemeProvider theme={theme}>

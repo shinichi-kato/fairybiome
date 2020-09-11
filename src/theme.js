@@ -19,10 +19,13 @@ const theme = createMuiTheme({
         },
         body: {
           position: "fixed",
-          width: 480,
+          width: "100%",
           height: "100%",
-          marginLeft: "calc((100% - 480px)  * 0.3)",
-          marginRight: "calc((100% - 480px) * 0.7)",
+          ["@media (min-width: 481px)"]: {
+            width: 480,
+            marginLeft: "calc((100% - 480px)  * 0.3)",
+            marginRight: "calc((100% - 480px) * 0.7)",
+          },
         }
       }
     }
