@@ -33,7 +33,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function Editor() {
+export default function Editor({location}) {
   const classes = useStyles();
   const fb = useContext(FirebaseContext);
   const bot = useContext(BotContext);
@@ -102,6 +102,7 @@ export default function Editor() {
             handleChangePage={handleChangePage}
             handleSaveConfig={handleSaveConfig}
             handleSavePart={handleSavePart}
+            hubTitle={location.state.hubTitle}
             message={message}
             pageWillChange={pageWillChange}
             parts={bot.ref.parts}

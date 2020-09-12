@@ -5,7 +5,7 @@
         "buddyUser": "",
         "displayName": "ホワイト レインボウ", 
         "updatedAt": "Sun Jul 12 2020 13:50:23 GMT+0900",
-        "photoURL": "bot/higherFairy/normal.svg",
+        "photoURL": "bot/_higherFairy/normal.svg",
         "description": "ぼんやりと光る姿で現れる、上位の妖精",
         "defaultPartOrder":["greeting","oracle"],
         "hubBehavior":{

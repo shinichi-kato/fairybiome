@@ -48,6 +48,7 @@ export default function Home({location}) {
   const botDisplayName = `${bot.displayName}@${userDisplayName}`;
   const site = useRef({
     title: location.state.data.title,
+    hubTitle: location.state.data.hubTitle,
     localLogLinesMax: location.state.data.localLogLinesMax,
     chatLinesMax: location.state.data.chatLinesMax
   });
@@ -133,7 +134,7 @@ export default function Home({location}) {
       chatBottomEl.current.scrollIntoView({ behavior: "smooth", block: "end" });
     }
   }, [logSlice]);
-
+  console.log(location)
   return (
     <>
       <Box
@@ -165,7 +166,9 @@ export default function Home({location}) {
           aria-label="edit"
           className={classes.floatingButton}
           color="secondary"
-          onClick={() => navigate("/fairybiome/Editor")}
+          onClick={() => navigate("/fairybiome/Editor",
+            {state: {hubTitle: site.current.hubTitle}}
+          )}
         >
           <FairyBiomeIcon />
         </Fab>

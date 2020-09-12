@@ -1,17 +1,32 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { graphql, StaticQuery } from "gatsby";
 import { makeStyles } from "@material-ui/core/styles";
 
 import Box from "@material-ui/core/Box";
 import Grid from "@material-ui/core/Grid";
 import Input from "@material-ui/core/Input";
+import IconButton from "@material-ui/core/IconButton";
+import Avatar from "@material-ui/core/Avatar";
 import Typography from "@material-ui/core/Typography";
 
 import { toTimestampString } from "../to-timestamp-string.jsx";
 import FairyPanel from "./FairyPanel";
-import HubIcon from "../../icons/Hub";
 
 import PartOrder from "./PartOrder";
 import Behavior from "./Behavior";
+
+const query = graphql`
+query MyQuery {
+  allFile(filter: {sourceInstanceName: {eq: "staticimages"},
+    base: {eq: "normal.svg"}, relativePath: {regex: "/^bot\\/(?!_)/"}}) {
+    edges {
+      node {
+        relativePath
+        relativeDirectory
+      }
+    }
+  }
+}`;
 
 function partDiff(prevArr, currArr) {
   let added = [];
@@ -121,7 +136,41 @@ export default function Config(props) {
     setDisplayName(e.target.value);
   }
 
-  const MemorizedFairyPanel = useMemo(() => (
+  function handleChangePhotoURL(path) {
+    setPhotoURL(path);
+  }
+
+  function FairyAvatar(childProps) {
+    return (
+      <IconButton
+        color={childProps.path === photoURL ?
+          "primary" : "default"}
+        onClick={e => handleChangePhotoURL(childProps.path)}
+      >
+        <Avatar
+          src={`../../svg/${childProps.path}`} />
+      </IconButton>
+    );
+  }
+
+  const MemorizedAvatarSelector = useMemo(() => (
+      <StaticQuery
+        query={query}
+        render={data => (
+          <Box
+            display="flex"
+            flexDirection="row"
+          >
+            {data.allFile.edges.map((edge, index) => (
+              <Box>
+                <FairyAvatar key={index} path={edge.node.relativePath} />
+              </Box>
+            ))}
+          </Box>
+        )} />
+    ), []);
+
+    const MemorizedFairyPanel = useMemo(() => (
     <FairyPanel
       displayName={displayName}
       hp={props.state.hp}
@@ -156,6 +205,14 @@ export default function Config(props) {
           {MemorizedFairyPanel}
         </Grid>
         <Grid item xs={5}>
+          {MemorizedAvatarSelector}
+        </Grid>
+        <Grid item xs={7}>
+          <Typography variant="subtitle1">
+            妖精の外見。実際に表示されるアイコンは妖精の状態により表情などが変わります。
+          </Typography>
+        </Grid>
+        <Grid item xs={5}>
           <Input
             className={classes.input}
             onChange={handleChangeDisplayName}
@@ -180,7 +237,7 @@ export default function Config(props) {
         <Behavior
           behavior={hubBehavior}
           setBehavior={setHubBehavior}
-          title="集まる場所での妖精のふるまい"
+          title={`${props.hubTitle}での妖精のふるまい`}
         />
         <Grid item xs={12}>
           <Typography>

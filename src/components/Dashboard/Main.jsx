@@ -142,6 +142,7 @@ export default function Main(props) {
                     state: {
                       data: {
                         title: data.site.siteMetadata.homeTitle,
+                        hubTitle: data.site.siteMetadata.hubTitle,
                         localLogLinesMax: data.site.siteMetadata.localLogLinesMax,
                         chatLinesMax: data.site.siteMetadata.chatLinesMax
                       }
