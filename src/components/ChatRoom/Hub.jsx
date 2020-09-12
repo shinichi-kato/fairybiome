@@ -25,9 +25,7 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const CHAT_WINDOW = 12;
-
-export default function Home() {
+export default function Hub({location}) {
   const classes = useStyles();
 
   const fb = useContext(FirebaseContext);
@@ -38,6 +36,12 @@ export default function Home() {
 
   const [hubLog, setHubLog] = useState([]);
   const [botBusy, setBotBusy] = useState(false);
+
+  const site = useRef({
+    title: location.state.data.title,
+    localLogLinesMax: location.state.data.localLogLinesMax,
+    chatLinesMax: location.state.data.chatLinesMax
+  });
 
   function setNavigateBefore() {
     /* 戻るボタンを押したときの動作を記述し、戻り先アドレスを返す */
@@ -56,7 +60,7 @@ export default function Home() {
 
     // listen
     hubLogRef.orderBy("timestamp", "desc")
-      .limit(CHAT_WINDOW)
+      .limit(site.current.localLogLinesMax)
       .onShapshot(handleRecieveSnapshot);
 
     return (() => {
@@ -104,7 +108,7 @@ export default function Home() {
     });
   }
 
-  const logSlice = hubLog.slice(-CHAT_WINDOW);
+  const logSlice = hubLog.slice(-site.current.chatLinesMax);
   const speeches = logSlice.map(speech => {
     return (speech.speakerId === user.uid || speech.speakerId === -1) ?
       <RightBalloon key={speech.timestamp} speech={speech} />
@@ -134,7 +138,7 @@ export default function Home() {
         <ApplicationBar
           busy={botBusy}
           setNavigateBefore={setNavigateBefore}
-          title="ハブ" />
+          title={site.current.title} />
       </Box>
       <Box className={classes.main} flexGrow={1} order={0}>
         {speeches}

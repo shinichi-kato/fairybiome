@@ -1,5 +1,5 @@
 import React from "react";
-import { navigate } from "gatsby";
+import { navigate, graphql, StaticQuery } from "gatsby";
 
 import { makeStyles } from "@material-ui/core/styles";
 import Button from "@material-ui/core/Button";
@@ -13,6 +13,20 @@ import HomeIcon from "../../icons/Home";
 // import HubFairiesIcon from "../../icons/HubFairies";
 import HubIcon from "../../icons/Hub";
 import HabitatIcon from "../../icons/Habitat";
+
+const query = graphql`
+query {
+   site {
+    siteMetadata {
+      title
+      homeTitle
+      hubTitle
+      habitatTitle
+      localLogLinesMax
+      chatLinesMax
+    }
+  }
+}`;
 
 const useStyles = makeStyles((theme) => ({
   rootWhoseChildUsesFlexGrow: {
@@ -62,74 +76,99 @@ export default function Main(props) {
   const userDisplayName = props.displayName;
   const userPhotoURL = props.photoURL;
   return (
-    <Box
-      alignContent="flex-start"
-      className={classes.rootWhoseChildUsesFlexGrow}
-      display="flex"
-      flexDirection="column"
-      flexWrap="nowrap"
-      justifyContent="flex-start"
-    >
-      <Box>
-        <ApplicationBar title="" />
-      </Box>
-      <Box
-        alignSelf="flex-end"
-      >
-        <Button
-          className={classes.habitatButton}
-          onClick={() => navigate("/fairybiome/Habitat/")}
+    <StaticQuery
+      query={query}
+      render={data => (
+        <Box
+          alignContent="flex-start"
+          className={classes.rootWhoseChildUsesFlexGrow}
+          display="flex"
+          flexDirection="column"
+          flexWrap="nowrap"
+          justifyContent="flex-start"
         >
-          <HabitatIcon style={{ fontSize: 90 }} />
-        </Button>
-      </Box>
-      <Box
-        className={classes.avatars}
-        display="flex"
-        flexDirection="row"
-        flexGrow={1}
-        justifyContent="space-evenly"
-      >
-        <Box>
-          <ChatAvatar
-            displayName={userDisplayName}
-            icon={userPhotoURL}
-          />
-        </Box>
-        {props.bot.displayName &&
           <Box>
-            <ChatAvatar
-              displayName={props.bot.displayName || "名前のない妖精"}
-              icon={props.bot.photoURL}
-            />
+            <ApplicationBar
+              title={data.site.siteMetadata.title} />
           </Box>
-          ||
-          <Box>
-            <MeetFairy />
-          </Box>
-        }
-      </Box>
-      <Box
-        display="flex"
-        flexDirection="row"
-        justifyContent="space-between"
-      >
-        <Box>
-          <Button
-            className={classes.homeButton}
-            onClick={() => navigate("/fairybiome/Home/")}>
-            <HomeIcon style={{ fontSize: 90 }} />
-          </Button>
-        </Box>
-        <Box>
-          <Button
-            className={classes.hubButton}
-            onClick={() => navigate("/fairybiome/Hub/")}
+          <Box
+            alignSelf="flex-end"
           >
-            <HubIcon style={{ fontSize: 90 }} />
-          </Button>
+            <Button
+              className={classes.habitatButton}
+              onClick={() => navigate("/fairybiome/Habitat/")}
+            >
+              <HabitatIcon style={{ fontSize: 90 }} />
+            </Button>
+          </Box>
+          <Box
+            className={classes.avatars}
+            display="flex"
+            flexDirection="row"
+            flexGrow={1}
+            justifyContent="space-evenly"
+          >
+            <Box>
+              <ChatAvatar
+                displayName={userDisplayName}
+                icon={userPhotoURL}
+              />
+            </Box>
+            {props.bot.displayName &&
+              <Box>
+                <ChatAvatar
+                  displayName={props.bot.displayName || "名前のない妖精"}
+                  icon={props.bot.photoURL}
+                />
+              </Box>
+              ||
+              <Box>
+                <MeetFairy
+                  habitatTitle={data.site.siteMetadata.habitatTitle}
+                />
+              </Box>
+            }
+          </Box>
+          <Box
+            display="flex"
+            flexDirection="row"
+            justifyContent="space-between"
+          >
+            <Box>
+              <Button
+                className={classes.homeButton}
+                onClick={() => navigate("/fairybiome/Home/",
+                  {
+                    state: {
+                      data: {
+                        title: data.site.siteMetadata.homeTitle,
+                        localLogLinesMax: data.site.siteMetadata.localLogLinesMax,
+                        chatLinesMax: data.site.siteMetadata.chatLinesMax
+                      }
+                    }
+                  })}>
+                <HomeIcon style={{ fontSize: 90 }} />
+              </Button>
+            </Box>
+            <Box>
+              <Button
+                className={classes.hubButton}
+                onClick={() => navigate("/fairybiome/Hub/",
+                {
+                  state: {
+                    data: {
+                      title: data.site.siteMetadata.hubTitle,
+                      localLogLinesMax: data.site.siteMetadata.localLogLinesMax,
+                      chatLinesMax: data.site.siteMetadata.chatLinesMax
+                    }
+                  }
+                })}>
+                <HubIcon style={{ fontSize: 90 }} />
+              </Button>
+            </Box>
+          </Box>
         </Box>
-      </Box>
-    </Box>
+      )}
+    />
   );
 }

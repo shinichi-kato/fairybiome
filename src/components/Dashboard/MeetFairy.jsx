@@ -27,7 +27,7 @@ const useStyles = makeStyles((theme) => ({
 
 }));
 
-export default function MeetFairy() {
+export default function MeetFairy(props) {
   const classes = useStyles();
 
   return (
@@ -45,7 +45,7 @@ export default function MeetFairy() {
       </Box>
       <Box className={classes.nameContainer}>
         <Typography className={classes.name}>
-          生息地<HabitatIcon />で
+          {props.habitatTitle}<HabitatIcon />で
         </Typography>
         <Typography className={classes.name}>
           妖精を見つけよう！

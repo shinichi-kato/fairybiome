@@ -15,9 +15,6 @@ import { toTimestampString } from "../to-timestamp-string.jsx";
 import { FirebaseContext } from "../Firebase/FirebaseProvider";
 import { BotContext } from "../ChatBot/BotProvider";
 
-const CHAT_WINDOW = 10;
-const LOG_WINDOW = 100;
-
 const useStyles = makeStyles((theme) => ({
   root: {
     width: "100%",
@@ -39,7 +36,7 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-export default function Home() {
+export default function Home({location}) {
   const classes = useStyles();
   const fb = useContext(FirebaseContext);
   const bot = useContext(BotContext);
@@ -49,6 +46,11 @@ export default function Home() {
   const user = fb.user;
   const userDisplayName = user.displayName;
   const botDisplayName = `${bot.displayName}@${userDisplayName}`;
+  const site = useRef({
+    title: location.state.data.title,
+    localLogLinesMax: location.state.data.localLogLinesMax,
+    chatLinesMax: location.state.data.chatLinesMax
+  });
 
   useEffect(() => {
     setBotBusy(true);
@@ -68,7 +70,7 @@ export default function Home() {
     setLog(prevLog => {
       /* 連続selLog()で前のselLog()が後のsetLog()で上書きされるのを防止 */
       const newLog = [...prevLog, message];
-      newLog.slice(-CHAT_WINDOW);
+      newLog.slice(-site.current.localLogLinesMax);
       localStorageIO.setJson("homeLog", newLog);
       return newLog;
     });
@@ -114,7 +116,7 @@ export default function Home() {
     // })
   }
 
-  const logSlice = log.slice(-CHAT_WINDOW);
+  const logSlice = log.slice(-site.current.chatLinesMax);
   const speeches = logSlice.map(speech => {
     return (speech.speakerId === user.uid || speech.speakerId === -1) ?
       <RightBalloon key={speech.timestamp} speech={speech} />
@@ -146,7 +148,7 @@ export default function Home() {
           <ApplicationBar
             busy={botBusy}
             setNavigateBefore={setNavigateBefore}
-            title="ホーム" />
+            title={site.current.title} />
         </Box>
         <Box className={classes.main} flexGrow={1} order={0}>
           {speeches}

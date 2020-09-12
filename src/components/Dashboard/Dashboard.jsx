@@ -25,7 +25,6 @@ export default function Dashboard() {
     fb.changeUserInfo(displayName, photoURL);
   }
 
-  console.log("<Dashboard />");
   return (
     <>
       {

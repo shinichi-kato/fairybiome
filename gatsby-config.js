@@ -16,7 +16,9 @@ module.exports = {
     //   email: "",
     // },
     // menuLinks: [],
-
+    homeTitle: "ホーム", /* HOMEのアプリバーに表示する名前 */
+    habitatTitle: "生息地", /* Habitatのアプリバーに表示する名前 */
+    hubTitle: "公園", /* hubのアプリバーに表示する名前 */
     localLogLinesMax: 200, /* ローカルのログに記録する最大行数 */
     chatLinesMax: 20, /* 画面上に表示するログの最大行数 */
     habitatFairyHpMax: 120, /* habitatで出現する妖精の最大数 */

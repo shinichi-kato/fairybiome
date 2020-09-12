@@ -23,7 +23,7 @@ import {readFromFirestore} from "../../biomebot/biomebotIO.jsx";
 
 // fairyディレクトリの妖精の中でHabitatにいるものを抽出
 const query = graphql`
-query Myq {
+query {
   allFile(filter: {sourceInstanceName: {eq: "fairy"}}) {
     edges {
       node {
