@@ -35,7 +35,6 @@
         "{!VANISHING}":["・・・　・・・"],
         "{!BOT_COMING_BACK}":["ただいまー"],
         "{!NOT_FOUND}":["？","そうなんだ"]      
-        
     },
     "parts":{
         "greeting": {
@@ -43,7 +42,7 @@
             "behavior": {
               "availability": 0.7,
               "generosity": 0.8,
-              "retention": 0.5
+              "retention": 0.1
             },
             "dict":[
                 {"in":["こんにちは","こんばんは","おはよう","お早うございます"],
@@ -77,7 +76,7 @@
             "behavior": {
                 "availability": 1,
                 "generosity": 0.8,
-                "retention": 0.5
+                "retention": 0.3
             },
             "dict":[
                 {"in":["おおー"],

@@ -19,7 +19,7 @@ import { toTimestampString } from "../to-timestamp-string.jsx";
 import { FirebaseContext } from "../Firebase/FirebaseProvider";
 import { BotContext } from "../ChatBot/BotProvider";
 
-import {readFromFirestore} from "../../biomebot/biomebotIO.jsx";
+import { readFromFirestore } from "../../biomebot/biomebotIO.jsx";
 
 // fairyディレクトリの妖精の中でHabitatにいるものを抽出
 const query = graphql`
@@ -130,6 +130,11 @@ export default function Habitat() {
 
   useEffect(() => {
     bot.deployHabitat(null);
+
+    const buddyState = bot.getBuddyState();
+    if (buddyState.buddy === null) {
+      writeLog("妖精に話しかけて、仲間になってもらおう！");
+    }
   }, [] // eslintで警告が出るが、空の配列を渡す
   );
 

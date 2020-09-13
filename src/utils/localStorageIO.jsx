@@ -37,6 +37,12 @@ export const localStorageIO = {
       const payload = JSON.stringify(value);
       localStorage.setItem(name, payload);
     }
+  },
+
+  clear: () => {
+    if (isBrowser()) {
+      localStorage.clear();
+    }
   }
 
 };

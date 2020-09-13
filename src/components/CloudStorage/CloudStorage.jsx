@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useContext, useMemo } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import FormLabel from "@material-ui/core/FormLabel";
@@ -8,7 +8,9 @@ import UploadIcon from "@material-ui/icons/CloudUploadOutlined";
 import DownloadIcon from "@material-ui/icons/CloudDownloadOutlined";
 import ApplicationBar from "../ApplicationBar/ApplicationBar";
 import TextInput from "../TextInput.jsx";
+import { localStorageIO } from "../../utils/localStorageIO";
 
+import FairyList from "./FairyList";
 import { FirebaseContext } from "../Firebase/FirebaseProvider";
 import { BotContext } from "../ChatBot/BotProvider";
 
@@ -40,14 +42,23 @@ export default function CloudStorage() {
   */
   const classes = useStyles();
   const envPasscode = typeof window !== "undefined" && process.env.FAIRYBIOME_PASSCODE;
-  const [passcode, setPasscode] = useState("");
+  const [passcode, setPasscode] = useState(localStorageIO.getItem("fairyBiome.passcode", ""));
   const [message, setMessage] = useState(null);
+  const [fairyList, setFairyList] = useState([]);
+  const [cursor, setCursor] = useState();
+  const fb = useContext(FirebaseContext);
 
+  useEffect(() => {
+    checkPasscode();
+  }, []);
+  
   function checkPasscode() {
     if (passcode !== envPasscode) {
-      setMessage("パスコードが一致しません");
+      setMessage(`パスコードが一致しません${envPasscode}`);
     } else {
       setMessage(null);
+      localStorage.setItem("fairyBiome.passcode", passcode);
+      getBotList();
     }
   }
 
@@ -64,6 +75,25 @@ export default function CloudStorage() {
     checkPasscode();
   }
 
+  function handleSetCursor(data) {
+    setCursor(data);
+  }
+
+  function getBotList() {
+    const botsRef = fb.firestore.collection("bots");
+    botsRef.get()
+      .then(snapshot => {
+        setFairyList(snapshot.docs.map(doc => (
+          {
+            displayName: doc.config.displayName,
+            id: doc.config.id,
+            photoURL: doc.config.photoURL,
+            firstUser: doc.config.firstUser,
+          }
+        )));
+      });
+  }
+
   return (
     <Box
       alignContent="flex-start"
@@ -74,13 +104,13 @@ export default function CloudStorage() {
       justifyContent="flex-start"
     >
       <Box>
-        <ApplicationBar title="クラウドストレージ" />
+        <ApplicationBar title="クラウド保存" />
       </Box>
       <Box className={classes.content}>
         <form onSubmit={handleSubmit}>
           <FormLabel component="legend">パスコード</FormLabel>
           <Box
-            alignItems="cener"
+            alignItems="center"
             display="flex"
             flexDirection="row"
           >
@@ -106,6 +136,12 @@ export default function CloudStorage() {
           </Box>
           <Box className={classes.content}>
             <Typography><DownloadIcon />ダウンロード</Typography>
+          </Box>
+          <Box>
+            <FairyList
+              cursor={cursor}
+              data={fairyList}
+              handleSetCursor={handleSetCursor} />
           </Box>
         </>
       }

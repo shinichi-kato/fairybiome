@@ -5,6 +5,8 @@ import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
 import { FirebaseContext } from "../Firebase/FirebaseProvider";
 
+import { localStorageIO } from "../../utils/localStorageIO";
+
 export default function SettingsMenu(props) {
   const fb = useContext(FirebaseContext);
 
@@ -23,6 +25,11 @@ export default function SettingsMenu(props) {
     navigate("/fairybiome/CloudStorage");
   }
 
+  function handleClear() {
+    props.handleClose();
+    localStorageIO.clear();
+  }
+
   return (
     <Menu
       anchorEl={props.anchorEl}
@@ -33,6 +40,7 @@ export default function SettingsMenu(props) {
       <MenuItem onClick={handleCloudStorage}>ファイル</MenuItem>
       <MenuItem onClick={handleUserSettings}>ユーザ設定</MenuItem>
       <MenuItem onClick={handleSignOut}>サインアウト</MenuItem>
+      <MenuItem onClick={handleClear}>localStorage消去</MenuItem>
     </Menu>
   );
 }

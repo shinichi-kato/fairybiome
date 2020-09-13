@@ -47,11 +47,20 @@ export default function Home({location}) {
   const userDisplayName = user.displayName;
   const botDisplayName = `${bot.displayName}@${userDisplayName}`;
   const site = useRef({
+    title: "",
+    hubTitle: "集合場所",
+    localLogLinesMax: 20,
+    chatLinesMax: 20
+  });
+
+  if (location.state?.data) {
+    site.current = {
     title: location.state.data.title,
     hubTitle: location.state.data.hubTitle,
     localLogLinesMax: location.state.data.localLogLinesMax,
     chatLinesMax: location.state.data.chatLinesMax
-  });
+    };
+  }
 
   useEffect(() => {
     setBotBusy(true);
@@ -100,7 +109,7 @@ export default function Home({location}) {
             photoURL: reply.photoURL,
             text: reply.text,
             speakerId: bot.displayName,
-            timestamp: fb.timestampNow()
+            timestamp: toTimestampString(fb.timestampNow())
           });
           setBotBusy(false);
         }
@@ -134,7 +143,7 @@ export default function Home({location}) {
       chatBottomEl.current.scrollIntoView({ behavior: "smooth", block: "end" });
     }
   }, [logSlice]);
-  console.log(location)
+
   return (
     <>
       <Box

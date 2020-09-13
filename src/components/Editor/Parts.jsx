@@ -54,8 +54,17 @@ export default function Parts(props) {
   useEffect(() => {
     if (props.pageWillChange) {
       handleSave();
+      console.log(`saving ${partName}`);
     }
   }, [props.pageWillChange]);
+
+  useEffect(() => {
+    // ページが切り替わったらデータを書き換える
+    setDict(data.dict);
+    setDictCursor(0);
+    setPartType(data.type);
+    setBehavior(data.behavior);
+  }, [partName]);
 
   function handleSave() {
     props.handleSavePart(

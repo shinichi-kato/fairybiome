@@ -9,7 +9,6 @@ import Typography from "@material-ui/core/Typography";
 import IconButton from "@material-ui/core/IconButton";
 
 import NavigateBeforeIcon from "@material-ui/icons/NavigateBefore";
-import NavigateNextIcon from "@material-ui/icons/NavigateNext";
 import SettingsOutlinedIcon from "@material-ui/icons/SettingsOutlined";
 import MenuBookIcon from "@material-ui/icons/MenuBook";
 import TextsmsIcon from "@material-ui/icons/Textsms";
@@ -54,14 +53,11 @@ export default function ApplicationBar(props) {
     <AppBar position="static">
       <Toolbar>
         <IconButton
-color="inherit" edge="start"
+          color="inherit" edge="start"
           onClick={handleClickNavBefore}
         >
           <NavigateBeforeIcon />
 
-        </IconButton>
-        <IconButton color="inherit">
-          <NavigateNextIcon />
         </IconButton>
         <Typography className={classes.title} variant="h6">
           {props.icon}

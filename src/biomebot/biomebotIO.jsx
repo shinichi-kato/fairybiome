@@ -125,7 +125,6 @@ export default class BiomeBotIO {
     localStorageIO.setItem("Biomebot.firestoreDocId", this.firestoreDocId);
     localStorageIO.setItem("Biomebot.config", JSON.stringify(this.config));
     localStorageIO.setItem("Biomebot.updatedAt", JSON.stringify(this.updatedAt));
-    console.log("setConfig:", this.config);
   };
 
   setPart = (partName, part, updatedAt) => {
@@ -133,7 +132,6 @@ export default class BiomeBotIO {
     this.updatedAt = updatedAt;
     localStorageIO.setItem(`Biomebot.part[${partName}]`, JSON.stringify(part));
     localStorageIO.setItem("Biomebot.updatedAt", JSON.stringify(this.updatedAt));
-    console.log(`setPart(${partName})`);
   };
 
   removePart = (partName) => {
@@ -244,7 +242,6 @@ export default class BiomeBotIO {
 
     this.state = { ...state };
     this.updatedAt = localStorageIO.getJson("Biomebot.updatedAt");
-    console.log("readlocal", this.config);
     return true;
   };
 
@@ -280,7 +277,7 @@ export default class BiomeBotIO {
           partOrder: this.state.partOrder,
           activeInHub: this.state.activeInHub,
           hp: this.state.hp,
-          query: this.state.query
+          queue: this.state.queue
         },
         buddy: this.state.buddy,
         updatedAt: this.updatedAt
@@ -301,7 +298,7 @@ export default class BiomeBotIO {
             partOrder: this.state.partOrder,
             activeInHub: this.state.activeInHub,
             hp: this.state.hp,
-            query: this.state.query
+            queue: this.state.queue
           },
           buddy: this.state.buddy,
           updatedAt: this.updatedAt

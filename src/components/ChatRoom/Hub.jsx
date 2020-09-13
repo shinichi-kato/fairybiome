@@ -38,10 +38,18 @@ export default function Hub({location}) {
   const [botBusy, setBotBusy] = useState(false);
 
   const site = useRef({
+    title: "",
+    localLogLinesMax: 20,
+    chatLinesMax: 20
+  });
+
+  if (location.state?.data) {
+    site.current = {
     title: location.state.data.title,
     localLogLinesMax: location.state.data.localLogLinesMax,
     chatLinesMax: location.state.data.chatLinesMax
-  });
+    };
+  }
 
   function setNavigateBefore() {
     /* 戻るボタンを押したときの動作を記述し、戻り先アドレスを返す */

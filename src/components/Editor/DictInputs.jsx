@@ -13,7 +13,7 @@ const useStyles = makeStyles((theme) => ({
     marginTop: theme.spacing(2),
 
   },
-  margin: {
+  button: {
     margin: theme.spacing(1),
   },
   input: {
@@ -75,6 +75,13 @@ export default function DictInputs(props) {
     });
   }
 
+  function handleDelete() {
+    setDict(prevDict =>
+      prevDict.splice(state.currentDictCursor, 1)
+    );
+    dispatch({type: "reload", dict: dict, dictCursor: dictCursor});
+  }
+
   function enter() {
     if (dictCursor === dict.length - 1) {
       // 最下行であれば次の行を追加
@@ -89,6 +96,11 @@ export default function DictInputs(props) {
       dispatch({ type: "reload", dict: dict, dictCursor: dictCursor });
     }
   }, [state.currentDictCursor, dictCursor]);
+
+  useEffect(() => {
+    // 親のpartが変わったらdictが変わる。dictが変わったらreloadする
+    dispatch({ type: "reload", dict: dict, dictCursor: dictCursor });
+  }, [dict]);
 
   function handleChangeInputs(e) {
     dispatch({ type: "changeInputs", value: e.target.value });
@@ -124,6 +136,7 @@ export default function DictInputs(props) {
             className={classes.input}
             fullWidth
             multiline
+            onBlur={writeback}
             onChange={handleChangeInputs}
             rows={3}
             value={state.inputs}
@@ -143,6 +156,7 @@ export default function DictInputs(props) {
             className={classes.input}
             fullWidth
             multiline
+            onBlur={writeback}
             onChange={handleChangeOutputs}
             onKeyDown={handleKeyDown}
             rows={3}
@@ -159,12 +173,19 @@ export default function DictInputs(props) {
         </Grid>
         <Grid item xs={12}>
           <Button
+            className={classes.button}
+            color="default"
+            onClick={handleDelete}
+            size="large"
             startIcon={<DeleteIcon />}
+            variant="contained"
           >
-            削除
+            行を削除
           </Button>
           <Button
+            className={classes.button}
             color="primary"
+            size="large"
             type="submit"
             variant="contained"
           >

@@ -162,8 +162,8 @@ export default function Config(props) {
             flexDirection="row"
           >
             {data.allFile.edges.map((edge, index) => (
-              <Box>
-                <FairyAvatar key={index} path={edge.node.relativePath} />
+              <Box key={index}>
+                <FairyAvatar path={edge.node.relativePath} />
               </Box>
             ))}
           </Box>
