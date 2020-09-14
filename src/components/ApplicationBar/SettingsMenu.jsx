@@ -26,8 +26,9 @@ export default function SettingsMenu(props) {
   }
 
   function handleClear() {
-    props.handleClose();
     localStorageIO.clear();
+    props.handleClose();
+    navigate("/");
   }
 
   return (

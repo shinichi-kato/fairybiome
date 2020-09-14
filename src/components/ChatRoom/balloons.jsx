@@ -12,15 +12,15 @@ const useStyles = makeStyles(theme => createStyles({
     margin: "auto",
   },
   longText: {
-    fontSize: 14,
+    fontSize: 16,
   },
   shortText: {
     fontSize: 32,
   },
 
   avatar: {
-    width: 40,
-    height: 40
+    width: 64,
+    height: 64
   },
   leftBalloon: {
     position: "relative",

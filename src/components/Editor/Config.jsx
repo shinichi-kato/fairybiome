@@ -16,7 +16,7 @@ import PartOrder from "./PartOrder";
 import Behavior from "./Behavior";
 
 const query = graphql`
-query MyQuery {
+query  {
   allFile(filter: {sourceInstanceName: {eq: "staticimages"},
     base: {eq: "normal.svg"}, relativePath: {regex: "/^bot\\/(?!_)/"}}) {
     edges {
@@ -156,18 +156,11 @@ export default function Config(props) {
   const MemorizedAvatarSelector = useMemo(() => (
       <StaticQuery
         query={query}
-        render={data => (
-          <Box
-            display="flex"
-            flexDirection="row"
-          >
-            {data.allFile.edges.map((edge, index) => (
-              <Box key={index}>
-                <FairyAvatar path={edge.node.relativePath} />
-              </Box>
-            ))}
-          </Box>
-        )} />
+        render={data => data.allFile.edges.map( 
+          (edge, index) => {
+            return <FairyAvatar index={index} path={edge.node.relativePath} />
+          })
+        } />
     ), []);
 
     const MemorizedFairyPanel = useMemo(() => (
@@ -209,7 +202,10 @@ export default function Config(props) {
         </Grid>
         <Grid item xs={7}>
           <Typography variant="subtitle1">
-            妖精の外見。実際に表示されるアイコンは妖精の状態により表情などが変わります。
+            妖精の外見
+          </Typography>
+          <Typography variant="subtitle2">
+          実際に表示されるアイコンは妖精の状態により表情などが変わります。
           </Typography>
         </Grid>
         <Grid item xs={5}>

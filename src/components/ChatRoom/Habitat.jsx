@@ -44,6 +44,7 @@ query {
   }
   site {
     siteMetadata {
+      habitatTitle
       localLogLinesMax
       chatLinesMax
       habitatNumOfFairyMax
@@ -115,13 +116,15 @@ export default function Habitat() {
   const fairiesListRef = useRef(null);
   const hpMaxRef = useRef();
   const numOfFairyRef = useRef();
-  const localLogLinesMaxRef = useRef(10);
-  const chatLinesMaxRef = useRef(10);
-  const fairiesRef = useRef([]);
   const [currentFairy, setCurrentFairy] = useState(null);
   const [botBusy, setBotBusy] = useState(false);
   const [log, setLog] = useState([]);
-  const [pageWillChange, setPageWillChange] = useState(null);
+
+  const site = useRef({
+    title: "生息場所",
+    localLogLinesMax: 20,
+    chatLinesMax: 20
+  });
 
   // const seed = Math.floor(fb.timestampNow().seconods/(60*HABITAT.update_interval));
 
@@ -225,7 +228,6 @@ export default function Habitat() {
 
       hpMaxRef.current = randomInt(hpMax);
       numOfFairyRef.current = randomInt(numOfFairyMax);
-      fairiesListRef.current = [...data];
 
       // firestore上のbotをfetchして加える
       const botsRef = fb.firestore.collection("bots");
@@ -270,12 +272,15 @@ export default function Habitat() {
           selectedFairies.push(allFairies[index]);
           allFairies.splice(index, 1);
         }
-        fairiesRef.current = [...selectedFairies];
+        fairiesListRef.current = [...selectedFairies];
       }
 
       // ついでにチャットログ用の定数をセット
-      localLogLinesMaxRef.current = siteMetadata.localLogLinesMax;
-      chatLinesMaxRef.current = siteMetadata.chatLinesMax;
+      site.current = {
+        title: siteMetadata.habitatTitle,
+        localLogLinesMax: siteMetadata.localLogLinesMax,
+        chatLinesMax: siteMetadata.chatLinesMax
+      };
     }
 
     return (
@@ -290,7 +295,7 @@ export default function Habitat() {
               flexDirection="row"
               justifyContent="space-evenly"
             >
-              {fairiesRef.current.map((fairy, index) => <FairyAvatar {...fairy} key={index} />)}
+              {fairiesListRef.current.map((fairy, index) => <FairyAvatar {...fairy} key={index} />)}
             </Box>
         }
       </>
@@ -337,16 +342,6 @@ export default function Habitat() {
           setBotBusy(false);
         }
       });
-    // .catch(e=>{
-    //   writeLog({
-    //     displayName:"error",
-    //     photoURL:"",
-    //     text:e.message,
-    //     speakerId:bot.DisplayName,
-    //     timestamp:toTimestampString(fb.timestampNow())
-    //   })
-    //   setBotBusy(false);
-    // })
   }
 
   function writeLog(message) {
@@ -368,7 +363,7 @@ export default function Habitat() {
     setLog(prevLog => {
       /* 連続selLog()で前のselLog()が後のsetLog()で上書きされるのを防止 */
       const newLog = [...prevLog, newMessage];
-      newLog.slice(-localLogLinesMaxRef.current);
+      newLog.slice(-site.current.localLogLinesMaxRef);
       localStorageIO.setJson("habitatLog", newLog);
       return newLog;
     });
@@ -383,7 +378,7 @@ export default function Habitat() {
     return ("/fairybiome/Dashboard/");
   }
 
-  const logSlice = log.slice(-chatLinesMaxRef.current);
+  const logSlice = log.slice(-site.current.chatLinesMax);
   const speeches = logSlice.map(speech => {
     if (speech.speakerId === null) {
       return <SystemLog key={speech.timestamp} speech={speech} />;
@@ -416,7 +411,7 @@ export default function Habitat() {
         <ApplicationBar
           busy={botBusy}
           setNavigateBefore={setNavigateBefore}
-          title="妖精の生息地"
+          title={site.current.title}
         />
       </Box>
 
