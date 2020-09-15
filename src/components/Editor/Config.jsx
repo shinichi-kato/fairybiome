@@ -156,9 +156,9 @@ export default function Config(props) {
   const MemorizedAvatarSelector = useMemo(() => (
       <StaticQuery
         query={query}
-        render={data => data.allFile.edges.map( 
+        render={data => data.allFile.edges.map(
           (edge, index) => {
-            return <FairyAvatar index={index} path={edge.node.relativePath} />
+            return <FairyAvatar key={index} path={edge.node.relativePath} />;
           })
         } />
     ), []);

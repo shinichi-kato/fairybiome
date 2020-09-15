@@ -43,6 +43,7 @@ export default class BiomeBotIO {
     // 書誌的事項(会話中に変化しない)
     this.firestoreDocId = null;
     this.firestoreOwnerId = null;
+    this.ownerDisplayName = null;
     this.config = {
       trueName: "",
       firstUser: "",
@@ -156,6 +157,7 @@ export default class BiomeBotIO {
   readObj = (obj) => {
     const b = obj.config.hubBehavior;
     this.firestoreOwnerId = obj.firestoreOwnerId;
+    this.ownerDisplayName = obj.ownerDisplayName;
     this.firestoreDocId = obj.firestoreDocId;
     this.config = {
       ...obj.config,
@@ -182,6 +184,7 @@ export default class BiomeBotIO {
 
   getFairyFromLocalStorage = () => {
     const ownerId = localStorageIO.getItem("Biomebot.firestoreOwnerId");
+    const ownerName = localStorageIO.getItem("Biomebot.ownerDisplayName");
     const docId = localStorageIO.getItem("Biomebot.firestoreDocId");
     const state = localStorageIO.getJson("Biomebot.state");
     if (state === null) { return false; }
@@ -197,6 +200,7 @@ export default class BiomeBotIO {
 
     return {
       firestoreOwnerId: ownerId,
+      ownerDisplayName: ownerName,
       firestoreDocId: docId,
       config: {
         ...config,
@@ -215,6 +219,7 @@ export default class BiomeBotIO {
 
   readLocalStorage = () => {
     this.firestoreOwnerId = localStorageIO.getItem("Biomebot.firestoreOwnerId");
+    this.ownerDisplayName = localStorageIO.getItem("Biomebot.ownerDisplayname");
     this.firestoreDocId = localStorageIO.getItem("Biomebot.firestoreDocId");
     const state = localStorageIO.getJson("Biomebot.state");
     if (state === null) { return false; }
@@ -250,7 +255,10 @@ export default class BiomeBotIO {
     localStorageIO.setItem("Biomebot.state", JSON.stringify(this.state));
   };
 
-  dumpToLocalStorage = () => {
+  dumpToLocalStorage = (fairy) => {
+    if (fairy) {
+      this.readObj(fairy);
+    }
     // 全データの保存
     localStorageIO.setItem("Biomebot.firestoreDocId", this.firestoreDocId);
     localStorageIO.setItem("Biomebot.config", JSON.stringify(this.config));
@@ -267,11 +275,40 @@ export default class BiomeBotIO {
   dumpToFirestore = (fb) => {
     // firestoreへの全データの保存
     const ownerId = fb.user.uid;
+    const ownerName = fb.user.displayName;
     const fs = fb.firestore;
-    if (this.firestoreDocId) {
+    if (!this.firestoreDocId || this.firestoreDocId === "undefined") {
+      fs.collection("bots")
+      .add({
+        firestoreOwnerId: ownerId,
+        ownerDisplayName: ownerName,
+        config: this.config,
+        state: {
+          partOrder: this.state.partOrder,
+          activeInHub: this.state.activeInHub,
+          hp: this.state.hp,
+          queue: this.state.queue
+        },
+        buddy: this.state.buddy,
+        updatedAt: this.updatedAt
+      })
+      .then(docRef => {
+        console.log("add", docRef.id);
+        this.firestoreDocId = docRef.id;
+        localStorageIO.setItem("Biomebot.firestoreDocId", this.firestoreDocId);
+        docRef.collection("wordDict")
+          .doc("wordDict").set(this.wordDict);
+
+        const partsRef = docRef.collection("parts");
+        for (let partName of this.config.defaultPartOrder) {
+          partsRef.doc(partName).set(this.parts[partName].dump());
+        }
+      });
+    } else {
       const docRef = fs.collection("bots").doc(this.firestoreDocId);
       docRef.set({
         firestoreOwnerId: ownerId,
+        ownerDisplayName: ownerName,
         config: this.config,
         state: {
           partOrder: this.state.partOrder,
@@ -289,51 +326,30 @@ export default class BiomeBotIO {
       for (let partName of this.config.defaultPartOrder) {
         partsRef.doc(partName).set(this.parts[partName].dump());
       }
-    } else {
-      fs.collection("bots")
-        .add({
-          firestoreOwnerId: ownerId,
-          config: this.config,
-          state: {
-            partOrder: this.state.partOrder,
-            activeInHub: this.state.activeInHub,
-            hp: this.state.hp,
-            queue: this.state.queue
-          },
-          buddy: this.state.buddy,
-          updatedAt: this.updatedAt
-        })
-        .then(docRef => {
-          this.firestoreDocId = docRef.id;
-          localStorageIO.setItem("Biomebot.firestoreDocId", this.firestoreDocId);
-          docRef.collection("wordDict")
-            .doc("wordDict").set(this.wordDict);
-
-          const partsRef = docRef.collection("parts");
-          for (let partName of this.config.defaultPartOrder) {
-            partsRef.doc(partName).set(this.parts[partName].dump());
-          }
-        });
     }
   };
 }
 
 export const readFromFirestore = async (fb, docId) => {
   const docRef = fb.firestore.collection("bots").doc(docId);
-  const data = await docRef.get();
+  const doc = await docRef.get();
+  const data = doc.data();
   let fairy = {
     firestoreOwnerId: data.firestoreOwnerId,
+    ownerDisplayName: data.ownerDispalyName,
     config: {... data.config},
     state: {
       ... data.state,
       buddy: data.buddy,
     },
-    updatedAt: data.updatedAt
+    updatedAt: data.updatedAt,
+    wordDict: {},
+    parts: {}
   };
 
-  const wdRef = docRef.collection("wordDict");
+  const wdRef = docRef.collection("wordDict").doc("wordDict");
   const wdData = await wdRef.get();
-  fairy.wordDict = [...wdData.wordDict];
+  fairy.wordDict = {...wdData.data()};
 
   const partsRef = docRef.collection("parts");
   const partsData = await partsRef.get();

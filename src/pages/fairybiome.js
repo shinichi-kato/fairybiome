@@ -25,13 +25,6 @@ export default function Fairybiome() {
       return null;
     };
     if (isBrowser()) {
-      // const handler = (event) => {
-      //   if (handler.event.touches[0].target.tagName.toLowerCase() === "body") {
-      //     event.preventDefault();
-      //   }
-      //   return null;
-      // };
-
       window.addEventListener("touchstart", handler);
       window.addEventListener("touchmove", handler);
       window.addEventListener("touchend", handler);

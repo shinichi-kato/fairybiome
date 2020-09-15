@@ -38,10 +38,10 @@ export default function SettingsMenu(props) {
       onClose={props.handleClose}
       open={props.open}
     >
-      <MenuItem onClick={handleCloudStorage}>ファイル</MenuItem>
+      <MenuItem onClick={handleCloudStorage}>アップロード/ダウンロード</MenuItem>
       <MenuItem onClick={handleUserSettings}>ユーザ設定</MenuItem>
       <MenuItem onClick={handleSignOut}>サインアウト</MenuItem>
-      <MenuItem onClick={handleClear}>localStorage消去</MenuItem>
+      <MenuItem onClick={handleClear}>リセット</MenuItem>
     </Menu>
   );
 }

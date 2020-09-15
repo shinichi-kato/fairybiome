@@ -332,7 +332,7 @@ export default class BiomeBot extends BiomeBotIO {
 
         this.config.displayName = nameCand;
         this.config.trueName = nameCand;
-        this.config.firstuser = userName;
+        this.config.firstUser = userName;
         this.state.queue.shift();
         this.state.queue = ["{!CONFIRM_NAME}"];
         return resolve({

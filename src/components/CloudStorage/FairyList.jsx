@@ -37,7 +37,7 @@ export default function FairyList(props) {
     const node = fairyList[index];
 
     function handleClick() {
-      props.setCursor(node.id);
+      props.setCursor(index);
     }
 
     return (
@@ -50,9 +50,9 @@ export default function FairyList(props) {
           onClick={handleClick}
         >
           <ListItemIcon>
-            <Avatar src={`../../static/svg/bot/${node.photoURL}`} />
+            <Avatar src={`../../svg/${node.photoURL}`} />
           </ListItemIcon>
-          <ListItemText primary={node.displayName} />
+          <ListItemText primary={node.displayName} secondary={`クリエイター:${node.ownerDisplayName}`} />
         </ListItem>
       </div>
     );
@@ -62,7 +62,7 @@ export default function FairyList(props) {
     <div className={classes.scrollWindow} >
       <VariableSizeList
         height={300}
-        itemCount={dict.length}
+        itemCount={fairyList.length}
         itemSize={itemSize}
         width="100%">
         {renderRow}

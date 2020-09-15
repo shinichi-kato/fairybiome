@@ -69,10 +69,10 @@ export default function Hub({location}) {
     // listen
     hubLogRef.orderBy("timestamp", "desc")
       .limit(site.current.localLogLinesMax)
-      .onShapshot(handleRecieveSnapshot);
+      .onSnapshot(handleRecieveSnapshot);
 
     return (() => {
-      hubLogRef.onShapshot(() => { });
+      hubLogRef.onSnapshot(() => { });
     });
   }, []);
 
