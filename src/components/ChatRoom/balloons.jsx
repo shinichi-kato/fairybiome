@@ -3,6 +3,7 @@ import { makeStyles, createStyles } from "@material-ui/core/styles";
 import Box from "@material-ui/core/Box";
 import Avatar from "@material-ui/core/Avatar";
 import Typography from "@material-ui/core/Typography";
+import { toTimestampString } from "../to-timestamp-string.jsx";
 
 const SHORT_TEXT_LENGTH = 1;
 
@@ -92,7 +93,7 @@ alignItems="flex-end"
         <Typography
           className={[...speech.text].length <= SHORT_TEXT_LENGTH ? classes.shortText : classes.longText}
         >{speech.text}</Typography>
-        <Typography variant="caption">{speech.timestamp}</Typography>
+        <Typography variant="caption">{toTimestampString(speech.timestamp)}</Typography>
       </Box>
     </Box>
   );
@@ -113,7 +114,7 @@ alignItems="flex-end"
         <Typography
           className={[...speech.text].length <= SHORT_TEXT_LENGTH ? classes.shortText : classes.longText}
         >{speech.text}</Typography>
-        <Typography variant="caption">{speech.timestamp}</Typography>
+        <Typography variant="caption">{toTimestampString(speech.timestamp)}</Typography>
       </Box>
       <Box >
         <Avatar className={classes.avatar} src={`../../svg/${speech.photoURL}`} />

@@ -81,16 +81,15 @@ export default function Hub({location}) {
       const data = doc.data();
       return {
         ...data,
-        timestamp: toTimestampString(fb.timestampNow()),
         id: doc.id,
       };
     });
     setHubLog(messages.reverse());
-
+    console.log("hub",bot.ref)
     // 最後の発言者がぼっと自身でなければ発言を試みる
     const lastItem = messages[messages.length - 1];
     if (lastItem && lastItem.speakerId !== bot.ref.firestoreDocId) {
-      bot.hubReply(lastItem)
+      bot.replyHub(lastItem)
         .then(reply => {
           if (reply.text !== null) {
             fb.firestore.collection("hubLog").add({
@@ -98,7 +97,7 @@ export default function Hub({location}) {
               photoURL: reply.photoURL,
               text: reply.text,
               speakerId: bot.ref.firestoreDocId,
-              timestamp: fb.firestore.FieldValue.serverTimestamp()
+              timestamp: fb.timestampNow()
             });
             bot.upkeep();
           }
@@ -112,16 +111,16 @@ export default function Hub({location}) {
       photoURL: user.photoURL,
       text: text,
       speakerId: user.uid,
-      timestamp: fb.firestore.FieldValue.serverTimestamp()
+      timestamp: fb.timestampNow()
     });
   }
 
   const logSlice = hubLog.slice(-site.current.chatLinesMax);
   const speeches = logSlice.map(speech => {
     return (speech.speakerId === user.uid || speech.speakerId === -1) ?
-      <RightBalloon key={speech.timestamp} speech={speech} />
+      <RightBalloon key={speech.id || speech.timestamp} speech={speech} />
       :
-      <LeftBalloon key={speech.timestamp} speech={speech} />;
+      <LeftBalloon key={speech.id || speech.timestamp} speech={speech} />;
   }
   );
 

@@ -1,4 +1,4 @@
-export function toTimestampString(timestamp){
+export function toTimestampString(timestamp) {
 	/*
 		ログのタイムスタンプには全てfirebase.firestore.Timestamp.now()を
 		利用する。これはFirebaseContextからfb.timestampNow()で利用できる。
@@ -9,28 +9,29 @@ export function toTimestampString(timestamp){
 		処理を一本化する。toStringにより、タイムスタンプは
 
 	　Timestamp(seconds=1578745004, nanoseconds=743000000)
-	　
+
 		という文字列に変換される。文字列からJavascriptのDate型を復元するため
 		正規表現を利用し、配列のkeyにできるようにミリ秒まで表示する。
-	
+
 		firebase deploy環境ではrの取得に失敗している。要調査
-	*/ 
-	if(timestamp){
+	*/
+	if (timestamp) {
 		let d;
 		let ms;
-		if(typeof timestamp === "object" && timestamp !== null){
-			d = new Date(timestamp.seconds*1000);
-			ms = `${timestamp.nanoseconds}`.substr(0,3);
-		}
-		else {
+		if (typeof timestamp === "object" && timestamp !== null) {
+			d = new Date(timestamp.seconds * 1000);
+			ms = `${timestamp.nanoseconds}`.substr(0, 3);
+		} else if (typeof timestamp === "string") {
+			return timestamp;
+		} else {
 			const datestr = timestamp.toString();
-			console.log("timestamp",timestamp,"tostr",datestr);
+			console.log("timestamp", timestamp, "tostr", datestr);
 			const r = datestr.match(/seconds=([0-9]+), nanoseconds=([0-9][0-9][0-9])/);
-			d = new Date(r[1]*1000);
-			ms = r[2]
+			d = new Date(r[1] * 1000);
+			ms = r[2];
 		}
-		return	`${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}.${d.toLocaleTimeString()} ${ms}`;
+		return	`${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}.${d.toLocaleTimeString()} ${ms}`;
 	}
 
-	return "タイムスタンプが無効です"
+	return "タイムスタンプが無効です";
 }

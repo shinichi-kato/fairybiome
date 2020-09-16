@@ -99,6 +99,11 @@ const SYSTEM_WORD_DICT = {
           defaultValue: "そういうとき、なんて返事したらいの？"
         },
         {
+          id: "{!PARSE_USER_INPUT}",
+          description: "ユーザの返答を聞いて考え中",
+          defaultValue: "ええと・・・"
+        },
+        {
           id: "{!CONFIRM_LEARN}",
           description: "{!USER_UNKNOWN_INPUT},{!BOT_CAND_OUTPUT}を確認",
           defaultValue: "「{!USER_UNKNOWN_INPUT}」と言われたら「{!BOT_CAND_OUTPUT}」だね！",
@@ -146,23 +151,24 @@ const SYSTEM_WORD_DICT = {
 };
 
 function initialize(wordDict) {
-  const userDict = Object.assign({},
-    ...Object.entries(wordDict).filter(
-      ([key, ]) => !key.startsWith("{!")).map(
-        ([key, val]) => ({ [key]: val }))
-  );
   const sysDict = Object.assign({},
     ...Object.entries(wordDict).filter(
       ([key, ]) => key.startsWith("{!")).map(
         ([key, val]) => ({ [key]: val }))
   );
+  const userDict = Object.assign({},
+    ...Object.entries(wordDict).filter(
+      ([key, ]) => !key.startsWith("{!")).map(
+        ([key, val]) => ({ [key]: val }))
+  );
+
   return {
     sysDict: { ...sysDict },
     userDict: { ...userDict },
     sysNode: null,
-    // sysValue: null,
+    sysValue: null,
     userKey: null,
-    // userValue: null,
+    userValue: null
   };
 }
 
@@ -276,16 +282,19 @@ function reducer(state, action) {
     }
 
     case "writeback": {
+      const sysDict = state.sysDict;
+      if (action.sysNode) {
+        sysDict[action.sysNode.id] = action.sysValue.split("|");
+      }
+      const userDict = state.userDict;
+      if (action.userKey) {
+        userDict[action.userKey] = action.userValue.split("|");
+      }
+
       return {
         ...state,
-        sysDict: {
-          ...action.sysDict,
-          [action.sysNode.id]: action.sysValue.split("|")
-        },
-        userDict: {
-          ...action.userDict,
-          [action.userKey]: action.userValue.split("|")
-        },
+        sysDict: {... sysDict},
+        userDict: {... userDict},
       };
     }
 

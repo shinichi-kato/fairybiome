@@ -192,7 +192,7 @@ export default class BiomeBotIO {
     const wordDict = localStorageIO.getJson("Biomebot.wordDict");
     const updatedAt = localStorageIO.getJson("Biomebot.updatedAt");
 
-    let parts = new Object();
+    let parts = {};
 
     for (let partName of config.defaultPartOrder) {
       parts[partName] = localStorageIO.getJson(`Biomebot.part[${partName}]`);
@@ -260,6 +260,8 @@ export default class BiomeBotIO {
       this.readObj(fairy);
     }
     // 全データの保存
+    localStorageIO.setItem("Biomebot.firestoreOwnerId", this.firestoreOwnerId);
+    localStorageIO.setItem("Biomebot.ownerDisplayname", this.ownerDisplayName);
     localStorageIO.setItem("Biomebot.firestoreDocId", this.firestoreDocId);
     localStorageIO.setItem("Biomebot.config", JSON.stringify(this.config));
     localStorageIO.setItem("Biomebot.wordDict", JSON.stringify(this.wordDict));
@@ -293,7 +295,6 @@ export default class BiomeBotIO {
         updatedAt: this.updatedAt
       })
       .then(docRef => {
-        console.log("add", docRef.id);
         this.firestoreDocId = docRef.id;
         localStorageIO.setItem("Biomebot.firestoreDocId", this.firestoreDocId);
         docRef.collection("wordDict")
@@ -335,6 +336,7 @@ export const readFromFirestore = async (fb, docId) => {
   const doc = await docRef.get();
   const data = doc.data();
   let fairy = {
+    firestoreDocId: docId,
     firestoreOwnerId: data.firestoreOwnerId,
     ownerDisplayName: data.ownerDispalyName,
     config: {... data.config},
