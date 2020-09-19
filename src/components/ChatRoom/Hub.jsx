@@ -8,7 +8,6 @@ import { RightBalloon, LeftBalloon } from "./balloons.jsx";
 import Console from "./console.jsx";
 import { FirebaseContext } from "../Firebase/FirebaseProvider";
 import { BotContext } from "../ChatBot/BotProvider";
-import { toTimestampString } from "../to-timestamp-string.jsx";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -53,6 +52,7 @@ export default function Hub({location}) {
 
   function setNavigateBefore() {
     /* 戻るボタンを押したときの動作を記述し、戻り先アドレスを返す */
+    bot.restert();
     bot.dumpToLocalStorage();
     bot.dumpToFirestore(fb);
     return ("/fairybiome/Dashboard");
@@ -85,11 +85,10 @@ export default function Hub({location}) {
       };
     });
     setHubLog(messages.reverse());
-    console.log("hub",bot.ref)
     // 最後の発言者がぼっと自身でなければ発言を試みる
     const lastItem = messages[messages.length - 1];
     if (lastItem && lastItem.speakerId !== bot.ref.firestoreDocId) {
-      bot.replyHub(lastItem)
+      bot.replyHub(lastItem.displayName, lastItem.text)
         .then(reply => {
           if (reply.text !== null) {
             fb.firestore.collection("hubLog").add({
@@ -99,8 +98,8 @@ export default function Hub({location}) {
               speakerId: bot.ref.firestoreDocId,
               timestamp: fb.timestampNow()
             });
-            bot.upkeep();
           }
+          bot.upkeep();
         });
     }
   }

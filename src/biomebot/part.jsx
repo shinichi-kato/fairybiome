@@ -47,7 +47,7 @@ export default class Part extends PartIO {
 
   //  以下の返答関数を切り替えて使用
 
-  recallerReplier = (username, text, state, wordDict) => {
+  recallerReplier = (username, text, state, wordDict, generosityFactor = 1) => {
     /*  辞書型の返答生成
         辞書の中からユーザのセリフに一番近いものを探し、
         それに対応する出力文字列を返す。
@@ -88,7 +88,7 @@ export default class Part extends PartIO {
     }
 
     // generosity check
-    if (irResult.score < 1 - this.behavior.generosity) {
+    if (irResult.score < 1 - this.behavior.generosity * generosityFactor) {
       console.log(`recaller:generos. insufficient score=${irResult.score},generosity=${this.behavior.generosity}`);
       return result;
     }
@@ -114,7 +114,7 @@ export default class Part extends PartIO {
     return result;
   }
 
-  learnerReplier = (usernName, text, state, wordDict) => {
+  learnerReplier = (usernName, text, state, wordDict, generosityFactor) => {
     /* learner型
     1. availabilityチェックを行う。
     2. ユーザの発言Xに似た行があるか辞書を探し、スコアを計算する。
@@ -217,7 +217,8 @@ export default class Part extends PartIO {
     const irResult = retrieve(ir, this.inDict);
 
     // generosity check
-    if (irResult.index === null || irResult.score <= 1 - this.behavior.generosity) {
+    if (irResult.index === null ||
+      irResult.score <= 1 - this.behavior.generosity * generosityFactor) {
       // 手順4 返答できない場合尋ねる
       console.log(`learner:generos. ${this.behavior.generosity} score:${irResult.score}`);
       const appendDict = { "{!USER_UNKNOWN_INPUT}": [text] };
@@ -251,7 +252,7 @@ export default class Part extends PartIO {
     return result;
   }
 
-  defaultReplier = (text, username, state) => {
+  defaultReplier = (text, username, state, wordDict, generosityFactor = 1) => {
     let result = {
       text: `default replier,echo ${text}`, // 返答文字列
       queue: [], // キューに送る文字列

@@ -57,6 +57,7 @@ export default function BotProvider(props) {
         setPart: handleSavePart,
         setState: handleSaveState,
         upkeep: bot.upkeepToLocalStorage,
+        restart: bot.restart,
         getBuddyState: bot.getBuddyState,
         dumpToLocalStorage: bot.dumpToLocalStorage,
         dumpToFirestore: bot.dumpToFirestore,

@@ -181,6 +181,16 @@ export default class BiomeBot extends BiomeBotIO {
           // queueに追加
           this.state.queue = [...this.state.queue, ...reply.queue];
 
+          // 辞書に追加
+          if (reply.appendDict) {
+            this.wordDict = { ...this.wordDict, ...reply.appendDict };
+          }
+
+          // 学習したら記憶
+          if (reply.text === "{!I_GOT_IT}") {
+            this.setPart(partName, this.parts[partName]);
+          }
+
           // 発言中に'{!BOT_WILL_SPLIT}'を検出したらbuddyはhomeかhabitatに
           // 出かける
 
@@ -226,7 +236,6 @@ export default class BiomeBot extends BiomeBotIO {
       if (reply.text === "") {
         reply.text = "{!NOT_FOUND}";
       }
-      console.log("reply", reply);
 
       reply.text = this.untagify(reply.text, userName);
 
@@ -342,13 +351,6 @@ export default class BiomeBot extends BiomeBotIO {
         });
       }
 
-      // if(queue){
-      //   return resolve({
-      //     displayName:this.config.displayName,
-      //     photoURL:this.config.photoURL,
-      //     text:this.untagify(queue,userName)
-      //   })
-      // }
       for (let i = 0, l = this.state.partOrder.length; i < l; i++) {
         const partName = this.state.partOrder[i];
 
@@ -361,6 +363,11 @@ export default class BiomeBot extends BiomeBotIO {
           // 辞書に追加
           if (reply.appendDict) {
             this.wordDict = { ...this.wordDict, ...reply.appendDict };
+          }
+
+          // 学習したら記憶
+          if (reply.text === "{!I_GOT_IT}") {
+            this.setPart(partName, this.parts[partName]);
           }
 
           // バディ結成手順１
@@ -424,6 +431,21 @@ export default class BiomeBot extends BiomeBotIO {
       Hubでの挙動
       ハブでは他のユーザ及び連れている妖精と会話を行う。
       妖精はhubBehaviorに従って会話を行う。
+      ■ hubBehavior.availability
+        availabilityチェックが成功した場合のみ妖精は発言を試みる。
+        多人数チャットの場合は一対一のときより個人の発言頻度は下げる必要がある。
+        availabilityチェックにより、妖精の喋り過ぎを抑制する。
+
+      ■ hubBehavior.generosity
+        多人数チャットではあまり重要でないことに対しての返答は抑制する。
+        通常はユーザ発言をどれくらい正確に評価するかをgenerosityで決めている。
+        多人数チャットの場合はこれをさらに厳しくするため、
+        generosity = hubBehavior.generosity*generosity
+        として扱う
+
+      ■ hubBehavior.retention
+        多人数チャットでは話題を早めに切り上げることが求められる。
+        通常はどれくらいの長さ話題を継続するかをretentionで決めている。
 
       ■黙って記憶
       誰かの発言-応答の組み合わせを聞いていて、自分の知らない
@@ -439,26 +461,20 @@ export default class BiomeBot extends BiomeBotIO {
           text: null
         });
       }
-      // queueがあれば返す
-      if (this.state.queue.length !== 0) {
-        const queue = this.state.queue.shift();
-        return resolve({
-          displayName: this.config.displayName,
-          photoURL: this.config.photoURL,
-          text: this.untagify(queue, userName)
-        });
-      }
 
       let reply = {
         displayName: this.config.displayName,
         photoURL: this.config.photoURL,
-        text: "",
+        text: null,
       };
 
       const behavior = this.config.hubBehavior;
 
       // hubBehavior availabilityチェック
-      if (!this.state.activeInHub && Math.random() > behavior.availability) {
+      // queueが空の場合はavailabilityチェックはしない
+      if (this.state.queue.length === 0 &&
+          !this.state.activeInHub &&
+          Math.random() > behavior.availability) {
         return resolve(reply);
       }
 
@@ -466,10 +482,23 @@ export default class BiomeBot extends BiomeBotIO {
         const partName = this.state.partOrder[i];
 
         // 返答の生成を試みる
-        reply = this.parts[partName].replier(userName, userInput, this.state, this.wordDict);
+        reply = this.parts[partName].replier(
+          userName, userInput, this.state, this.wordDict,
+          behavior.generosity);
+
         if (reply.text && reply.text !== "") {
           // queueに追加
           this.state.queue = [...this.state.queue, ...reply.queue];
+
+          // 辞書に追加
+          if (reply.appendDict) {
+            this.wordDict = { ...this.wordDict, ...reply.appendDict };
+          }
+
+          // 学習したら記憶
+          if (reply.text === "{!I_GOT_IT}") {
+            this.setPart(partName, this.parts[partName]);
+          }
 
           // さよなら
           if (reply.text.indexOf("{!BYE}") !== -1) {

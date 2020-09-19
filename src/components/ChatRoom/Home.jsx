@@ -72,6 +72,7 @@ export default function Home({location}) {
 
   function setNavigateBefore() {
     /* 戻るボタンを押したときの動作を記述し、戻り先アドレスを返す */
+    bot.restart();
     bot.dumpToLocalStorage();
     return ("/fairybiome/Dashboard");
   }
@@ -138,11 +139,12 @@ export default function Home({location}) {
   // --------------------------------------------------------
   // currentLogが変更されたら最下行へ自動スクロール
   const chatBottomEl = useRef(null);
+  const parentEl = useRef(null);
   useEffect(() => {
-    if (chatBottomEl) {
-      chatBottomEl.current.scrollIntoView({ behavior: "smooth", block: "end" });
+    if (chatBottomEl.current) {
+      chatBottomEl.current.scrollIntoView({ behavior: "smooth", block: "start"});
     }
-  }, [logSlice]);
+  }, [log]);
 
   return (
     <>
@@ -160,7 +162,7 @@ export default function Home({location}) {
             setNavigateBefore={setNavigateBefore}
             title={site.current.title} />
         </Box>
-        <Box className={classes.main} flexGrow={1} order={0}>
+        <Box className={classes.main} flexGrow={1} order={0} ref={parentEl}>
           {speeches}
           <div ref={chatBottomEl} />
         </Box>

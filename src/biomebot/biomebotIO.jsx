@@ -142,9 +142,12 @@ export default class BiomeBotIO {
 
   setWordDict = (wordDict, updatedAt) => {
     this.wordDict = { ...wordDict };
-    this.updatedAt = updatedAt;
     localStorageIO.setItem("Biomebot.wordDict", JSON.stringify(this.wordDict));
-    localStorageIO.setItem("Biomebot.updatedAt", JSON.stringify(this.updatedAt));
+
+    if (updatedAt) {
+      this.updatedAt = updatedAt;
+      localStorageIO.setItem("Biomebot.updatedAt", JSON.stringify(this.updatedAt));
+    }
   }
 
   setState = (state, updatedAt) => {
@@ -249,6 +252,16 @@ export default class BiomeBotIO {
     this.updatedAt = localStorageIO.getJson("Biomebot.updatedAt");
     return true;
   };
+
+  restart = () => {
+    this.state = {
+      partOrder: [...this.config.defaultPartOrder],
+      activeInHub: false,
+      hp: this.state.hp,
+      queue: [],
+      buddy: this.state.buddy
+    };
+  }
 
   upkeepToLocalStorage = () => {
     // this.stateのみ更新

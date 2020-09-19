@@ -373,6 +373,7 @@ export default function Habitat() {
     // ページが変わる前にバディの状態を保存
 
     if (bot.ref.state.buddy === "follow") {
+      bot.restart();
       bot.dumpToLocalStorage();
     }
     return ("/fairybiome/Dashboard/");
