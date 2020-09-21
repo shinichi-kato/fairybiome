@@ -89,6 +89,7 @@ export default function Main(props) {
         >
           <Box>
             <ApplicationBar
+              disableNavigateBefore
               title={data.site.siteMetadata.title} />
           </Box>
           <Box

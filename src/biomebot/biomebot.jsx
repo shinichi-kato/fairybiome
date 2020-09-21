@@ -176,7 +176,7 @@ export default class BiomeBot extends BiomeBotIO {
         const partName = this.state.partOrder[i];
         // 返答の生成を試みる
         reply = this.parts[partName].replier(userName, userInput, this.state, this.wordDict);
-        console.log(partName, reply);
+        // console.log(partName, reply);
         if (reply.text !== "") {
           // queueに追加
           this.state.queue = [...this.state.queue, ...reply.queue];
@@ -428,29 +428,34 @@ export default class BiomeBot extends BiomeBotIO {
 
   replyHub = (userName, userInput) => {
     /*
-      Hubでの挙動
-      ハブでは他のユーザ及び連れている妖精と会話を行う。
-      妖精はhubBehaviorに従って会話を行う。
-      ■ hubBehavior.availability
-        availabilityチェックが成功した場合のみ妖精は発言を試みる。
-        多人数チャットの場合は一対一のときより個人の発言頻度は下げる必要がある。
-        availabilityチェックにより、妖精の喋り過ぎを抑制する。
+      ■ Hubでの挙動
+      ハブでは他のユーザ及び連れている妖精と多人数で会話を行う。
+      一対一での会話とは違う挙動をするため、妖精はhubBehaviorに従って会話を行う。
+        ・ hubBehavior.availability
+          availabilityチェックが成功した場合のみ妖精は発言を試みる。
+          多人数チャットの場合は一対一のときより個人の発言頻度は下げる必要がある。
+          availabilityチェックにより、妖精の喋り過ぎを抑制する。
 
-      ■ hubBehavior.generosity
-        多人数チャットではあまり重要でないことに対しての返答は抑制する。
-        通常はユーザ発言をどれくらい正確に評価するかをgenerosityで決めている。
-        多人数チャットの場合はこれをさらに厳しくするため、
-        generosity = hubBehavior.generosity*generosity
-        として扱う
+        ・hubBehavior.generosity
+          多人数チャットではあまり重要でないことに対しての返答は抑制する。
+          通常はユーザ発言をどれくらい正確に評価するかをgenerosityで決めている。
+          多人数チャットの場合はこれをさらに厳しくするため、
+          generosity = hubBehavior.generosity*generosity
+          として扱う
 
-      ■ hubBehavior.retention
-        多人数チャットでは話題を早めに切り上げることが求められる。
-        通常はどれくらいの長さ話題を継続するかをretentionで決めている。
+        ・ hubBehavior.retention
+          多人数チャットでは話題を早めに切り上げることが求められる。
+          通常はどれくらいの長さ話題を継続するかをretentionで決めている。
 
-      ■黙って記憶
-      誰かの発言-応答の組み合わせを聞いていて、自分の知らない
-      やり取りだった場合それを特に確認せず記憶する。
-      (未実装)
+      ■ hubでの学習
+      ハブでは多人数での会話を聞いてチャットボットが学習する。
+      A「ってなんですか？」
+      B「」
+      C「そうなんだ！」
+      この会話でC発言に見られるポジティブな反応が観察された時、
+      in:["昨日は落語を聞いてきました"],out["へー、どんなでした"]
+      という記憶を暗黙のうちに生成する。これらの処理はreplyHub内でlearnerReplierが
+      実行するが、
     */
     return new Promise(resolve => {
       if (this.state.partOrder.length === 0) {
@@ -492,7 +497,10 @@ export default class BiomeBot extends BiomeBotIO {
 
           // 辞書に追加
           if (reply.appendDict) {
-            this.wordDict = { ...this.wordDict, ...reply.appendDict };
+            this.wordDict = {
+              ...this.wordDict,
+              ...reply.appendDict,
+            };
           }
 
           // 学習したら記憶

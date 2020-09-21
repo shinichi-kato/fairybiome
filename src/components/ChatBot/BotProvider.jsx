@@ -54,6 +54,7 @@ export default function BotProvider(props) {
         ref: bot,
         setConfig: handleSaveConfig,
         setWordDict: handleSaveWordDict,
+        retrieveSpeeches: bot.retrieveSpeechs,
         setPart: handleSavePart,
         setState: handleSaveState,
         upkeep: bot.upkeepToLocalStorage,

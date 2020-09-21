@@ -1,11 +1,11 @@
-export function getStrByteSize(str){
+export function getStrByteSize(str) {
     /*
       UTF-8文字列のバイトサイズを取得
       http://yamataka.hatenablog.com/entry/2016/02/24/180326
     */
-   var count = 0;
-   for (var i = 0; i < str.length; ++i) {
-       var cp = str.charCodeAt(i);
+   let count = 0;
+   for (let i = 0; i < str.length; ++i) {
+       let cp = str.charCodeAt(i);
 
        if (cp <= 0x007F) {
            // U+0000 - U+007F

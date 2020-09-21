@@ -19,7 +19,6 @@ const useStyles = makeStyles((theme) => ({
     height: "clac( 100vh - 64px )",
     overflowY: "scroll",
     overscrollBehavior: "auto",
-    WebkitOverflowScrolling: "touch",
     padding: theme.spacing(2),
   },
   flavorTextContainer: {
@@ -27,7 +26,7 @@ const useStyles = makeStyles((theme) => ({
   },
   captions: {
     width: "80%",
-    margin: "60px auto",
+    margin: "50px auto",
   },
   iconContainer: {
     width: 70,

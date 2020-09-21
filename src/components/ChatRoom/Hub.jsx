@@ -84,7 +84,14 @@ export default function Hub({location}) {
         id: doc.id,
       };
     });
+
+    // 末尾３発言をwordDictに記憶
+    if (messages.length !== 0) {
+      bot.retrieveSpeeches(messages.map(message => message.text));
+    }
+
     setHubLog(messages.reverse());
+
     // 最後の発言者がぼっと自身でなければ発言を試みる
     const lastItem = messages[messages.length - 1];
     if (lastItem && lastItem.speakerId !== bot.ref.firestoreDocId) {
@@ -153,7 +160,7 @@ export default function Hub({location}) {
       <Box justifyContent="center" order={0}>
         <Console
           handleWriteMessage={handleWriteMessage}
-          position={"0"} />
+        />
       </Box>
     </Box>
   );

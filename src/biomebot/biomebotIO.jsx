@@ -150,6 +150,19 @@ export default class BiomeBotIO {
     }
   }
 
+  retriveSpeeches = (speeches) => {
+    // チャットログの末尾３発言をwordDictに格納
+    if (speeches.length > 0) {
+      this.wordDict["{!LAST_SPEECH}"] = speeches[0];
+    }
+    if (speeches.length > 1) {
+      this.wordDict["{!SECOND_LAST_SPEECH}"] = speeches[1];
+    }
+    if (speeches.length > 2) {
+      this.wordDict["{!THIRD_LAST_SPEECH}"] = speeches[2];
+    }
+  }
+
   setState = (state, updatedAt) => {
     this.state = { ...state };
     this.updatedAt = updatedAt;
