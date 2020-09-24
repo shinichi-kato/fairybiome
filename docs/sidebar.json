@@ -1,0 +1,26 @@
+{
+    "chapters": [
+        {
+            "subheader": "section1",
+            "items": [
+                {
+                "label": "文書タイトル1",
+                "to": "URL"
+                }
+            ]
+        },
+        {
+            "subheader": "section2",
+            "items": [
+                {
+                    "label": "セクションの文書1",
+                    "to": "URL2"
+                },
+                {
+                    "label": "セクションの文書2",
+                    "to": "URL3"
+                }
+            ]
+        }
+    ]
+}

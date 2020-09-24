@@ -467,7 +467,7 @@ export default class BiomeBot extends BiomeBotIO {
         });
       }
 
-      let reply = {
+      const hubReply = {
         displayName: this.config.displayName,
         photoURL: this.config.photoURL,
         text: null,
@@ -480,8 +480,10 @@ export default class BiomeBot extends BiomeBotIO {
       if (this.state.queue.length === 0 &&
           !this.state.activeInHub &&
           Math.random() > behavior.availability) {
-        return resolve(reply);
+        return resolve(hubReply);
       }
+
+      let reply = {};
 
       for (let i = 0, l = this.state.partOrder.length; i < l; i++) {
         const partName = this.state.partOrder[i];
@@ -504,15 +506,14 @@ export default class BiomeBot extends BiomeBotIO {
           }
 
           // 学習したら記憶
-          if (reply.text === "{!I_GOT_IT}") {
+          if (reply.text === "{!I_GOT_IT}" || reply.text === "{!!MIMIKING}") {
             this.setPart(partName, this.parts[partName]);
           }
 
           // さよなら
           if (reply.text.indexOf("{!BYE}") !== -1) {
             return resolve({
-              displayName: this.config.displayName,
-              photoURL: this.config.photoURL,
+              ...hubReply,
               text: this.untagify(reply.text, userName)
             }
             );
@@ -540,8 +541,7 @@ export default class BiomeBot extends BiomeBotIO {
         this.state.activeInHub = Math.random() < behavior.retention;
       }
       return resolve({
-        displayName: this.config.botName,
-        photoURL: this.config.photoURL,
+        ...hubReply,
         text: this.untagify(reply.text, userName)
       });
     });

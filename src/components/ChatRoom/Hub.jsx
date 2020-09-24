@@ -52,7 +52,7 @@ export default function Hub({location}) {
 
   function setNavigateBefore() {
     /* 戻るボタンを押したときの動作を記述し、戻り先アドレスを返す */
-    bot.restert();
+    bot.restart();
     bot.dumpToLocalStorage();
     bot.dumpToFirestore(fb);
     return ("/fairybiome/Dashboard");

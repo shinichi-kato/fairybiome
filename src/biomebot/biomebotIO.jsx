@@ -150,7 +150,7 @@ export default class BiomeBotIO {
     }
   }
 
-  retriveSpeeches = (speeches) => {
+  retrieveSpeeches = (speeches) => {
     // チャットログの末尾３発言をwordDictに格納
     if (speeches.length > 0) {
       this.wordDict["{!LAST_SPEECH}"] = speeches[0];

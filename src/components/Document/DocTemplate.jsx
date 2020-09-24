@@ -6,12 +6,38 @@ import AppBar from "@material-ui/core/AppBar";
 import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
 import Box from "@material-ui/core/Box";
+import Drawer from "@material-ui/core/Drawer";
+import Hidden from "@material-ui/core/Hidden";
 
+import Sidebar from "./Sidebar";
 import FairyBiomeIcon from "../../icons/FairyBiome";
+
+const drawerWidth = 240;
 
 const useStyles = makeStyles((theme) => ({
   root: {
     overFlowY: "auto",
+    display: "flex"
+  },
+  appBar: {
+    zIndex: theme.zIndex.drawer + 1
+  },
+  drawer: {
+    [theme.breakpoints.up("sm")]: {
+      width: drawerWidth,
+      flexShrink: 0,
+    },
+  },
+  drawerPaper: {
+    width: drawerWidth,
+  },
+  drawerContainer: {
+    overflow: "auto"
+  },
+  toolbar: theme.mixins.toolbar, // necessary for content to be below app bar
+  content: {
+    flexGrow: 1,
+    padding: theme.spacing(3)
   },
   article: {
     color: theme.palette.text.primary,
@@ -63,41 +89,54 @@ const useStyles = makeStyles((theme) => ({
 
 }));
 
-const DocumentTemplate = ({ data, pageContext, location }) => {
+export default function DocumentTemplate({ data, pageContext, location }) {
   const classes = useStyles();
   const article = data.markdownRemark;
   const siteTitle = data.site.siteMetadata.title;
   const { previous, next } = pageContext;
 
   return (
-    <Box
-className={classes.root} display="flex"
-      flexDirection="column"
-    >
-      <Box>
-        <AppBar>
-          <Toolbar>
-            <FairyBiomeIcon />
-            <Typography>{siteTitle}</Typography>
-          </Toolbar>
-        </AppBar>
-
+    <div className={classes.roor}>
+      <AppBar
+        className={classes.appBar} position="fixed"
+      >
+        <Toolbar>
+          <FairyBiomeIcon />
+          <Typography>{siteTitle}</Typography>
+        </Toolbar>
+      </AppBar>
+      <Hidden implementation="css" smDown>
+        <Drawer
+          className={classes.drawer}
+          classes={{
+            paper: classes.drawerPaper,
+          }}
+          variant="permanent"
+        >
+          <Toolbar/>
+          <div className={classes.drawerContainer}>
+            <Sidebar />
+          </div>
+        </Drawer>
+      </Hidden>
+      <Box
+        display="flex"
+        flexDirection="column"
+      >
+        <Box>
+          title:{article.frontmatter.title}
+          description:{article.frontmatter.description}
+          data:{article.frontmatter.date}
+        </Box>
+        <Box>
+          <div
+            className={classes.article}
+            dangerouslySetInnerHTML={{ __html: article.html }} />
+        </Box>
       </Box>
-      <Box>
-        title:{article.frontmatter.title}
-        description:{article.frontmatter.description}
-        data:{article.frontmatter.date}
-      </Box>
-      <Box>
-        <div
-          className={classes.article}
-          dangerouslySetInnerHTML={{ __html: article.html }} />
-      </Box>
-    </Box>
+    </div>
   );
-};
-
-export default DocumentTemplate;
+}
 
 export const pageQuery = graphql`
   query BlogPostBySlug($slug: String!) {

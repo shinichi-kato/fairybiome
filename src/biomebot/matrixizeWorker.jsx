@@ -1,6 +1,5 @@
-import MatrixizeWorker from "./worker/matrixize.worker.js"
+import MatrixizeWorker from "./worker/matrixize.worker.js";
 
+const matrixizeWorker = typeof window === "object" && new MatrixizeWorker();
 
-const matrixizeWorker = typeof window === 'object' && new MatrixizeWorker()
-
-export default matrixizeWorker
+export default matrixizeWorker;

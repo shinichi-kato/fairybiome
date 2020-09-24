@@ -30,6 +30,7 @@
         "{!CONFIRM_LEARN}":["「{!USER_UNKNOWN_INPUT}」って言われたときは「{!BOT_CAND_OUTPUT}」・・・でいい？"],
         "{!LEARN_FIZZLED}":["難しいんだね・・"],
         "{!I_GOT_IT}":["ありがとう！"],
+        "{!MIMICKING}":["{!LAST_SPEECH"],
         "{!BOT_ACCEPT_SUMMON}": ["はーーーい","呼びました？"],
         "{!DISBAND}":["またね！"],
         "{!VANISHING}":["・・・　・・・"],

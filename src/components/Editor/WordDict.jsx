@@ -98,11 +98,11 @@ const SYSTEM_WORD_DICT = {
           description: "知らない言葉をかけられた時、どう答えていいか聞く",
           defaultValue: "そういうとき、なんて返事したらいの？"
         },
-        {
-          id: "{!PARSE_USER_INPUT}",
-          description: "ユーザの返答を聞いて考え中",
-          defaultValue: "ええと・・・"
-        },
+        // {
+        //   id: "{!PARSE_USER_INPUT}",
+        //   description: "ユーザの返答を聞いて考え中",
+        //   defaultValue: "ええと・・・"
+        // },
         {
           id: "{!CONFIRM_LEARN}",
           description: "{!USER_UNKNOWN_INPUT},{!BOT_CAND_OUTPUT}を確認",
@@ -117,6 +117,11 @@ const SYSTEM_WORD_DICT = {
           id: "{!I_GOT_IT}",
           description: "言葉を覚えてお礼を言う",
           defaultValue: "ありがとう！"
+        },
+        {
+          id: "{!MIMICKING}",
+          description: "やり取りを覚えて口真似",
+          defaultValue: "{!LAST_SPEECH}|えーっと、{!LAST_SPEECH}"
         }
       ]
     },
