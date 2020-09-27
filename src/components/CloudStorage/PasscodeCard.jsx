@@ -7,6 +7,7 @@ import Card from "@material-ui/core/Card";
 import CardHeader from "@material-ui/core/CardHeader";
 import CardContent from "@material-ui/core/CardContent";
 import Button from "@material-ui/core/Button";
+import Box from "@material-ui/core/Box";
 import VpnKeyIcon from "@material-ui/icons/VpnKey";
 
 import TextInput from "../TextInput.jsx";
@@ -15,6 +16,9 @@ import { localStorageIO } from "../../utils/localStorageIO";
 const useStyles = makeStyles((theme) => ({
   root: {
     padding: theme.spacing(2)
+  },
+  content: {
+    padding: theme.spacing(1)
   }
 }));
 
@@ -73,18 +77,28 @@ export default function PasscodeCard(props) {
       <CardHeader title="パスコード" />
       <CardContent>
         <form onSubmit={handleSubmit}>
-          <TextInput
-            handleChange={handleChangePasscode}
-            icon={<VpnKeyIcon/>}
-            required
-            type="password"
-            value={passcode}
-          />
-          <Button
-            color="primary"
-            onClick={handleClick}
-            variant="contained"
-          >OK</Button>
+          <Box
+            display="flex"
+            flexDirection="row"
+            alignItems="flex-end"
+          >
+            <Box className={classes.content}>
+              <TextInput
+                handleChange={handleChangePasscode}
+                icon={<VpnKeyIcon/>}
+                required
+                type="password"
+                value={passcode}
+              />
+            </Box>
+            <Box className={classes.content}>
+              <Button
+                color="default"
+                onClick={handleClick}
+                variant="contained"
+              >OK</Button>
+            </Box>
+          </Box>
           <FormControlLabel
             control={<Checkbox checked={rememberPass} name="checkedA" onChange={handleChangeRememberMe} />}
             label="パスコードを記憶する"

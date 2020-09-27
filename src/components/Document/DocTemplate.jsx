@@ -96,7 +96,7 @@ export default function DocumentTemplate({ data, pageContext, location }) {
   const { previous, next } = pageContext;
 
   return (
-    <div className={classes.roor}>
+    <div className={classes.root}>
       <AppBar
         className={classes.appBar} position="fixed"
       >
@@ -120,6 +120,7 @@ export default function DocumentTemplate({ data, pageContext, location }) {
         </Drawer>
       </Hidden>
       <Box
+      className={classes.content}
         display="flex"
         flexDirection="column"
       >

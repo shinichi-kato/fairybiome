@@ -49,11 +49,16 @@ export default function ApplicationBar(props) {
     navigate(navigateDefault);
   }
 
+  function handleToDocument() {
+    navigate("");
+  }
+
   return (
     <AppBar position="static">
       <Toolbar>
         <IconButton
-          color="inherit" disabled={props.disableNavigateBefore}
+          color="inherit"
+          disabled={props.disableNavigateBefore}
           edge="start"
           onClick={handleClickNavBefore}
         >
@@ -65,7 +70,9 @@ export default function ApplicationBar(props) {
           {props.title}
         </Typography>
         {props.busy && <TextsmsIcon />}
-        <IconButton color="inherit">
+        <IconButton
+          color="inherit"
+          onClick={handleToDocument}>
           <MenuBookIcon />
         </IconButton>
         <IconButton

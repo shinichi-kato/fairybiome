@@ -28,14 +28,16 @@ const BootstrapInput = withStyles((theme) => ({
       borderColor: theme.palette.primary.main,
     },
   },
-}))(InputBase);
+  }))(InputBase);
 
-export default function TextInput(props) {
-  return (
-    <FormControl fullWidth={props.fullWidth}>
-      <InputLabel htmlFor="bootstrap-input" shrink>
-        {props.label}
-      </InputLabel>
+  export default function TextInput(props) {
+    return (
+      <FormControl fullWidth={props.fullWidth}>
+      {props.label &&
+        <InputLabel htmlFor="bootstrap-input" shrink>
+          {props.label}
+        </InputLabel>
+      }
       <BootstrapInput
 
         defaultValue={props.defaultValue}
