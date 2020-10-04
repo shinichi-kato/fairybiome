@@ -55,10 +55,12 @@ export default function Filer(props) {
   }
 
   function handleUpload() {
+    // localstorageからfirestoreへ
     bot.dumpToFirestore(fb);
   }
 
   function handleDownload() {
+    // firestoreからlocalStorageへ
     readFromFirestore(fb, fairyList[cursor].id)
       .then(fairy => {
         bot.dumpToLocalStorage(fairy);
@@ -71,9 +73,15 @@ export default function Filer(props) {
   }
 
   function handleExport() {
+    // firestoreからファイルへ
     readFromFirestore(fb, fairyList[cursor].id)
       .then(fairy => {
         if (typeof window !== "undefined") {
+          // fairyのうち、id関連とstateは除去
+          delete fairy.firestoreDocId;
+          delete fairy.firestoreOwnerId;
+          delete fairy.state;
+
           const element = document.createElement("a");
           const file = new Blob([JSON.stringify(fairy, null, 2)],
             { type: "application/json" });
@@ -83,6 +91,12 @@ export default function Filer(props) {
           element.click();
         }
       });
+  }
+
+  function handleImport() {
+    // ファイルからfirestoreへ
+    // チャットボットのtrueNameを識別子にする。trueNameとuserIdが同じボットは
+    // 上書きとみなす。そのためtrueNameは必須
   }
 
   return (
