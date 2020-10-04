@@ -83,12 +83,14 @@ export default function Importer() {
     let messages = [];
 
     if (typeof source === "string") {
-      return typeof script === "string" ? "" : `${treeLabel}の値${script}が文字列ではありません。`;
+      return [typeof script === "string" ? "" : `${treeLabel}の値${script}が文字列ではありません。`];
     }
 
+    // partのようにdump()メソッドがある場合はdump()を使用
+    let sourceKeys = Object.keys(source.dump ? source.dump() : source);
     let scriptKeys = Object.keys(script);
 
-    for (let key of Object.keys(source)) {
+    for (let key of sourceKeys) {
       const value = source[key];
       const typeOfValue = typeOf(value);
 
@@ -114,6 +116,7 @@ export default function Importer() {
             break;
 
           default:
+            console.log("key=",value,"typeOfValue",typeOfValue)
             // その他：キーの存在を確認
             // sourceに含まれる/^\{[^!]/で始まるキーは任意なので無視
             if (!key.match(/^\{[^!]/) && !(key in script)) {
@@ -155,7 +158,7 @@ export default function Importer() {
     let result = [
       ...checkKeys(script.config, bot.ref.config, "config"),
       ...checkKeys(script.wordDict, bot.ref.wordDict, "wordDict"),
-      ...checkKeys(script.part, bot.ref.part, "part"),
+      ...checkKeys(script.parts, bot.ref.parts, "parts"),
     ];
     if (result.length !== 0) {
       setContent(result);

@@ -69,6 +69,7 @@ export default function Config(props) {
   const [description, setDescription] = useState(config.description || "");
   const [hubBehavior, setHubBehavior] = useState(config.hubBehavior);
   const [defaultPartOrder, setDefaultPartOrder] = useState(config.defaultPartOrder);
+  const [initialHp, setInitialHp] = useState(parseInt(config.initialHp) || 10);
 
   useEffect(() => {
     if (props.pageWillChange) {
@@ -84,6 +85,7 @@ export default function Config(props) {
         photoURL: photoURL,
         description: description,
         defaultPartOrder: defaultPartOrder,
+        initilaHp: initialHp,
         hubBehavior: {
           availability: parseFloat(hubBehavior.availability),
           generosity: parseFloat(hubBehavior.generosity),
@@ -120,6 +122,7 @@ export default function Config(props) {
         photoURL: photoURL,
         description: description,
         defaultPartOrder: newPartOrder,
+        initilaHp: initialHp,
         hubBehavior: {
           availability: parseFloat(hubBehavior.availability),
           generosity: parseFloat(hubBehavior.generosity),
@@ -166,14 +169,14 @@ export default function Config(props) {
     const MemorizedFairyPanel = useMemo(() => (
     <FairyPanel
       displayName={displayName}
-      hp={props.state.hp}
+      hp={initialHp}
       partOrdedr={defaultPartOrder}
       photoURL={photoURL}
-
+      setHp={setInitialHp}
       setPartOrder={setDefaultPartOrder}
       updatedAt={updatedAt}
     />),
-    [displayName, props.state.hp, defaultPartOrder, photoURL, updatedAt]);
+    [displayName, props.state.hp, defaultPartOrder, initialHp, photoURL, updatedAt]);
 
   const MemorizedPartOrder = useMemo(() => (
     <PartOrder

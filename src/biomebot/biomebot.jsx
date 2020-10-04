@@ -130,6 +130,7 @@ export default class BiomeBot extends BiomeBotIO {
 
     this.wordDictKeys = Object.keys(this.wordDict);
     this.state.partOrder = [...this.config.defaultPartOrder];
+    this.state.hp = parseInt(this.config.initialHp) || 10;
     // 各パートのコンパイル
 
     Promise.all(this.state.partOrder.map(partName => (

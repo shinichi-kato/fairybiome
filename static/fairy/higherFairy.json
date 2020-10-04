@@ -8,6 +8,7 @@
         "photoURL": "bot/_higherFairy/normal.svg",
         "description": "ぼんやりと光る姿で現れる、上位の妖精",
         "defaultPartOrder":["greeting","oracle"],
+        "initialHp":100,
         "hubBehavior":{
             "availability": 0.3,
             "generosity": 0.9,

@@ -8,6 +8,7 @@
         "photoURL": "bot/blueCrystal/young.svg",
         "description": "小さな結晶の姿をした精霊",
         "defaultPartOrder":["greeting","firstcontact","parrot"],
+        "initialHp":10,
         "hubBehavior":{
             "availability": 0.3,
             "generosity": 0.9,

@@ -4,7 +4,7 @@ import { makeStyles } from "@material-ui/core/styles";
 import Paper from "@material-ui/core/Paper";
 import Box from "@material-ui/core/Box";
 import Typography from "@material-ui/core/Typography";
-import LinearProgress from "@material-ui/core/LinearProgress";
+import Slider from "@material-ui/core/Slider";
 import Avatar from "@material-ui/core/Avatar";
 
 const useStyles = makeStyles((theme) => ({
@@ -19,15 +19,24 @@ const useStyles = makeStyles((theme) => ({
     width: 200
 
   },
-  bar: {
+
+  track: {
     borderRadius: 5,
     height: 10,
-    backgroundColor: ""
+  },
+  rail: {
+    borderRadius: 5,
+    height: 10,
   }
 }));
 
 export default function FairyPanel(props) {
   const classes = useStyles();
+
+  function handleChangeHp(event, value) {
+    props.setHp(value);
+  }
+
   return (
     <Paper
       className={classes.root}
@@ -49,11 +58,13 @@ export default function FairyPanel(props) {
         <Box
           className={classes.content}
         >
-          HP:<LinearProgress
+          初期HP:{props.hp}
+          <Slider
             className={classes.bar}
             size={100}
             value={Number(props.hp)}
-            variant="determinate" />
+            onChange={handleChangeHp}
+            />
         </Box>
         <Box>
           <Typography>最終更新{props.updatedAt}</Typography>

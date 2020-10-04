@@ -12,6 +12,7 @@ collection("bots")
       photoUrl: TextString,
       description: TextString,
       defaultPartOrder: Array,
+      initilaHp: number
       hubBehavior: Map,
     },
     state: {
@@ -52,6 +53,7 @@ export default class BiomeBotIO {
       photoURL: null,
       description: null,
       defaultPartOrder: [],
+      inintialHp: 10,
       hubBehavior: {
         availability: 0.3,
         generosity: 0.9,
@@ -60,10 +62,10 @@ export default class BiomeBotIO {
     };
 
     // 単語辞書(大きいので分離)
-    this.wordDict = { empty: true };
+    this.wordDict = { empty: ()=>true };
 
     // パート本体(大きいので分離)
-    this.parts = { empty: true };
+    this.parts = { empty: ()=>true };
 
     // 会話中の動的な状態を記述する項目
     this.state = {
@@ -251,7 +253,9 @@ export default class BiomeBotIO {
     };
 
     this.wordDict = localStorageIO.getJson("Biomebot.wordDict");
-    this.parts = { empty: false };
+    if (this.parts.empty) {
+      delete this.parts.empty;
+    }
     for (let partName of config.defaultPartOrder) {
       let part = localStorageIO.getJson(`Biomebot.part[${partName}]`);
       if (this.parts[partName]) {
