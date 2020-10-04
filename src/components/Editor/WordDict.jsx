@@ -121,7 +121,7 @@ const SYSTEM_WORD_DICT = {
         {
           id: "{!MIMICKING}",
           description: "やり取りを覚えて口真似",
-          defaultValue: "{!LAST_SPEECH}|えーっと、{!LAST_SPEECH}"
+          defaultValue: "{!!LAST_SPEECH}|えーっと、{!!LAST_SPEECH}"
         }
       ]
     },

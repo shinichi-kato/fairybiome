@@ -144,24 +144,30 @@ export default class BiomeBotIO {
 
   setWordDict = (wordDict, updatedAt) => {
     this.wordDict = { ...wordDict };
-    localStorageIO.setItem("Biomebot.wordDict", JSON.stringify(this.wordDict));
+    let wdict = {...wordDict};
+    delete wdict["{!!BOT_NAME}"];
+    delete wdict["{!!LAST_SPEECH}"];
+    delete wdict["{!!SECOND_LAST_SPEECH}"];
+    delete wdict["{!!THIRD_LAST_SPEECH}"];
+
+    localStorageIO.setItem("Biomebot.wordDict", JSON.stringify(wdict));
 
     if (updatedAt) {
       this.updatedAt = updatedAt;
-      localStorageIO.setItem("Biomebot.updatedAt", JSON.stringify(this.updatedAt));
+      localStorageIO.setItem("Biomebot.updatedAt", JSON.stringify(wdict));
     }
   }
 
   retrieveSpeeches = (speeches) => {
     // チャットログの末尾３発言をwordDictに格納
     if (speeches.length > 0) {
-      this.wordDict["{!LAST_SPEECH}"] = speeches[0];
+      this.wordDict["{!!LAST_SPEECH}"] = speeches[0];
     }
     if (speeches.length > 1) {
-      this.wordDict["{!SECOND_LAST_SPEECH}"] = speeches[1];
+      this.wordDict["{!!SECOND_LAST_SPEECH}"] = speeches[1];
     }
     if (speeches.length > 2) {
-      this.wordDict["{!THIRD_LAST_SPEECH}"] = speeches[2];
+      this.wordDict["{!!THIRD_LAST_SPEECH}"] = speeches[2];
     }
   }
 
@@ -304,58 +310,71 @@ export default class BiomeBotIO {
     this.upkeepToLocalStorage();
   };
 
-  dumpToFirestore = (fb) => {
+  dumpToFirestore = (fb, that = null) => {
     // firestoreへの全データの保存
+    if (that === null) {
+      that = this;
+    }
     const ownerId = fb.user.uid;
     const ownerName = fb.user.displayName;
     const fs = fb.firestore;
-    if (!this.firestoreDocId || this.firestoreDocId === "undefined") {
+    let wdict = {...that.wordDict};
+    delete wdict["{!!BOT_NAME}"];
+    delete wdict["{!!LAST_SPEECH}"];
+    delete wdict["{!!SECOND_LAST_SPEECH}"];
+    delete wdict["{!!THIRD_LAST_SPEECH}"];
+
+    if (!that.firestoreDocId || that.firestoreDocId === "undefined") {
+      // firestoreDocIdが指定されていない場合、
+      // config.trueNameとconfig.ownerIdが同一であれば同じボットとみなす。
+      // ↑この判定は未実装
       fs.collection("bots")
       .add({
         firestoreOwnerId: ownerId,
         ownerDisplayName: ownerName,
-        config: this.config,
+        config: that.config,
         state: {
-          partOrder: this.state.partOrder,
-          activeInHub: this.state.activeInHub,
-          hp: this.state.hp,
-          queue: this.state.queue
+          partOrder: that.state.partOrder,
+          activeInHub: that.state.activeInHub,
+          hp: that.state.hp,
+          queue: that.state.queue
         },
-        buddy: this.state.buddy,
-        updatedAt: this.updatedAt
+        buddy: that.state.buddy,
+        updatedAt: that.updatedAt
       })
       .then(docRef => {
-        this.firestoreDocId = docRef.id;
-        localStorageIO.setItem("Biomebot.firestoreDocId", this.firestoreDocId);
+        that.firestoreDocId = docRef.id;
+        localStorageIO.setItem("Biomebot.firestoreDocId", that.firestoreDocId);
+
         docRef.collection("wordDict")
-          .doc("wordDict").set(this.wordDict);
+          .doc("wordDict").set(wdict);
 
         const partsRef = docRef.collection("parts");
-        for (let partName of this.config.defaultPartOrder) {
-          partsRef.doc(partName).set(this.parts[partName].dump());
+        for (let partName of that.config.defaultPartOrder) {
+          partsRef.doc(partName).set(that.parts[partName].dump());
         }
       });
     } else {
-      const docRef = fs.collection("bots").doc(this.firestoreDocId);
+      const docRef = fs.collection("bots").doc(that.firestoreDocId);
       docRef.set({
         firestoreOwnerId: ownerId,
         ownerDisplayName: ownerName,
-        config: this.config,
+        config: that.config,
         state: {
-          partOrder: this.state.partOrder,
-          activeInHub: this.state.activeInHub,
-          hp: this.state.hp,
-          queue: this.state.queue
+          partOrder: that.state.partOrder,
+          activeInHub: that.state.activeInHub,
+          hp: that.state.hp,
+          queue: that.state.queue
         },
-        buddy: this.state.buddy,
-        updatedAt: this.updatedAt
+        buddy: that.state.buddy,
+        updatedAt: that.updatedAt
       });
       docRef.collection("wordDict")
-        .doc("wordDict").set(this.wordDict);
+        .doc("wordDict").set(wdict);
 
       const partsRef = docRef.collection("parts");
-      for (let partName of this.config.defaultPartOrder) {
-        partsRef.doc(partName).set(this.parts[partName].dump());
+      for (let partName of that.config.defaultPartOrder) {
+        partsRef.doc(partName).set(that.parts[partName].dump());
       }
     }
   };

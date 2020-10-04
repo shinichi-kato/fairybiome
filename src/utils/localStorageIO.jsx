@@ -2,6 +2,8 @@
 const isBrowser = () => typeof window !== "undefined";
 
 export const localStorageIO = {
+  // localStorageへの読み書きをisBrowserが有効な場合のみ実行(gatsby buildのためのworkaround)
+  // localStorageの内容は暗号化する（未実装）
 
   getItem: (name, defaultValue) => {
     if (isBrowser()) {

@@ -242,8 +242,8 @@ export default class Part extends PartIO {
             /(あはは|そうなんだ|面白い|ははは|うん|なるほど|そうか｜へー|😁)[。!！ー-]*$/
           ) !== -1) {
             this.dict.push({
-              in: wordDict["{!THIRD_LAST_SPEECH}"],
-              out: wordDict["{!SECOND_LAST_SPEECH}"]
+              in: wordDict["{!!THIRD_LAST_SPEECH}"],
+              out: wordDict["{!!SECOND_LAST_SPEECH}"]
             });
             result = {
               text: "{!MIMICKING}",

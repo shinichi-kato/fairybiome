@@ -1,21 +1,11 @@
 import React, { useState, useRef, useContext } from "react";
-import { makeStyles, fade } from "@material-ui/core/styles";
 import Box from "@material-ui/core/Box";
 import Button from "@material-ui/core/Button";
-
 import Typography from "@material-ui/core/Typography";
-import FileIcon from "@material-ui/icons/DescriptionOutlined";
 
 import { BotContext } from "../ChatBot/BotProvider";
+import { FirebaseContext } from "../Firebase/FirebaseProvider";
 import ApplicationBar from "../ApplicationBar/ApplicationBar";
-const useStyles = makeStyles((theme) => ({
-
-  content: {
-    padding: theme.spacing(2),
-
-  },
-
-}));
 
 function typeOf(obj) {
   return Object.prototype.toString.call(obj).slice(8, -1).toLowerCase();
@@ -38,10 +28,11 @@ export default function Importer() {
     JSON形式のテキストファイルからインポート
     インポート時には簡易的な文法チェックを行う。
   */
-  const classes = useStyles();
   const fileInputRef = useRef();
   const bot = useContext(BotContext);
+  const fb = useContext(FirebaseContext);
   const [content, setContent] = useState(null);
+  const [script, setScript] = useState(null);
 
   function handleLoad(event) {
     event.preventDefault();
@@ -70,31 +61,31 @@ export default function Importer() {
     return messages;
   }
 
-  function checkArray(script, source, treeLabel) {
+  function checkArray(subScript, source, treeLabel) {
     const messages = [];
     for (let i = 0; i < source.length; i++) {
-      const result = checkKeys(script[i], source[i], `${treeLabel}[${i}]`);
+      const result = checkKeys(subScript[i], source[i], `${treeLabel}[${i}]`);
       messages.push(...result);
     }
     return messages;
   }
 
-  function checkKeys(script, source, treeLabel = "") {
+  function checkKeys(subScript, source, treeLabel = "") {
     let messages = [];
 
     if (typeof source === "string") {
-      return [typeof script === "string" ? "" : `${treeLabel}の値${script}が文字列ではありません。`];
+      return [typeof subScript === "string" ? "" : `${treeLabel}の値${subScript}が文字列ではありません。`];
     }
 
     // partのようにdump()メソッドがある場合はdump()を使用
     let sourceKeys = Object.keys(source.dump ? source.dump() : source);
-    let scriptKeys = Object.keys(script);
+    let scriptKeys = Object.keys(subScript);
 
     for (let key of sourceKeys) {
       const value = source[key];
       const typeOfValue = typeOf(value);
 
-      if (key in script) {
+      if (key in subScript) {
         scriptKeys = scriptKeys.filter(word => word !== key);
 
         switch (typeOfValue) {
@@ -102,24 +93,25 @@ export default function Importer() {
             // sourcce[key]が配列
             // "dict"という名前の場合は専用のパースを実行
             if (key === "dict") {
-              messages.push(...checkDict(script.dict, treeLabel));
+              messages.push(...checkDict(subScript.dict, treeLabel));
             } else {
               // checkKeysをiterate
-              messages.push(...checkArray(script[key], value, treeLabel));
+              messages.push(...checkArray(subScript[key], value, treeLabel));
             }
             break;
 
           case "object":
             // source[key]が辞書
             // 再帰的にcheckKeysを実行
-            messages.push(...checkKeys(script[key], value, key + "."));
+            messages.push(...checkKeys(subScript[key], value, key + "."));
             break;
 
           default:
-            console.log("key=",value,"typeOfValue",typeOfValue)
+            // console.log("key=",value,"typeOfValue",typeOfValue)
             // その他：キーの存在を確認
             // sourceに含まれる/^\{[^!]/で始まるキーは任意なので無視
-            if (!key.match(/^\{[^!]/) && !(key in script)) {
+            // sourceに含まれる/^\{!!/で始まるキーは動的に生成されるキーなので無視
+            if (!key.match(/^\{([^!]|!!)/) && !(key in subScript)) {
               messages.push(`${treeLabel}${key}がありません。`);
             }
         }
@@ -131,7 +123,7 @@ export default function Importer() {
     // scriptに含まれる/^\{[^!]/にマッチするキーは文字列のリストであればOK
     scriptKeys = scriptKeys.filter(key => {
       if (key.match(/^\{[^!]/)) {
-        if (!isStringArray(script[key])) {
+        if (!isStringArray(subScript[key])) {
           messages.push(`${treeLabel}[${key}]が文字列のリストではありません。`);
         }
         return false;
@@ -146,9 +138,9 @@ export default function Importer() {
   }
 
   function check(json) {
-    let script;
+    let loadedScript;
     try {
-      script = JSON.parse(json);
+      loadedScript = JSON.parse(json);
     } catch (e) {
       setContent(e);
       return;
@@ -156,14 +148,20 @@ export default function Importer() {
 
     // config
     let result = [
-      ...checkKeys(script.config, bot.ref.config, "config"),
-      ...checkKeys(script.wordDict, bot.ref.wordDict, "wordDict"),
-      ...checkKeys(script.parts, bot.ref.parts, "parts"),
+      ...checkKeys(loadedScript.config, bot.ref.config, "config"),
+      ...checkKeys(loadedScript.wordDict, bot.ref.wordDict, "wordDict"),
+      ...checkKeys(loadedScript.parts, bot.ref.parts, "parts"),
+      ...checkKeys(loadedScript.state, bot.ref.state, "state"),
     ];
     if (result.length !== 0) {
       setContent(result);
-      return;
+      // return;
     }
+    setScript(loadedScript);
+  }
+
+  function handleImport() {
+    bot.dumpToFirestore(fb, script);
   }
 
   return (
@@ -178,12 +176,22 @@ export default function Importer() {
           <Button
             type="submit"
           >
-            読み込み
+            確認
           </Button>
         </form>
       </Box>
       <Box>
-        {content}
+        {content.map(node=><Typography>{node}</Typography>)}
+      </Box>
+      <Box>
+        <Button
+          color="primary"
+          disabled={script !== null}
+          onClick={handleImport}
+          variant="contained"
+        >
+          クラウドに読み込み
+        </Button>
       </Box>
     </>
   );

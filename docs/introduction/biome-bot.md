@@ -55,12 +55,12 @@ bot.reply(user,text)関数のtextに下記のコマンド文字列を与える�
 チャットボットの出力文字列に以下のコマンドが含まれる場合、コマンド文字列はそれを評価した結果の文字列に置き換わります。
 
 |コマンド|動作|
-|{!HP}|現在の体力値|
-|{!BOT_NAME}|チャットボットの名前|
+|{!!HP}|現在の体力値|
+|{!!BOT_NAME}|チャットボットの名前|
 |{!USER_NAME}|返答を返す相手ユーザの名前|
 |{firstUserName}|最初に名前をくれたユーザの名前|
-|{!TIMEZONE}|現在の時間帯"night","noon","morning"|
-|{!SEASON}|現在の季節 summer,spring,autumn,winter|
+|{!!TIMEZONE}|現在の時間帯"night","noon","morning"|
+|{!!SEASON}|現在の季節 summer,spring,autumn,winter|
 
 出力文字列中に以下の文字列が含まれていた場合、チャットボットはその文字列を出力文字列から除去し、指定された動作を行います。
 

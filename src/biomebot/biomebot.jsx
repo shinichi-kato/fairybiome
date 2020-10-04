@@ -549,19 +549,19 @@ export default class BiomeBot extends BiomeBotIO {
   }
 
   tagifyNames = (text, userName) => {
-    /* ユーザ発言に含まれるユーザ名、ボット名を{!USER_NAME},{!BOT_NAME}に置き換える */
-    text = text.replace(new RegExp(`${this.config.displayName}ちゃん`, "g"), "{!BOT_NAME}");
-    text = text.replace(new RegExp(`${this.config.displayName}さん`, "g"), "{!BOT_NAME}");
-    text = text.replace(new RegExp(`${this.config.displayName}君`, "g"), "{!BOT_NAME}");
-    text = text.replace(new RegExp(this.config.displayName, "g"), "{!BOT_NAME}");
-    text = text.replace(new RegExp(userName, "g"), "{!USER_NAME}");
+    /* ユーザ発言に含まれるユーザ名、ボット名を{!USER_NAME},{!!BOT_NAME}に置き換える */
+    text = text.replace(new RegExp(`${this.config.displayName}ちゃん`, "g"), "{!!BOT_NAME}");
+    text = text.replace(new RegExp(`${this.config.displayName}さん`, "g"), "{!!BOT_NAME}");
+    text = text.replace(new RegExp(`${this.config.displayName}君`, "g"), "{!!BOT_NAME}");
+    text = text.replace(new RegExp(this.config.displayName, "g"), "{!!BOT_NAME}");
+    text = text.replace(new RegExp(userName, "g"), "{!!USER_NAME}");
     return text;
   }
 
   untagify = (text, userName) => {
     /* ユーザ発言やボットの発言に含まれる{!USER_NAME},{!BOT_NAME}を戻す */
-    this.wordDict["{!BOT_NAME}"] = [this.config.displayName];
-    this.wordDict["{!USER_NAME}"] = [userName];
+    this.wordDict["{!!BOT_NAME}"] = [this.config.displayName];
+    this.wordDict["{!!USER_NAME}"] = [userName];
     this.wordDictKeys = Object.keys(this.wordDict);
 
     /* messageに含まれるタグを文字列に戻す再帰的処理 */
