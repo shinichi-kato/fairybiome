@@ -78,14 +78,14 @@ export default function PasscodeCard(props) {
       <CardContent>
         <form onSubmit={handleSubmit}>
           <Box
+            alignItems="flex-end"
             display="flex"
             flexDirection="row"
-            alignItems="flex-end"
           >
             <Box className={classes.content}>
               <TextInput
                 handleChange={handleChangePasscode}
-                icon={<VpnKeyIcon/>}
+                icon={<VpnKeyIcon />}
                 required
                 type="password"
                 value={passcode}
@@ -105,6 +105,7 @@ export default function PasscodeCard(props) {
           />
           <Typography color="error">{message}</Typography>
         </form>
+        {!envPasscode && "環境設定ファイルにGATSBY_FAIRYBIOME_PASSCODEが定義されていません"}
       </CardContent>
     </Card>
   );

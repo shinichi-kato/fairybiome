@@ -40,14 +40,18 @@ export default function Console(props) {
   const handleKeyPress = e => {
       if (e.key === "Enter") {
           e.preventDefault();
-          handleWriteMessage();
+          if (text.length !== 0) {
+            props.handleWriteMessage(String(text));
+          }
       }
   };
 
   function handleWriteMessage() {
     const t = String(text);
-    setText("");
-    props.handleWriteMessage(t);
+    if (t.length !== 0) {
+      setText("");
+      props.handleWriteMessage(t);
+    }
   }
 
   return (
@@ -62,7 +66,10 @@ export default function Console(props) {
       <Divider className={classes.divider} />
       <IconButton
         aria-label="send"
-        className={classes.iconButton} color="primary" onClick={e=>handleWriteMessage()}>
+        className={classes.iconButton}
+        color="primary"
+        disabled={text.length === 0}
+        onClick={e=>handleWriteMessage()}>
         <Send />
       </IconButton>
     </Paper>

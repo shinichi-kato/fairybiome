@@ -29,7 +29,7 @@ export default function FairyList(props) {
   const classes = useStyles();
 
   function itemSize(index) {
-    return 64;
+    return 64 + (fairyList[index].displayName.length > 10 ? 16 : 0);
   }
 
   function renderRow(childProps) {

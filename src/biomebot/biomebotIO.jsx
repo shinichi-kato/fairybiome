@@ -62,10 +62,10 @@ export default class BiomeBotIO {
     };
 
     // 単語辞書(大きいので分離)
-    this.wordDict = { empty: ()=>true };
+    this.wordDict = { empty: () => true };
 
     // パート本体(大きいので分離)
-    this.parts = { empty: ()=>true };
+    this.parts = { empty: () => true };
 
     // 会話中の動的な状態を記述する項目
     this.state = {
@@ -144,7 +144,7 @@ export default class BiomeBotIO {
 
   setWordDict = (wordDict, updatedAt) => {
     this.wordDict = { ...wordDict };
-    let wdict = {...wordDict};
+    let wdict = { ...wordDict };
     delete wdict["{!!BOT_NAME}"];
     delete wdict["{!!LAST_SPEECH}"];
     delete wdict["{!!SECOND_LAST_SPEECH}"];
@@ -318,44 +318,45 @@ export default class BiomeBotIO {
     const ownerId = fb.user.uid;
     const ownerName = fb.user.displayName;
     const fs = fb.firestore;
-    let wdict = {...that.wordDict};
+    let wdict = { ...that.wordDict };
     delete wdict["{!!BOT_NAME}"];
     delete wdict["{!!LAST_SPEECH}"];
     delete wdict["{!!SECOND_LAST_SPEECH}"];
     delete wdict["{!!THIRD_LAST_SPEECH}"];
 
-    if (!that.firestoreDocId || that.firestoreDocId === "undefined") {
+    const id = that.firestoreDocId !== "undefined" && that.firestoreDocId || this.findBotId(fb, that);
+
+    if (!id) {
       // firestoreDocIdが指定されていない場合、
       // config.trueNameとconfig.ownerIdが同一であれば同じボットとみなす。
-      // ↑この判定は未実装
       fs.collection("bots")
-      .add({
-        firestoreOwnerId: ownerId,
-        ownerDisplayName: ownerName,
-        config: that.config,
-        state: {
-          partOrder: that.state.partOrder,
-          activeInHub: that.state.activeInHub,
-          hp: that.state.hp,
-          queue: that.state.queue
-        },
-        buddy: that.state.buddy,
-        updatedAt: that.updatedAt
-      })
-      .then(docRef => {
-        that.firestoreDocId = docRef.id;
-        localStorageIO.setItem("Biomebot.firestoreDocId", that.firestoreDocId);
+        .add({
+          firestoreOwnerId: ownerId,
+          ownerDisplayName: ownerName,
+          config: that.config,
+          state: {
+            partOrder: that.state.partOrder,
+            activeInHub: that.state.activeInHub,
+            hp: that.state.hp,
+            queue: that.state.queue
+          },
+          buddy: that.state.buddy,
+          updatedAt: that.updatedAt
+        })
+        .then(docRef => {
+          that.firestoreDocId = docRef.id;
+          localStorageIO.setItem("Biomebot.firestoreDocId", that.firestoreDocId);
 
-        docRef.collection("wordDict")
-          .doc("wordDict").set(wdict);
+          docRef.collection("wordDict")
+            .doc("wordDict").set(wdict);
 
-        const partsRef = docRef.collection("parts");
-        for (let partName of that.config.defaultPartOrder) {
-          partsRef.doc(partName).set(that.parts[partName].dump());
-        }
-      });
+          const partsRef = docRef.collection("parts");
+          for (let partName of that.config.defaultPartOrder) {
+            partsRef.doc(partName).set(that.parts[partName].dump());
+          }
+        });
     } else {
-      const docRef = fs.collection("bots").doc(that.firestoreDocId);
+      const docRef = fs.collection("bots").doc(id);
       docRef.set({
         firestoreOwnerId: ownerId,
         ownerDisplayName: ownerName,
@@ -378,6 +379,18 @@ export default class BiomeBotIO {
       }
     }
   };
+
+  findBotId = async (fb, that) => {
+    const snapshot = await fb.collection("bots")
+      .where("config.trueName", "==", that.config.trueName)
+      .where("config.ownerDisplayName", "==", that.ownerDisplayName)
+      .limit(1)
+      .get();
+
+    const data = snapshot.docs.map(doc => doc.id);
+
+    return data[0];
+  };
 }
 
 export const readFromFirestore = async (fb, docId) => {
@@ -388,9 +401,9 @@ export const readFromFirestore = async (fb, docId) => {
     firestoreDocId: docId,
     firestoreOwnerId: data.firestoreOwnerId,
     ownerDisplayName: data.ownerDispalyName,
-    config: {... data.config},
+    config: { ...data.config },
     state: {
-      ... data.state,
+      ...data.state,
       buddy: data.buddy,
     },
     updatedAt: data.updatedAt,
@@ -400,13 +413,13 @@ export const readFromFirestore = async (fb, docId) => {
 
   const wdRef = docRef.collection("wordDict").doc("wordDict");
   const wdData = await wdRef.get();
-  fairy.wordDict = {...wdData.data()};
+  fairy.wordDict = { ...wdData.data() };
 
   const partsRef = docRef.collection("parts");
   const partsData = await partsRef.get();
   for (let part of partsData.docs) {
     let partData = part.data();
-    fairy.parts[part.id] = {...partData};
+    fairy.parts[part.id] = { ...partData };
   }
 
   return fairy;

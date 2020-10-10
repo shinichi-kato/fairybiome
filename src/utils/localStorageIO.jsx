@@ -45,6 +45,12 @@ export const localStorageIO = {
     if (isBrowser()) {
       localStorage.clear();
     }
+  },
+
+  removeItem: (name) => {
+    if (isBrowser()) {
+      localStorage.removeItem(name);
+    }
   }
 
 };

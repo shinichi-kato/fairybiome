@@ -287,7 +287,7 @@ export default class Part extends PartIO {
       return result;
     }
 
-  defaultReplier = (text, username, state, wordDict, generosityFactor = 1) => {
+  defaultReplier = (text, username, state, wordDict, generosityFactor) => {
     let result = {
       text: `default replier,echo ${text}`, // 返答文字列
       queue: [], // キューに送る文字列

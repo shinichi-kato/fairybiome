@@ -11,17 +11,31 @@ import Home from "../components/ChatRoom/Home";
 import Hub from "../components/ChatRoom/Hub";
 import Habitat from "../components/ChatRoom/Habitat";
 
+import { localStorageIO } from "../utils/localStorageIO";
+
 const isBrowser = () => typeof window !== "undefined";
 
 export default function Fairybiome() {
-  // ------------------------------------------------------------------
-  //  body要素のバウンススクロールを無効化
-
   useEffect(() => {
+    // ------------------------------------------------------------------
+    // versionが古い場合localstorageを一旦削除
+
+    let version = localStorageIO.getItem("version");
+    if (version !== "0.8.1") {
+      localStorageIO.removeItem("Biomebot.coonfig");
+      localStorageIO.removeItem("Biomebot.firestoreDocId");
+      localStorageIO.removeItem("Biomebot.firestoreOwnerId");
+      localStorageIO.removeItem("Biomebot.ownerDisplayName");
+      localStorageIO.setItem("version", "0.8.1");
+    }
+
+    // ------------------------------------------------------------------
+    //  body要素のバウンススクロールを無効化
+
     const handler = (event) => {
       if (handler.event.touches[0].target.tagName.toLowerCase() === "body") {
-        event.preventDefault();
-      }
+          event.preventDefault();
+        }
       return null;
     };
     if (isBrowser()) {
@@ -29,6 +43,7 @@ export default function Fairybiome() {
       window.addEventListener("touchmove", handler);
       window.addEventListener("touchend", handler);
     }
+
     return (() => {
       if (isBrowser()) {
         window.removeEventListener("touchstart", handler);

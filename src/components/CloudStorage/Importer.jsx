@@ -161,7 +161,16 @@ export default function Importer() {
   }
 
   function handleImport() {
-    bot.dumpToFirestore(fb, script);
+    bot.dumpToFirestore(fb, {
+      ...script,
+      state: {
+        partOrder:[...script.config.partOrder],
+        activeInHub: false,
+        hp: script.config.initialHp,
+        queue: [],
+        buddy: "none"
+      }
+    });
   }
 
   return (

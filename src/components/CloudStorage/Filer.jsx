@@ -93,12 +93,6 @@ export default function Filer(props) {
       });
   }
 
-  function handleImport() {
-    // ファイルからfirestoreへ
-    // チャットボットのtrueNameを識別子にする。trueNameとuserIdが同じボットは
-    // 上書きとみなす。そのためtrueNameは必須
-  }
-
   return (
     <>
       <Box
