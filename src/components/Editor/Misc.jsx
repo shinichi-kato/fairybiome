@@ -127,7 +127,7 @@ export default function Misc(props) {
         spacing={2}
       >
         <Grid item xs={12}>
-          <Typography>ヒットポイント</Typography>
+          <Typography>現在のヒットポイント</Typography>
         </Grid>
         <Grid item xs={12}>
           HP:{state.hp}<LinearProgress
@@ -156,7 +156,7 @@ export default function Misc(props) {
           </Typography>
         </Grid>
         <Grid item xs={12}>
-          キュー
+          現在のキュー
         </Grid>
         <Grid item xs={12}>
           <QueueList queue={state.queue} />

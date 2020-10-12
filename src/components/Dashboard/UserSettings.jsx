@@ -22,6 +22,12 @@ query {
 `;
 
 const useStyles = makeStyles((theme) => ({
+  rootWhoseChildUsesFlexGrow: {
+    width: "100%",
+    height: "100vh",
+    // backgroundImage: "url(../images/landing-bg.png)",
+    // backgroundPosition: "center bottom",
+  },
   content: {
     padding: theme.spacing(1),
   },
@@ -94,6 +100,7 @@ export default function UserSettings(props) {
   return (
     <Box
       alignContent="flex-start"
+      className={classes.rootWhoseChildUsesFlexGrow}
       display="flex"
       flexDirection="column"
       flexWrap="nowrap"
@@ -104,43 +111,47 @@ export default function UserSettings(props) {
           setNavigateBefore={props.setNavigateBefore}
           title="ユーザ設定" />
       </Box>
-      <Box className={classes.content}>
-        <Typography variant="h5">アイコン</Typography>
-      </Box>
       <Box
-        alignItems="center"
-        className={classes.content}
+        className={classes.main}
       >
-        {MemorizedAvatarSelect}
-      </Box>
-      <Box className={classes.content}>
-        <Typography variant="h5">あなたの名前</Typography>
-      </Box>
-      <Box
-        className={classes.content}
-        flexGrow={1}
-      >
-        <TextInput
-          className={classes.name}
-          handleChange={handleChangeDisplayName}
-          required
-          value={displayName}
-          variant="outlined"
-        />
-      </Box>
-      <Box className={classes.content}>
-        <Button
-          className={classes.button}
-          color="primary"
-          disabled={
-            displayName === null ||
-            displayName === "" ||
-            photoURL === ""}
-          onClick={handleClick}
-          size="large"
+        <Box className={classes.content}>
+          <Typography variant="h5">アイコン</Typography>
+        </Box>
+        <Box
+          alignItems="center"
+          className={classes.content}
         >
-          ユーザの設定を変更
-        </Button>
+          {MemorizedAvatarSelect}
+        </Box>
+        <Box className={classes.content}>
+          <Typography variant="h5">あなたの名前</Typography>
+        </Box>
+        <Box
+          className={classes.content}
+          flexGrow={1}
+        >
+          <TextInput
+            className={classes.name}
+            handleChange={handleChangeDisplayName}
+            required
+            value={displayName}
+            variant="outlined"
+          />
+        </Box>
+        <Box className={classes.content}>
+          <Button
+            className={classes.button}
+            color="primary"
+            disabled={
+              displayName === null ||
+              displayName === "" ||
+              photoURL === ""}
+            onClick={handleClick}
+            size="large"
+          >
+            ユーザの設定を変更
+          </Button>
+        </Box>
       </Box>
     </Box>
   );

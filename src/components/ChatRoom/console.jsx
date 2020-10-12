@@ -41,7 +41,9 @@ export default function Console(props) {
       if (e.key === "Enter") {
           e.preventDefault();
           if (text.length !== 0) {
-            props.handleWriteMessage(String(text));
+            const txt = String(text);
+            setText("");
+            props.handleWriteMessage(txt);
           }
       }
   };
