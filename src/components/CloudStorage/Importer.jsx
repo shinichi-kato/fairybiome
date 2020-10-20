@@ -31,7 +31,7 @@ export default function Importer() {
   const fileInputRef = useRef();
   const bot = useContext(BotContext);
   const fb = useContext(FirebaseContext);
-  const [content, setContent] = useState(null);
+  const [content, setContent] = useState([]);
   const [script, setScript] = useState(null);
 
   function handleLoad(event) {
@@ -164,7 +164,7 @@ export default function Importer() {
     bot.dumpToFirestore(fb, {
       ...script,
       state: {
-        partOrder:[...script.config.partOrder],
+        partOrder: [...script.config.partOrder],
         activeInHub: false,
         hp: script.config.initialHp,
         queue: [],

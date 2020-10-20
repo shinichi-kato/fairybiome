@@ -85,7 +85,7 @@ export default function Config(props) {
         photoURL: photoURL,
         description: description,
         defaultPartOrder: defaultPartOrder,
-        initilaHp: initialHp,
+        initialHp: initialHp,
         hubBehavior: {
           availability: parseFloat(hubBehavior.availability),
           generosity: parseFloat(hubBehavior.generosity),
@@ -122,7 +122,7 @@ export default function Config(props) {
         photoURL: photoURL,
         description: description,
         defaultPartOrder: newPartOrder,
-        initilaHp: initialHp,
+        initialHp: initialHp,
         hubBehavior: {
           availability: parseFloat(hubBehavior.availability),
           generosity: parseFloat(hubBehavior.generosity),

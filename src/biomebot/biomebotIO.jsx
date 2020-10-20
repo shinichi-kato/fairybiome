@@ -12,7 +12,7 @@ collection("bots")
       photoUrl: TextString,
       description: TextString,
       defaultPartOrder: Array,
-      initilaHp: number
+      initialHp: number
       hubBehavior: Map,
     },
     state: {
