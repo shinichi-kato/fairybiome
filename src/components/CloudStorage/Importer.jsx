@@ -6,6 +6,7 @@ import Typography from "@material-ui/core/Typography";
 import { BotContext } from "../ChatBot/BotProvider";
 import { FirebaseContext } from "../Firebase/FirebaseProvider";
 import ApplicationBar from "../ApplicationBar/ApplicationBar";
+import { configTemplate, wordDictTemplate, partTemplate } from "../../biomebot/template";
 
 function typeOf(obj) {
   return Object.prototype.toString.call(obj).slice(8, -1).toLowerCase();
@@ -32,14 +33,27 @@ export default function Importer() {
   const bot = useContext(BotContext);
   const fb = useContext(FirebaseContext);
   const [content, setContent] = useState([]);
-  const [script, setScript] = useState(null);
 
   function handleLoad(event) {
     event.preventDefault();
     const target = fileInputRef.current.files[0];
     let reader = new FileReader();
+
     reader.onload = () => {
-      check(reader.result);
+      const loadedScript = check(reader.result);
+      if (loadedScript) {
+        bot.dumpToFirestore(fb, {
+          ...loadedScript,
+          ownerDisplayName: fb.user.displayName,
+          state: {
+            partOrder: [...loadedScript.config.defaultPartOrder],
+            activeInHub: false,
+            hp: loadedScript.config.initialHp,
+            queue: [],
+            buddy: "none"
+          }
+        });
+      }
     };
     reader.readAsText(target);
   }
@@ -48,14 +62,14 @@ export default function Importer() {
     let messages = [];
     for (let i = 0; i < dict.length; i++) {
       if (!dict[i].in) {
-        messages.push(`${treeLabel}.dictの${i}行に in:["文字列"...] がありません。`);
+        messages.push(`${treeLabel}.dictの${i}行に in:["文字列"...] がありません。(E01)`);
       } else if (!isStringArray(dict[i].in)) {
-        messages.push(`${treeLabel}.dictの${i}のin$に文字列以外の要素がありました。`);
+        messages.push(`${treeLabel}.dictの${i}のin$に文字列以外の要素がありました。(E02)`);
       }
       if (!dict[i].out) {
-        messages.push(`${treeLabel}.dictの${i}行に out:["文字列"...] がありません。`);
+        messages.push(`${treeLabel}.dictの${i}行に out:["文字列"...] がありません。(E03)`);
       } else if (!isStringArray(dict[i].out)) {
-        messages.push(`${treeLabel}.dictの${i}のoutに文字列以外の要素がありました。`);
+        messages.push(`${treeLabel}.dictの${i}のoutに文字列以外の要素がありました。(E04)`);
       }
     }
     return messages;
@@ -73,10 +87,9 @@ export default function Importer() {
   function checkKeys(subScript, source, treeLabel = "") {
     let messages = [];
 
-    if (typeof source === "string") {
-      return [typeof subScript === "string" ? "" : `${treeLabel}の値${subScript}が文字列ではありません。`];
+    if (typeof source === "string" && subScript) {
+      return [typeof subScript === "string" ? "" : `${treeLabel}の値${subScript}が文字列ではありません。(E05)`];
     }
-
     // partのようにdump()メソッドがある場合はdump()を使用
     let sourceKeys = Object.keys(source.dump ? source.dump() : source);
     let scriptKeys = Object.keys(subScript);
@@ -85,7 +98,8 @@ export default function Importer() {
       const value = source[key];
       const typeOfValue = typeOf(value);
 
-      if (key in subScript) {
+      if (!(key in ["partOrder", "queue"]) && key in subScript) {
+        // partOrderとqueueは初期化されるためチェックしない
         scriptKeys = scriptKeys.filter(word => word !== key);
 
         switch (typeOfValue) {
@@ -106,17 +120,17 @@ export default function Importer() {
             messages.push(...checkKeys(subScript[key], value, key + "."));
             break;
 
+          // console.log("key=",value,"typeOfValue",typeOfValue)
           default:
-            // console.log("key=",value,"typeOfValue",typeOfValue)
             // その他：キーの存在を確認
             // sourceに含まれる/^\{[^!]/で始まるキーは任意なので無視
             // sourceに含まれる/^\{!!/で始まるキーは動的に生成されるキーなので無視
             if (!key.match(/^\{([^!]|!!)/) && !(key in subScript)) {
-              messages.push(`${treeLabel}${key}がありません。`);
+              messages.push(`${treeLabel}${key}がありません。(E06)`);
             }
         }
-      } else {
-        messages.push(`${treeLabel}に${key}がありません。`);
+      } else if (!key.match(/^\{([^!]|!!)/)) {
+        messages.push(`${treeLabel}に${key}がありません。(E07)`);
       }
     }
 
@@ -124,7 +138,7 @@ export default function Importer() {
     scriptKeys = scriptKeys.filter(key => {
       if (key.match(/^\{[^!]/)) {
         if (!isStringArray(subScript[key])) {
-          messages.push(`${treeLabel}[${key}]が文字列のリストではありません。`);
+          messages.push(`${treeLabel}[${key}]が文字列のリストではありません。(E08)`);
         }
         return false;
       }
@@ -132,45 +146,35 @@ export default function Importer() {
     });
 
     if (scriptKeys.length !== 0) {
-      messages.push(`${treeLabel}に正しくないキー${scriptKeys.join(",")}があります。`);
+      messages.push(`${treeLabel}に正しくないキー${scriptKeys.join(",")}があります。(E09)`);
     }
     return messages;
   }
 
   function check(json) {
     let loadedScript;
+    setContent([]);
     try {
       loadedScript = JSON.parse(json);
     } catch (e) {
       setContent(e);
-      return;
+      return false;
     }
 
     // config
+    const partsResults = loadedScript.config.defaultPartOrder.map(
+      partName => checkKeys(loadedScript.parts[partName], partTemplate, `part[${partName}]`));
     let result = [
-      ...checkKeys(loadedScript.config, bot.ref.config, "config"),
-      ...checkKeys(loadedScript.wordDict, bot.ref.wordDict, "wordDict"),
-      ...checkKeys(loadedScript.parts, bot.ref.parts, "parts"),
-      ...checkKeys(loadedScript.state, bot.ref.state, "state"),
+      ...checkKeys(loadedScript.config, configTemplate, "config"),
+      ...checkKeys(loadedScript.wordDict, wordDictTemplate, "wordDict"),
+      ...partsResults.reduce((pre, current) => { pre.push(...current); return pre; }, [])
+      // ...checkKeys(loadedScript.state, bot.ref.state, "state"),
     ];
     if (result.length !== 0) {
       setContent(result);
-      // return;
+      return false;
     }
-    setScript(loadedScript);
-  }
-
-  function handleImport() {
-    bot.dumpToFirestore(fb, {
-      ...script,
-      state: {
-        partOrder: [...script.config.partOrder],
-        activeInHub: false,
-        hp: script.config.initialHp,
-        queue: [],
-        buddy: "none"
-      }
-    });
+    return loadedScript;
   }
 
   return (
@@ -185,22 +189,12 @@ export default function Importer() {
           <Button
             type="submit"
           >
-            確認
+            クラウドに読み込み
           </Button>
         </form>
       </Box>
       <Box>
-        {content.map(node=><Typography>{node}</Typography>)}
-      </Box>
-      <Box>
-        <Button
-          color="primary"
-          disabled={script !== null}
-          onClick={handleImport}
-          variant="contained"
-        >
-          クラウドに読み込み
-        </Button>
+        {content.map(node => <Typography>{node}</Typography>)}
       </Box>
     </>
   );

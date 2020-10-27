@@ -324,13 +324,39 @@ export default class BiomeBotIO {
     delete wdict["{!!SECOND_LAST_SPEECH}"];
     delete wdict["{!!THIRD_LAST_SPEECH}"];
 
-    const id = that.firestoreDocId !== "undefined" && that.firestoreDocId || this.findBotId(fb, that);
+    this.findBotId(fs, that).then(id => {
+      if (!id) {
+        // firestoreDocIdが指定されていない場合、
+        // config.trueNameとconfig.ownerIdが同一であれば同じボットとみなす。
+        fs.collection("bots")
+          .add({
+            firestoreOwnerId: ownerId,
+            ownerDisplayName: ownerName,
+            config: that.config,
+            state: {
+              partOrder: that.state.partOrder,
+              activeInHub: that.state.activeInHub,
+              hp: that.state.hp,
+              queue: that.state.queue
+            },
+            buddy: that.state.buddy,
+            updatedAt: that.updatedAt
+          })
+          .then(docRef => {
+            that.firestoreDocId = docRef.id;
+            localStorageIO.setItem("Biomebot.firestoreDocId", that.firestoreDocId);
 
-    if (!id) {
-      // firestoreDocIdが指定されていない場合、
-      // config.trueNameとconfig.ownerIdが同一であれば同じボットとみなす。
-      fs.collection("bots")
-        .add({
+            docRef.collection("wordDict")
+              .doc("wordDict").set(wdict);
+
+            const partsRef = docRef.collection("parts");
+            for (let partName of that.config.defaultPartOrder) {
+              partsRef.doc(partName).set(that.parts[partName].dump());
+            }
+          });
+      } else {
+        const docRef = fs.collection("bots").doc(id);
+        docRef.set({
           firestoreOwnerId: ownerId,
           ownerDisplayName: ownerName,
           config: that.config,
@@ -342,46 +368,23 @@ export default class BiomeBotIO {
           },
           buddy: that.state.buddy,
           updatedAt: that.updatedAt
-        })
-        .then(docRef => {
-          that.firestoreDocId = docRef.id;
-          localStorageIO.setItem("Biomebot.firestoreDocId", that.firestoreDocId);
-
-          docRef.collection("wordDict")
-            .doc("wordDict").set(wdict);
-
-          const partsRef = docRef.collection("parts");
-          for (let partName of that.config.defaultPartOrder) {
-            partsRef.doc(partName).set(that.parts[partName].dump());
-          }
         });
-    } else {
-      const docRef = fs.collection("bots").doc(id);
-      docRef.set({
-        firestoreOwnerId: ownerId,
-        ownerDisplayName: ownerName,
-        config: that.config,
-        state: {
-          partOrder: that.state.partOrder,
-          activeInHub: that.state.activeInHub,
-          hp: that.state.hp,
-          queue: that.state.queue
-        },
-        buddy: that.state.buddy,
-        updatedAt: that.updatedAt
-      });
-      docRef.collection("wordDict")
-        .doc("wordDict").set(wdict);
+        docRef.collection("wordDict")
+          .doc("wordDict").set(wdict);
 
-      const partsRef = docRef.collection("parts");
-      for (let partName of that.config.defaultPartOrder) {
-        partsRef.doc(partName).set(that.parts[partName].dump());
+        const partsRef = docRef.collection("parts");
+        for (let partName of that.config.defaultPartOrder) {
+          partsRef.doc(partName).set(that.parts[partName].dump());
+        }
       }
-    }
+    });
   };
 
-  findBotId = async (fb, that) => {
-    const snapshot = await fb.collection("bots")
+  findBotId = async (fs, that) => {
+    const id = that.firestoreDocId !== "undefined" && that.firestoreDocId;
+    if (id) { return id; }
+
+    const snapshot = await fs.collection("bots")
       .where("config.trueName", "==", that.config.trueName)
       .where("config.ownerDisplayName", "==", that.ownerDisplayName)
       .limit(1)
