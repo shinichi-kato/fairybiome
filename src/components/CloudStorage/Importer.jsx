@@ -3,7 +3,7 @@ import Box from "@material-ui/core/Box";
 import Button from "@material-ui/core/Button";
 import Typography from "@material-ui/core/Typography";
 
-import { BotContext } from "../ChatBot/BotProvider";
+import Biomebot from "../../biomebot/biomebot";
 import { FirebaseContext } from "../Firebase/FirebaseProvider";
 import ApplicationBar from "../ApplicationBar/ApplicationBar";
 import { configTemplate, wordDictTemplate, partTemplate } from "../../biomebot/template";
@@ -24,13 +24,12 @@ function isStringArray(arr) {
   return false;
 }
 
-export default function Importer() {
+export default function Importer(props) {
   /*
     JSON形式のテキストファイルからインポート
     インポート時には簡易的な文法チェックを行う。
   */
   const fileInputRef = useRef();
-  const bot = useContext(BotContext);
   const fb = useContext(FirebaseContext);
   const [content, setContent] = useState([]);
 
@@ -40,19 +39,21 @@ export default function Importer() {
     let reader = new FileReader();
 
     reader.onload = () => {
-      const loadedScript = check(reader.result);
+      let loadedScript = check(reader.result);
+
       if (loadedScript) {
-        bot.dumpToFirestore(fb, {
-          ...loadedScript,
-          ownerDisplayName: fb.user.displayName,
-          state: {
-            partOrder: [...loadedScript.config.defaultPartOrder],
-            activeInHub: false,
-            hp: loadedScript.config.initialHp,
-            queue: [],
-            buddy: "none"
-          }
-        });
+        loadedScript.state = {
+          partOrder: [...loadedScript.config.defaultPartOrder],
+          activeInHub: false,
+          hp: loadedScript.config.initialHp,
+          queue: [],
+          buddy: "none"
+        };
+        loadedScript.ownerDisplayName = fb.user.displayName;
+        const bot = new Biomebot();
+        bot.readObj(loadedScript);
+        bot.dumpToFirestore(fb);
+        props.handleToFiler();
       }
     };
     reader.readAsText(target);

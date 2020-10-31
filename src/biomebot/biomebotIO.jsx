@@ -340,7 +340,7 @@ export default class BiomeBotIO {
               queue: that.state.queue
             },
             buddy: that.state.buddy,
-            updatedAt: that.updatedAt
+            updatedAt: fb.timestampNow()
           })
           .then(docRef => {
             that.firestoreDocId = docRef.id;
@@ -367,7 +367,7 @@ export default class BiomeBotIO {
             queue: that.state.queue
           },
           buddy: that.state.buddy,
-          updatedAt: that.updatedAt
+          updatedAt: fb.timestampNow()
         });
         docRef.collection("wordDict")
           .doc("wordDict").set(wdict);
