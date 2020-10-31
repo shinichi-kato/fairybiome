@@ -5,8 +5,8 @@ import Typography from "@material-ui/core/Typography";
 
 import Biomebot from "../../biomebot/biomebot";
 import { FirebaseContext } from "../Firebase/FirebaseProvider";
-import ApplicationBar from "../ApplicationBar/ApplicationBar";
 import { configTemplate, wordDictTemplate, partTemplate } from "../../biomebot/template";
+import { partTypeDescription } from "../Editor/Parts";
 
 function typeOf(obj) {
   return Object.prototype.toString.call(obj).slice(8, -1).toLowerCase();
@@ -162,7 +162,7 @@ export default function Importer(props) {
       return false;
     }
 
-    // config
+    // データ構造チェック
     const partsResults = loadedScript.config.defaultPartOrder.map(
       partName => checkKeys(loadedScript.parts[partName], partTemplate, `part[${partName}]`));
     let result = [
@@ -175,6 +175,17 @@ export default function Importer(props) {
       setContent(result);
       return false;
     }
+
+    // 値チェック
+    for (let partName of loadedScript.config.defaultPartOrder) {
+      let partType = loadedScript.parts[partName].type;
+      if (!(partType in partTypeDescription)) {
+        const typeNames = Object.keys(partTypeDescription).join(",");
+        setContent(`不正なType名${partType}が${partName}で見つかりました。Type名は${typeNames}にしてください`);
+        return false;
+      }
+    }
+
     return loadedScript;
   }
 

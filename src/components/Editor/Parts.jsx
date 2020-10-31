@@ -30,7 +30,7 @@ const useStyles = makeStyles((theme) => ({
 
 }));
 
-const partTypeDescription = {
+export const partTypeDescription = {
   "recaller": {
     label: "辞書型",
     description: "事前問答集のような辞書を使ってユーザのセリフに返答します"

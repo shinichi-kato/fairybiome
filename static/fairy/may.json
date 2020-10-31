@@ -79,7 +79,7 @@
             ]
         },
         "reframer": {
-            "type": "reacaller",
+            "type": "recaller",
             "behavior": {
                 "availability": 1,
                 "generosity": 0.8,
