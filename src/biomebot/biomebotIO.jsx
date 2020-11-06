@@ -315,8 +315,8 @@ export default class BiomeBotIO {
     if (that === null) {
       that = this;
     }
-    const ownerId = fb.user.uid;
-    const ownerName = fb.user.displayName;
+    this.firestoreOwnerId = fb.user.uid;
+    this.ownerDisplayName = fb.user.displayName;
     const fs = fb.firestore;
     let wdict = { ...that.wordDict };
     delete wdict["{!!BOT_NAME}"];
@@ -330,8 +330,8 @@ export default class BiomeBotIO {
         // config.trueNameとconfig.ownerIdが同一であれば同じボットとみなす。
         fs.collection("bots")
           .add({
-            firestoreOwnerId: ownerId,
-            ownerDisplayName: ownerName,
+            firestoreOwnerId: this.firestoreOwnerId,
+            ownerDisplayName: this.ownerDisplayName,
             config: that.config,
             state: {
               partOrder: that.state.partOrder,
@@ -386,7 +386,7 @@ export default class BiomeBotIO {
 
     const snapshot = await fs.collection("bots")
       .where("config.trueName", "==", that.config.trueName)
-      .where("config.ownerDisplayName", "==", that.ownerDisplayName)
+      .where("config.firestoreOwnerId", "==", that.firestoreOwnerId)
       .limit(1)
       .get();
 
