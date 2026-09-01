@@ -10,20 +10,44 @@ import {
 } from '@firebase-oss/ui-react';
 import { jaJp } from '@firebase-oss/ui-translations';
 import { sendEmailVerification } from 'firebase/auth';
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { app, auth } from '../lib/firebase';
 
 type Screen = 'signIn' | 'signUp' | 'forgotPassword';
 
-const ui = initializeUI({ app, auth, locale: jaJp });
-
 export default function FirebaseAuthScreen() {
   const [screen, setScreen] = useState<Screen>('signIn');
+  const [mounted, setMounted] = useState(false);
+  const ui = useMemo(() => {
+    if (!mounted || !app || !auth) {
+      return null;
+    }
+    return initializeUI({ app, auth, locale: jaJp });
+  }, [mounted]);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   async function handleSignUp() {
+    if (!auth) {
+      throw new Error('Firebase is not configured.');
+    }
     if (auth.currentUser && !auth.currentUser.emailVerified) {
       await sendEmailVerification(auth.currentUser);
     }
+  }
+
+  if (!mounted) {
+    return <main className="auth-message">読み込み中...</main>;
+  }
+
+  if (!ui || !auth) {
+    return (
+      <main className="auth-message" role="alert">
+        Firebase の設定が不足しているため、ログイン画面を表示できません。
+      </main>
+    );
   }
 
   return (

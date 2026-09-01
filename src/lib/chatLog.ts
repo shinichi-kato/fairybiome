@@ -17,6 +17,13 @@ import { avatarDirectory, type ChatLogMessage } from './chatMessage';
 
 const MAX_LOG_MESSAGES_PER_BOT = 500;
 
+function getDb() {
+  if (!db) {
+    throw new Error('Firebase is not configured.');
+  }
+  return db;
+}
+
 export function subscribeToChatLog(
   userId: string,
   botName: string,
@@ -24,8 +31,9 @@ export function subscribeToChatLog(
   onMessages: (messages: ChatLogMessage[]) => void,
   onError: (error: Error) => void
 ) {
+  const firestore = getDb();
   const messagesQuery = query(
-    collection(db, 'users', userId, 'log'),
+    collection(firestore, 'users', userId, 'log'),
     where('botName', '==', botName),
     where('conversationId', '==', conversationId),
     orderBy('createdAtClient', 'asc')
@@ -44,7 +52,8 @@ export function subscribeToChatLog(
 }
 
 export async function saveChatLogMessage(userId: string, message: ChatLogMessage): Promise<void> {
-  const messageRef = doc(db, 'users', userId, 'log', message.id);
+  const firestore = getDb();
+  const messageRef = doc(firestore, 'users', userId, 'log', message.id);
   await setDoc(messageRef, {
     ...message,
     createdAt: serverTimestamp(),
@@ -57,15 +66,17 @@ export async function markChatLogMessageFailed(
   messageId: string,
   error: string
 ): Promise<void> {
-  await updateDoc(doc(db, 'users', userId, 'log', messageId), {
+  const firestore = getDb();
+  await updateDoc(doc(firestore, 'users', userId, 'log', messageId), {
     status: 'failed',
     error,
   });
 }
 
 export async function pruneChatLog(userId: string, botName: string): Promise<void> {
+  const firestore = getDb();
   const messagesQuery = query(
-    collection(db, 'users', userId, 'log'),
+    collection(firestore, 'users', userId, 'log'),
     where('botName', '==', botName),
     orderBy('createdAtClient', 'desc'),
     limit(MAX_LOG_MESSAGES_PER_BOT + 1)
@@ -76,7 +87,7 @@ export async function pruneChatLog(userId: string, botName: string): Promise<voi
     return;
   }
 
-  const batch = writeBatch(db);
+  const batch = writeBatch(firestore);
   for (const message of snapshot.docs.slice(MAX_LOG_MESSAGES_PER_BOT)) {
     batch.delete(message.ref);
   }

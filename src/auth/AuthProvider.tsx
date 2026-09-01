@@ -60,6 +60,10 @@ const DEFAULT_PROFILE = {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 async function getOrCreateProfile(userId: string): Promise<UserProfile> {
+  if (!db) {
+    throw new Error('Firebase is not configured.');
+  }
+
   const profileRef = doc(db, 'users', userId);
 
   await runTransaction(db, async transaction => {
@@ -89,6 +93,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   useEffect(() => {
+    if (!auth || !db) {
+      setState({ user: null, profile: null, status: 'unauthenticated', error: null });
+      return;
+    }
+
     let disposed = false;
 
     const unsubscribe = onAuthStateChanged(auth, async user => {
@@ -130,10 +139,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   async function signOut() {
+    if (!auth) {
+      throw new Error('Firebase is not configured.');
+    }
     await firebaseSignOut(auth);
   }
 
   async function reloadUser() {
+    if (!auth) {
+      throw new Error('Firebase is not configured.');
+    }
     if (!auth.currentUser) {
       throw new Error('ログインしていません。');
     }
@@ -141,6 +156,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function resendVerificationEmail() {
+    if (!auth) {
+      throw new Error('Firebase is not configured.');
+    }
     if (!auth.currentUser) {
       throw new Error('ログインしていません。');
     }
@@ -148,6 +166,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function updateProfile(update: Pick<UserProfile, 'displayName' | 'avatar' | 'backgroundColor'>) {
+    if (!db) {
+      throw new Error('Firebase is not configured.');
+    }
     if (!state.user) {
       throw new Error('ログインしていません。');
     }
