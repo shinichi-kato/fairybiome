@@ -2,7 +2,7 @@
 // * ハイパーパラメータの取り扱いが見つからない
 
 import Dexie from 'dexie';
-import { TinySegmenter } from '../../_legacy/biomebot-021/tinysegmenter.js';
+import { TinySegmenter } from '../tinysegmenter.js';
 import { WordEmbedding } from './modules/WordEmbedding.js';
 import { TextEmbedding } from './modules/TextEmbedding.js';
 import { AttentionEmbedding } from './modules/AttentionEmbedding.js';
