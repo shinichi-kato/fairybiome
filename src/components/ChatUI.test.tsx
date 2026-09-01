@@ -54,6 +54,12 @@ describe('ChatUI', () => {
     expect(container.querySelector('.chat-device')).toBeTruthy();
   });
 
+  it('exposes the desktop chat width as a CSS variable', () => {
+    const { container } = render(<ChatUI botName="aurula" chatWidth={720} />);
+
+    expect(container.querySelector<HTMLElement>('.chat-stage')?.style.getPropertyValue('--chat-device-width')).toBe('720px');
+  });
+
   it('deploys the selected bot and sends a valid message when Enter is pressed', async () => {
     render(<ChatUI botName="aurula" />);
     const input = screen.getByLabelText('メッセージ');

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { ArrowLeft, Send } from 'lucide-react';
-import { type KeyboardEvent, useEffect, useRef, useState } from 'react';
+import { type CSSProperties, type KeyboardEvent, useEffect, useRef, useState } from 'react';
 import { useAuth } from '../auth/AuthProvider';
 import { ChatBiomebot } from '../biomebot/kernel.js';
 import { createConversationId, markChatLogMessageFailed, saveChatLogMessage, subscribeToChatLog } from '../lib/chatLog';
@@ -12,7 +12,10 @@ import UserPanel from './Panel/UserPanel';
 
 type ChatUIProps = {
   botName: string;
+  chatWidth?: number;
 };
+
+const DEFAULT_CHAT_WIDTH = 600;
 
 function readBotPaths(): Record<string, string[]> {
   try {
@@ -27,7 +30,7 @@ function makeId(): string {
   return globalThis.crypto.randomUUID();
 }
 
-export default function ChatUI({ botName }: ChatUIProps) {
+export default function ChatUI({ botName, chatWidth = DEFAULT_CHAT_WIDTH }: ChatUIProps) {
   const { user, profile } = useAuth();
   const [conversationId] = useState(createConversationId);
   const [messages, setMessages] = useState<ChatLogMessage[]>([]);
@@ -171,7 +174,11 @@ export default function ChatUI({ botName }: ChatUIProps) {
   const latestBotMessage = [...messages].reverse().find(message => message.role === 'bot');
 
   return (
-    <main ref={viewportRef} className="chat-stage">
+    <main
+      ref={viewportRef}
+      className="chat-stage"
+      style={{ '--chat-device-width': `${chatWidth}px` } as CSSProperties}
+    >
       <div className="chat-device flex h-full flex-col overflow-hidden bg-secondary px-3 py-3">
       <header className="flex items-center border-b border-gray-300 pb-3">
         <Link href="/" aria-label="メインメニューに戻る" className="inline-flex h-10 w-10 items-center justify-center text-primary hover:bg-white">

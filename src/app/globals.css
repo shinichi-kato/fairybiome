@@ -38,6 +38,7 @@ code {
 }
 
 .chat-stage {
+  --chat-device-width: 600px;
   --chat-viewport-height: 100dvh;
   align-items: center;
   background: #d5d7d8;
@@ -49,12 +50,11 @@ code {
 }
 
 .chat-device {
-  aspect-ratio: 9 / 19;
   border: 1px solid #b4b8ba;
   box-shadow: 0 12px 32px rgb(37 48 56 / 20%);
-  height: min(100%, 900px);
+  height: 100%;
   max-width: 100%;
-  width: auto;
+  width: var(--chat-device-width);
 }
 
 @media (max-width: 639px) {
