@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useState, useReducer } from "react"
+import { useState, useReducer } from "react"
 import { EpisodeStorage } from "../EpisodeStorage/EpisodeStorage"
 
 type PartJson = {

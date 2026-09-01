@@ -16,24 +16,27 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Initialize Firebase
-const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+const hasFirebaseConfig = Object.values(firebaseConfig).every(
+  value => typeof value === 'string' && value.length > 0
+);
+const canInitializeFirebase = typeof window !== 'undefined' && hasFirebaseConfig;
 
-// Auth
-const auth = getAuth(app);
+// Initialize Firebase only in the browser so prerendering does not require client credentials.
+const app = canInitializeFirebase
+  ? (getApps().length > 0 ? getApp() : initializeApp(firebaseConfig))
+  : null;
+const auth = app ? getAuth(app) : null;
+const db = app ? getFirestore(app) : null;
 
 // Set persistence for browser
-if (typeof window !== 'undefined') {
+if (auth && typeof window !== 'undefined') {
   setPersistence(auth, browserLocalPersistence).catch(err => {
     console.warn('Failed to set persistence:', err);
   });
 }
 
-// Firestore
-const db = getFirestore(app);
-
 // Development: Connect to emulator if enabled
-if (process.env.NEXT_PUBLIC_USE_FIRESTORE_EMULATOR === 'true' && typeof window !== 'undefined') {
+if (db && auth && process.env.NEXT_PUBLIC_USE_FIRESTORE_EMULATOR === 'true' && typeof window !== 'undefined') {
   try {
     connectFirestoreEmulator(db, 'localhost', 8080);
     connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
@@ -42,4 +45,4 @@ if (process.env.NEXT_PUBLIC_USE_FIRESTORE_EMULATOR === 'true' && typeof window !
   }
 }
 
-export { app, auth, db };
+export { app, auth, db, hasFirebaseConfig };

@@ -2,7 +2,12 @@
  * Biomebot Kernel - Main entry point
  */
 
-export { Kernel, default } from './kernel';
+export {
+  Biomebot,
+  Biomebot as Kernel,
+  Biomebot as default,
+  ChatBiomebot,
+} from './kernel';
 export type {
   KernelOptions,
   PartConfig,

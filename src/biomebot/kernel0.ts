@@ -2,13 +2,11 @@
  * Kernel: Manages multiple chatbot parts (workers) lifecycle and communication
  */
 
-import {
+import type {
   KernelOptions,
   PartConfig,
   BotState,
   PartInstance,
-  PartState,
-  KernelRequest,
   ActivateRequest,
   DeactivateRequest,
   ReportRequest,
@@ -17,12 +15,7 @@ import {
   DeactivateCompleted,
   ReportCompleted,
   BroadcastMessage,
-  PartResponse,
-  ActivatedResponse,
-  DeactivatedResponse,
-  ReportedResponse,
   FailedPart,
-  ChatMessage,
 } from './kernel.types';
 
 export class Kernel {
@@ -400,20 +393,6 @@ export class Kernel {
   // ==================== Private Methods ====================
 
   /**
-   * Setup worker channel listener for part responses
-   * Called when establishing connection to a worker part
-   */
-  private _setupWorkerChannelListener(botName: string, partName: string, channel: MessagePort): void {
-    channel.onmessage = (event) => {
-      const message = event.data as any;
-      if (!message || !message.type) return;
-
-      this._handleWorkerResponse(botName, partName, message);
-    };
-    channel.start();
-  }
-
-  /**
    * Handle responses from worker channels (part → kernel)
    */
   private _handleWorkerResponse(botName: string, partName: string, message: any): void {
@@ -504,13 +483,12 @@ export class Kernel {
     }
 
     part.worker.onmessage = (channelEvent) => {
-      const event = channelEvent.data;
-      switch(event.type) {
-        case 'activate': {
-          this.activate()
-        }
+      const event = channelEvent.data as { type?: string };
+      if (!event?.type) {
+        return;
       }
-    }
+      this._handleWorkerResponse(botName, partName, event);
+    };
 
     part.deployedAt = Date.now();
     this.log(`Deployed part: ${partId}`);

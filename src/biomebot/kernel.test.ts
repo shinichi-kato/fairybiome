@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import Kernel from './kernel';
+import Kernel from './kernel0';
 import {
   ActivateRequest,
   DeactivateRequest,
