@@ -37,6 +37,41 @@ code {
   --fui-radius-card: 8px;
 }
 
+.chat-stage {
+  --chat-viewport-height: 100dvh;
+  align-items: center;
+  background: #d5d7d8;
+  display: flex;
+  height: var(--chat-viewport-height);
+  justify-content: center;
+  overflow: hidden;
+  padding: 24px;
+}
+
+.chat-device {
+  aspect-ratio: 9 / 19;
+  border: 1px solid #b4b8ba;
+  box-shadow: 0 12px 32px rgb(37 48 56 / 20%);
+  height: min(100%, 900px);
+  max-width: 100%;
+  width: auto;
+}
+
+@media (max-width: 639px) {
+  .chat-stage {
+    background: transparent;
+    padding: 0;
+  }
+
+  .chat-device {
+    aspect-ratio: auto;
+    border: 0;
+    box-shadow: none;
+    max-width: none;
+    width: 100%;
+  }
+}
+
 .auth-screen,
 .auth-message {
   align-items: center;

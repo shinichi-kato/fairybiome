@@ -10,7 +10,7 @@
   "scripts": {
     "build:workers": "node scripts/buildWorkers.mjs",
     "predev": "npm run build:workers",
-    "dev": "next dev",
+    "dev": "next dev --webpack",
     "prebuild": "npm run build:workers",
     "build": "next build",
     "start": "next start",

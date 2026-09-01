@@ -47,6 +47,13 @@ beforeEach(() => {
 });
 
 describe('ChatUI', () => {
+  it('renders the chat in a viewport-aware application frame', () => {
+    const { container } = render(<ChatUI botName="aurula" />);
+
+    expect(container.querySelector('.chat-stage')).toBeTruthy();
+    expect(container.querySelector('.chat-device')).toBeTruthy();
+  });
+
   it('deploys the selected bot and sends a valid message when Enter is pressed', async () => {
     render(<ChatUI botName="aurula" />);
     const input = screen.getByLabelText('メッセージ');

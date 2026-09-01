@@ -35,8 +35,25 @@ export default function ChatUI({ botName }: ChatUIProps) {
   const [deployment, setDeployment] = useState<BotDeployment | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isDeploying, setIsDeploying] = useState(true);
+  const viewportRef = useRef<HTMLElement>(null);
   const logRef = useRef<HTMLDivElement>(null);
   const botRef = useRef<ChatBiomebot | null>(null);
+
+  useEffect(() => {
+    const updateViewportHeight = () => {
+      const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
+      viewportRef.current?.style.setProperty('--chat-viewport-height', `${viewportHeight}px`);
+    };
+
+    updateViewportHeight();
+    window.visualViewport?.addEventListener('resize', updateViewportHeight);
+    window.addEventListener('orientationchange', updateViewportHeight);
+
+    return () => {
+      window.visualViewport?.removeEventListener('resize', updateViewportHeight);
+      window.removeEventListener('orientationchange', updateViewportHeight);
+    };
+  }, []);
 
   useEffect(() => {
     logRef.current?.scrollTo({ top: logRef.current.scrollHeight });
@@ -154,7 +171,8 @@ export default function ChatUI({ botName }: ChatUIProps) {
   const latestBotMessage = [...messages].reverse().find(message => message.role === 'bot');
 
   return (
-    <main className="flex h-dvh flex-col overflow-hidden bg-secondary px-3 py-3 sm:px-6">
+    <main ref={viewportRef} className="chat-stage">
+      <div className="chat-device flex h-full flex-col overflow-hidden bg-secondary px-3 py-3">
       <header className="flex items-center border-b border-gray-300 pb-3">
         <Link href="/" aria-label="メインメニューに戻る" className="inline-flex h-10 w-10 items-center justify-center text-primary hover:bg-white">
           <ArrowLeft aria-hidden="true" size={22} />
@@ -218,6 +236,7 @@ export default function ChatUI({ botName }: ChatUIProps) {
         </button>
       </form>
       {error && <p className="shrink-0 pt-2 text-sm text-red-700" role="alert">{error}</p>}
+      </div>
     </main>
   );
 }
