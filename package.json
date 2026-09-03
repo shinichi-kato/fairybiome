@@ -28,7 +28,7 @@
     "firebase-admin": "^14.1.0",
     "lucide-react": "^1.23.0",
     "mathjs": "^15.2.0",
-    "next": "^16.2.11",
+    "next": "^16.3.4",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "string-replace-async": "^3.0.2",
@@ -48,7 +48,7 @@
     "eslint-config-next": "^16.2.10",
     "fake-indexeddb": "^6.2.5",
     "jsdom": "^29.1.1",
-    "postcss": "^8.5.16",
+    "postcss": "^8.5.23",
     "typescript": "^6.0.3",
     "vitest": "^4.1.10"
   }
