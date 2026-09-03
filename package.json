@@ -9,6 +9,7 @@
   ],
   "scripts": {
     "build:workers": "node scripts/buildWorkers.mjs",
+    "dump:episode-matrix": "node scripts/dumpEpisodeMatrix.mjs",
     "predev": "npm run build:workers",
     "dev": "next dev --webpack",
     "prebuild": "npm run build:workers",

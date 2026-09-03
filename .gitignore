@@ -29,6 +29,11 @@ pids
 coverage
 .nyc_output
 
+# Local matrix inspection output
+tmp/*.matrix.csv
+tmp/*.row-features.csv
+tmp/*.final-row-features.csv
+
 # Node modules
 node_modules/
 package-lock.json

@@ -1,13 +1,52 @@
 # FairyBiome - A Chat Application with Chatbots
 
-複数のパートが並列動作して会話を行うチャットボットBiomeBotとのチャット
+* 複数のパートが並列動作して雑談を行うチャットボットBiomeBot
+* 専用のチャットルーム
 
 # 特徴
+
+* 会話エンジンはブラウザ内で完結動作可能。
+* 
 
 # Requirements
 
 * Firebase sparkアカウント(無料)
-* node.js v22.14.1
+* node.js v22.20.0
+
+# 特徴量行列のダンプ
+
+実際の `.episode.json` ファイルから、検索キャッシュに使われる語彙 x 語彙の正規化済み共起行列を CSV として出力できます。
+
+```
+npm run dump:episode-matrix -- static/bots/Aurula/greeting.episode.json
+```
+
+既定では `tmp/greeting.episode.matrix.csv` に出力されます。出力先を指定する場合は `--output` を使います。
+
+```
+npm run dump:episode-matrix -- static/bots/Aurula/greeting.episode.json --output tmp/aurula.csv
+```
+
+Python pandas では先頭列をインデックスとして読み込みます。
+
+```python
+import pandas as pd
+
+matrix = pd.read_csv("tmp/greeting.episode.matrix.csv", index_col=0)
+```
+
+会話行を縦軸、特徴トークンを横軸にする CSV は `--format row-features` で出力します。
+
+```
+npm run dump:episode-matrix -- static/bots/Aurula/greeting.episode.json --format row-features
+```
+
+```python
+row_features = pd.read_csv(
+  "tmp/greeting.episode.row-features.csv",
+  index_col="conversation_row",
+)
+```
 
 # インストール
 
@@ -18,7 +57,7 @@ githubからローカルにソースをcloneしてください。
 nvmを利用することでnodeのバージョン制御を行うと便利です。ソースを展開したディレクトリで
 
 ```
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.7/install.sh | bash
 ```
 を実行し、nvmをインストールします。
 
@@ -50,15 +89,15 @@ firebase use <Project ID>
 ```
 を実行してください。
 
-プロジェクトディレクトリに`.env.local`というファイルを作成し、firebaseから取得したクレデンシャル情報を以下のように転記します。Gatsbyではプログラム内で使える環境変数は先頭がGATSBY_から始まっている必要があるため、以下のような名前にします。
+プロジェクトディレクトリに`.env.local`というファイルを作成し、firebaseから取得したクレデンシャル情報を以下のように転記します。nextjsではプログラム内で使える環境変数は先頭がNEXT_PUBLIC_から始まっている必要があるため、以下のような名前にします。
 ```
-  GATSBY_FIREBASE_API_KEY=xxxxxxxxxxxxxxxxxxxxxxx-xxxxxxxxxxxxxxx
-  GATSBY_FIREBASE_AUTH_DOMAIN=xxxxxxxxxxxxxx.firebaseapp.com
-  GATSBY_FIREBASE_PROJECT_ID=xxxxxxxxxxxxxx
-  GATSBY_FIREBASE_STORAGE_BUCKET=xxxxxxxxxxxxxx.appspot.com
-  GATSBY_FIREBASE_MESSAGING_SENDER_ID=000000000000
-  GATSBY_FIREBASE_APP_ID=0:000000000000:web:xxxxxxxxxxxxxxxxxxxxxx
-  GATSBY_FIREBASE_MEASUREMENT_ID=x-xxxxxxxxxx
+  NEXT_PUBLIC_FIREBASE_API_KEY=xxxxxxxxxxxxxxxxxxxxxxx-xxxxxxxxxxxxxxx
+  NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=xxxxxxxxxxxxxx.firebaseapp.com
+  NEXT_PUBLIC_FIREBASE_PROJECT_ID=xxxxxxxxxxxxxx
+  NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=xxxxxxxxxxxxxx.appspot.com
+  NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=000000000000
+  NEXT_PUBLIC_FIREBASE_APP_ID=0:000000000000:web:xxxxxxxxxxxxxxxxxxxxxx
+  NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=x-xxxxxxxxxx
 ```
 
 さらにソースコードをgithub上に置く場合はリポジトリ本体にはセキュリティのためクレデンシャル情報を置かず、代わりに
@@ -66,17 +105,17 @@ Settings - Secrets and variables - Repository secretsに以下の変数を作り
 firebaseから取得したクレデンシャルを転記します。
 
 ```
-GATSBY_FIREBASE_API_KEY
-GATSBY_FIREBASE_AUTH_DOMAIN
-GATSBY_FIREBASE_PROJECT_ID
-GATSBY_FIREBASE_STORAGE_BUCKET
-GATSBY_FIREBASE_MESSAGING_SENDER_ID
-GATSBY_FIREBASE_APP_ID
-GATSBY_FIREBASE_MEASUREMENT_ID
+NEXT_PUBLIC_FIREBASE_API_KEY
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+NEXT_PUBLIC_FIREBASE_PROJECT_ID
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+NEXT_PUBLIC_FIREBASE_APP_ID
+NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 ```
 
 4. テスト
 ```
-gatsby develop
+npm run dev
 ```
 とするとソースコードのコンパイルが行われ、問題なければローカルでアプリが起動します。
