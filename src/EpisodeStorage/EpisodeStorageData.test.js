@@ -13,7 +13,7 @@ describe('EpisodeStorage.validateData', () => {
         }
       ],
       factor: {
-        activity: 0.6,
+        amplitude: 0.6,
         precision: 0.4
       },
       columns: ['role', 'text', 'date', 'time', 'emo', 'facing', 'location'],
@@ -34,7 +34,7 @@ describe('EpisodeStorage.validateData', () => {
       author: null,
       tags: 'not-an-array',
       factor: {
-        activity: 1.2,
+        amplitude: 10.1,
         precision: 'high'
       },
       columns: ['role', 'text'],
@@ -45,7 +45,7 @@ describe('EpisodeStorage.validateData', () => {
     expect(result).toContain('title must be a string');
     expect(result).toContain('author must be a string');
     expect(result).toContain('tags.tags data must be an array');
-    expect(result).toContain('factor.activity must be > 0 and <= 1.0');
+    expect(result).toContain('factor.amplitude must be > 0 and <= 10.0');
     expect(result).toContain('factor.precision must be a number');
     expect(result).toContain('data[0] length must match columns length (2)');
   });

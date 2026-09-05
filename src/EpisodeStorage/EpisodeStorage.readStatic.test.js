@@ -19,7 +19,7 @@ describe('EpisodeStorage.readStatic', () => {
       author: 'skato',
       timestamp: 123456,
       tags: [],
-      factor: { activity: 0.6, precision: 0.4 },
+      factor: { amplitude: 0.6, precision: 0.4 },
       columns: ['role', 'text', 'date', 'time', 'emo', 'facing', 'location'],
       data: [['bot', 'こんにちは', '10/12', '12:23', 'laugh', 'face', 'private']],
     };
@@ -41,7 +41,7 @@ describe('EpisodeStorage.readStatic', () => {
       title: '挨拶',
       author: 'skato',
       tags: [],
-      factor: { activity: 0.6, precision: 0.4 },
+      factor: { amplitude: 0.6, precision: 0.4 },
       columns: ['role', 'text', 'date', 'time', 'emo', 'facing', 'location'],
       data: [['bot', 'こんにちは', '10/12', '12:23', 'laugh', 'face', 'private']],
     };

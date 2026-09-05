@@ -2,7 +2,7 @@
   "title": "smalltalk",
   "author": "dev",
   "tags": [],
-  "factor": { "activity": 0.5, "precision": 0.5 },
+  "factor": { "amplitude": 0.5, "precision": 0.5 },
   "columns": ["role","text","date","time","emo","facing","location"],
   "data": [
     "# smalltalk episode",

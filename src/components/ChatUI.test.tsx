@@ -60,6 +60,40 @@ describe('ChatUI', () => {
     expect(container.querySelector<HTMLElement>('.chat-stage')?.style.getPropertyValue('--chat-device-width')).toBe('720px');
   });
 
+  it('uses the bot message background color for its speech bubble and tail', () => {
+    mocks.subscribe.mockImplementation((_userId, _botName, _conversationId, onMessages) => {
+      onMessages([{
+        id: 'bot-message-1', botName: 'aurula', conversationId: 'conversation-1', role: 'bot', text: 'こんにちは',
+        createdAtClient: 1, displayName: 'アウルラ', backgroundColor: '#d6fdff', avatarDir: 'aurula',
+        avatar: 'neutral', emo: 'neutral', status: 'sent',
+      }]);
+      return vi.fn();
+    });
+
+    render(<ChatUI botName="aurula" />);
+
+    const bubble = screen.getByText('こんにちは');
+    expect(bubble).toHaveStyle({ '--bubble-background': '#d6fdff' });
+    expect(bubble).toHaveClass('chat-bubble--bot');
+  });
+
+  it('uses the user message background color for its speech bubble and tail', () => {
+    mocks.subscribe.mockImplementation((_userId, _botName, _conversationId, onMessages) => {
+      onMessages([{
+        id: 'user-message-1', botName: 'aurula', conversationId: 'conversation-1', role: 'user', text: 'やあ',
+        createdAtClient: 1, displayName: '花子', backgroundColor: '#789bc5', avatarDir: 'boy1',
+        avatar: 'neutral', emo: 'neutral', status: 'sent',
+      }]);
+      return vi.fn();
+    });
+
+    render(<ChatUI botName="aurula" />);
+
+    const bubble = screen.getByText('やあ');
+    expect(bubble).toHaveStyle({ '--bubble-background': '#789bc5' });
+    expect(bubble).toHaveClass('chat-bubble--user');
+  });
+
   it('deploys the selected bot and sends a valid message when Enter is pressed', async () => {
     render(<ChatUI botName="aurula" />);
     const input = screen.getByLabelText('メッセージ');

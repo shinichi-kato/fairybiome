@@ -8,7 +8,7 @@
     }
   ],
   "factor": {
-    "activity": 1,
+    "amplitude": 1,
     "precision": 0.4
   },
   "columns": ["role","text","date","time","emo","facing", "location"],

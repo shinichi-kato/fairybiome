@@ -54,8 +54,11 @@ export function subscribeToChatLog(
 export async function saveChatLogMessage(userId: string, message: ChatLogMessage): Promise<void> {
   const firestore = getDb();
   const messageRef = doc(firestore, 'users', userId, 'log', message.id);
+  const sanitized = Object.fromEntries(
+    Object.entries(message).filter(([, value]) => value !== undefined)
+  );
   await setDoc(messageRef, {
-    ...message,
+    ...sanitized,
     createdAt: serverTimestamp(),
   });
   await pruneChatLog(userId, message.botName);

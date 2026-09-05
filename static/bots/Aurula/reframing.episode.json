@@ -3,7 +3,7 @@
   "author": "skato",
   "tags": [],
   "factor": {
-    "activity": 0.8,
+    "amplitude": 0.8,
     "precision": 0.7
   },
   "columns": ["role", "text", "emo", "target", "location"],

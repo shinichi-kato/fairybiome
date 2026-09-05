@@ -1,7 +1,7 @@
 {
     "description": "Orchestrator",
     "factor": {
-        "intervals": [300,200,250],
+        "intervals": [600,400,300],
         "attenuation": 0.7
     },
     "displayName": "アウルラ"

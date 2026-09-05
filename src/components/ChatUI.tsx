@@ -200,11 +200,8 @@ export default function ChatUI({ botName, chatWidth = DEFAULT_CHAT_WIDTH }: Chat
               <div className={`max-w-[78%] ${isBot ? '' : 'text-right'}`}>
                 <p className="mb-1 text-xs font-semibold text-gray-700">{message.displayName}</p>
                 <p
-                  className={`relative whitespace-pre-wrap break-words rounded-2xl border border-gray-400 bg-white px-3 py-2 text-left text-gray-900 ${
-                    isBot
-                      ? "before:absolute before:-left-[9px] before:bottom-2 before:border-8 before:border-transparent before:border-r-gray-400 after:absolute after:-left-2 after:bottom-2 after:border-8 after:border-transparent after:border-r-white"
-                      : "before:absolute before:-right-[9px] before:bottom-2 before:border-8 before:border-transparent before:border-l-gray-400 after:absolute after:-right-2 after:bottom-2 after:border-8 after:border-transparent after:border-l-white"
-                  }`}
+                  className={`relative whitespace-pre-wrap break-words text-left text-gray-900 ${isBot ? 'chat-bubble--bot' : 'chat-bubble--user'}`}
+                  style={{ '--bubble-background': message.backgroundColor } as CSSProperties}
                 >
                   {message.text}
                 </p>
@@ -237,7 +234,14 @@ export default function ChatUI({ botName, chatWidth = DEFAULT_CHAT_WIDTH }: Chat
 
 
       <form className="flex shrink-0 items-end gap-2 border-t border-gray-300 pt-3" onSubmit={event => { event.preventDefault(); void sendMessage(); }}>
-        <textarea aria-label="メッセージ" className="min-h-11 flex-1 resize-none border border-gray-500 bg-white px-3 py-2 text-base focus:outline-2 focus:outline-primary" maxLength={200} onChange={event => setInput(event.target.value)} onKeyDown={handleInputKeyDown} rows={2} value={input} />
+        <textarea aria-label="メッセージ" className="min-h-11 flex-1 resize-none border border-gray-500 bg-white px-3 py-2 text-base focus:outline-2 focus:outline-primary" 
+          maxLength={200} 
+          onChange={event => setInput(event.target.value)} 
+          onKeyDown={handleInputKeyDown} 
+          rows={2} 
+          value={input} 
+          placeholder="メッセージを入力..."
+          />
         <button type="submit" aria-label="送信" className="flex h-11 w-11 shrink-0 items-center justify-center bg-primary text-white disabled:opacity-50" disabled={!input.trim()}>
           <Send aria-hidden="true" size={20} />
         </button>

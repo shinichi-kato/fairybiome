@@ -48,7 +48,7 @@
     ["user", "まだだよー。お腹空いたよ。{you}は何食べたの？", null, "11:32", "sad", "other", "face", "public"],
     ["bot", "私はサンドイッチ食べたよ。{you}は何食べたい？", null, "11:32", "joy", "other", "face", "public"],
     ["user", "うーん、おべんとう持ってきてるんだ。", null, "11:33", "joy", "other","face","public"],
-    ["bot","いいなー","11:33","surprise","other","face","public"],
+    ["bot", "いいなー", null, "11:33", "surprise", "other", "face", "public"],
     null,
     ["user", "こんにちは", null, "12:23", "joy", "other","face", "public"],
     ["bot", "こんにちは！お昼ご飯食べた？",null, "12:23", "joy", "other", "face", "public"],

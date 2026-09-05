@@ -87,6 +87,15 @@ describe('chat log writes', () => {
     expect(mocks.getDocs).toHaveBeenCalledOnce();
   });
 
+  it('omits undefined optional fields so Firestore does not reject the write', async () => {
+    await saveChatLogMessage('user-1', { ...message, replyTo: undefined });
+
+    expect(mocks.setDoc).toHaveBeenCalledWith(
+      [{}, 'users', 'user-1', 'log', 'message-1'],
+      { ...message, createdAt: 'server-timestamp' }
+    );
+  });
+
   it('marks a persisted user message as failed without deleting it', async () => {
     await markChatLogMessageFailed('user-1', message.id, 'Bot の起動に失敗しました。');
 

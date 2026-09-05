@@ -22,7 +22,7 @@ describe('EpisodeStorage build cache and matrix', () => {
       title: '挨拶',
       author: 'skato',
       tags: [],
-      factor: { activity: 0.6, precision: 0.4 },
+      factor: { amplitude: 0.6, precision: 0.4 },
       timestamp: 123456,
       columns: ['role', 'text', 'date', 'time', 'emo', 'facing', 'location'],
       data: [
@@ -49,7 +49,7 @@ describe('EpisodeStorage build cache and matrix', () => {
       title: '挨拶',
       author: 'skato',
       tags: [],
-      factor: { activity: 0.6, precision: 0.4 },
+      factor: { amplitude: 0.6, precision: 0.4 },
       timestamp: 123456,
       columns: ['role', 'text', 'date', 'time', 'emo', 'facing', 'location'],
       data: [
@@ -77,7 +77,7 @@ describe('EpisodeStorage build cache and matrix', () => {
       title: '会話',
       author: 'skato',
       tags: [],
-      factor: { activity: 0.6, precision: 0.4 },
+      factor: { amplitude: 0.6, precision: 0.4 },
       timestamp: 123456,
       columns: ['role', 'text', 'date', 'time', 'emo', 'facing', 'location'],
       data: [
@@ -114,7 +114,7 @@ describe('EpisodeStorage build cache and matrix', () => {
       title: '会話',
       author: 'skato',
       tags: [],
-      factor: { activity: 0.6, precision: 0.4 },
+      factor: { amplitude: 0.6, precision: 0.4 },
       timestamp: 123456,
       columns: ['role', 'text', 'date', 'time', 'emo', 'facing', 'location'],
       data: [
@@ -144,7 +144,7 @@ describe('EpisodeStorage build cache and matrix', () => {
           embedding: { '兄': 1.0 },
         },
       ],
-      factor: { activity: 0.6, precision: 0.4 },
+      factor: { amplitude: 0.6, precision: 0.4 },
       timestamp: 123456,
       columns: ['role', 'text', 'date', 'time', 'emo', 'facing', 'location'],
       data: [

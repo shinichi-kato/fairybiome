@@ -57,6 +57,39 @@ code {
   width: var(--chat-device-width);
 }
 
+.chat-bubble--bot,
+.chat-bubble--user {
+  background-color: var(--bubble-background);
+  border-radius: 8px;
+  display: inline-block;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  padding: 16px;
+}
+
+.chat-bubble--bot::after,
+.chat-bubble--user::after {
+  border-style: solid;
+  border-width: 10px 20px 10px 0;
+  content: '';
+  position: absolute;
+  top: 50%;
+}
+
+.chat-bubble--bot::after {
+  border-color: transparent var(--bubble-background) transparent transparent;
+  left: 0;
+  translate: -100% -50%;
+}
+
+.chat-bubble--user::after {
+  border-color: transparent transparent transparent var(--bubble-background);
+  border-width: 10px 0 10px 20px;
+  right: 0;
+  translate: 100% -50%;
+}
+
 @media (max-width: 639px) {
   .chat-stage {
     background: transparent;

@@ -245,6 +245,8 @@ export class EpisodeStorage {
       }
     }
 
+    this.factor = this.staticSource?.factor ?? this.firestoreSource?.factor ?? null;
+
     await this._loadStaticTagFiles();
 
     if (Array.isArray(this.staticSource?.tags)) {
@@ -308,9 +310,10 @@ export class EpisodeStorage {
     this.vector = this.textEmbedding.embedText(text);
 
     if (result && result.status === 'ok') {
+      const amplitude = typeof this.factor?.amplitude === 'number' ? this.factor.amplitude : 1;
       return {
         row: result.row,
-        score: result.score,
+        score: result.score * amplitude,
       };
     }
 
@@ -734,11 +737,11 @@ export function validateData(data) {
   if (!data.factor || typeof data.factor !== 'object' || Array.isArray(data.factor)) {
     errors.push('factor must be an object');
   } else {
-    const { activity, precision } = data.factor;
-    if (typeof activity !== 'number' || Number.isNaN(activity)) {
-      errors.push('factor.activity must be a number');
-    } else if (!(activity > 0 && activity <= 1.0)) {
-      errors.push('factor.activity must be > 0 and <= 1.0');
+    const { amplitude, precision } = data.factor;
+    if (typeof amplitude !== 'number' || Number.isNaN(amplitude)) {
+      errors.push('factor.amplitude must be a number');
+    } else if (!(amplitude > 0 && amplitude <= 10.0)) { // amplitudeのmax=10は暫定値
+      errors.push('factor.amplitude must be > 0 and <= 10.0');
     }
 
     if (typeof precision !== 'number' || Number.isNaN(precision)) {
