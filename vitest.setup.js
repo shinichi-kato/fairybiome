@@ -1,3 +1,5 @@
+import '@testing-library/jest-dom/vitest';
+
 global.BroadcastChannel = class {
   constructor(name) {
     this.name = name;
