@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import Kernel from './kernel0';
+import { Biomebot } from './kernel';
 import {
   ActivateRequest,
   DeactivateRequest,
@@ -13,7 +13,8 @@ import {
 } from './kernel.types';
 
 describe('Kernel', () => {
-  let kernel: Kernel;
+  const Kernel: any = Biomebot;
+  let kernel: any;
   const mockPartConfig: PartConfig = {
     'test-bot': ['orchestrator', 'episode1', 'episode2'],
     'demo-bot': ['orchestrator', 'greeting'],

@@ -73,8 +73,8 @@ describe('ChatUI', () => {
     render(<ChatUI botName="aurula" />);
 
     const bubble = screen.getByText('こんにちは');
-    expect(bubble).toHaveStyle({ '--bubble-background': '#d6fdff' });
-    expect(bubble).toHaveClass('chat-bubble--bot');
+    expect(bubble.style.getPropertyValue('--bubble-background')).toBe('#d6fdff');
+    expect(bubble.classList.contains('chat-bubble--bot')).toBe(true);
   });
 
   it('uses the user message background color for its speech bubble and tail', () => {
@@ -90,8 +90,8 @@ describe('ChatUI', () => {
     render(<ChatUI botName="aurula" />);
 
     const bubble = screen.getByText('やあ');
-    expect(bubble).toHaveStyle({ '--bubble-background': '#789bc5' });
-    expect(bubble).toHaveClass('chat-bubble--user');
+    expect(bubble.style.getPropertyValue('--bubble-background')).toBe('#789bc5');
+    expect(bubble.classList.contains('chat-bubble--user')).toBe(true);
   });
 
   it('deploys the selected bot and sends a valid message when Enter is pressed', async () => {
