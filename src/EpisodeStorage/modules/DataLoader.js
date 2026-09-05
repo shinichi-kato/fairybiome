@@ -60,7 +60,7 @@ export class DataLoader {
     }
 
     const resourcePartName = partName.endsWith('.episode') ? partName : `${partName}.episode`;
-    const path = `/api/bots/${encodeURIComponent(botName)}/${encodeURIComponent(resourcePartName)}`;
+    const path = `/static/bots/${encodeURIComponent(botName)}/${encodeURIComponent(resourcePartName)}.json`;
     let response;
 
     try {

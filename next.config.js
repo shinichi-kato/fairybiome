@@ -76,8 +76,8 @@ function getStaticFilesJson() {
       collectStaticFiles(path.join(botsDir, botName), partPaths);
 
       const normalizedPartPaths = partPaths
-        .map((filePath) => normalizePath(filePath))
-        .filter((filePath) => filePath.startsWith(`static/bots/${botName}/`) && /\.(episode|orchestrator)\.json$/i.test(filePath))
+        .map((filePath) => `/${normalizePath(filePath)}`)
+        .filter((filePath) => filePath.startsWith(`/static/bots/${botName}/`) && /\.(episode|orchestrator)\.json$/i.test(filePath))
         .sort();
 
       if (normalizedPartPaths.length > 0) {
@@ -92,7 +92,7 @@ function getStaticFilesJson() {
     collectStaticFiles(tagsDir, tagFiles);
 
     staticFiles.wordTags = tagFiles
-      .map((filePath) => normalizePath(filePath))
+      .map((filePath) => `/${normalizePath(filePath)}`)
       .filter((filePath) => /(^|\/)[^/]+\.json$/i.test(filePath))
       .sort();
   }

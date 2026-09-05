@@ -30,7 +30,7 @@ export default function FairyPanel({ repr }: FairyPanelProps) {
       <div className="absolute bottom-0 left-0 p-0 m-0" style={{ width, height }}>
         <img
           style={{ width, height }}
-          src={`/api/bots/${repr.botName}/avatar/${repr.botState}.svg`}
+          src={`/static/bots/${repr.botName}/avatar/${repr.botState}.svg`}
           alt={repr.botState}
         />
       </div>

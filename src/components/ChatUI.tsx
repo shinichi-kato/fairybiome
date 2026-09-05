@@ -192,7 +192,7 @@ export default function ChatUI({ botName, chatWidth = DEFAULT_CHAT_WIDTH }: Chat
         {messages.map(message => {
           const isBot = message.role === 'bot';
           const avatarPath = isBot
-            ? `/api/bots/${message.botName}/avatar/${avatarFileName('bot', message.emo)}`
+            ? `/static/bots/${message.botName}/avatar/${avatarFileName('bot', message.emo)}`
             : `/avatar/user/${message.avatarDir}/peace.svg`;
           return (
             <article key={message.id} className={`mb-4 flex items-end gap-2 ${isBot ? '' : 'flex-row-reverse'}`}>
