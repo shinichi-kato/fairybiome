@@ -11,23 +11,22 @@ describe('EpisodeStorage.readWordTags', () => {
 
   afterEach(() => {
     global.fetch = originalFetch;
-    delete process.env.NEXT_PUBLIC_STATIC_FILES;
   });
 
   it('loads all tag JSON files under tags/ when deployFromJson is used', async () => {
-    process.env.NEXT_PUBLIC_STATIC_FILES = JSON.stringify({
-      bots: {},
-      wordTags: ['tags/alpha.json', 'tags/beta.json', 'docs/ignore.json']
-    });
     global.fetch
+      .mockResolvedValueOnce({ ok: true, json: async () => ({
+        bots: {},
+        wordTags: ['/static/tags/alpha.json', '/static/tags/beta.json', '/static/docs/ignore.json']
+      }) })
       .mockResolvedValueOnce({ ok: true, json: async () => [{ surfaces: ['A'], embedding: { A: 1.0 } }] })
       .mockResolvedValueOnce({ ok: true, json: async () => [{ surfaces: ['B'], embedding: { B: 1.0 } }] });
 
     const storage = new EpisodeStorage('botA');
     await storage.deployFromJson('botA', 'partA');
 
-    expect(global.fetch).toHaveBeenCalledTimes(2);
-    expect(global.fetch.mock.calls.map(([path]) => path)).toEqual(['tags/alpha.json', 'tags/beta.json']);
+    expect(global.fetch).toHaveBeenCalledTimes(3);
+    expect(global.fetch.mock.calls.map(([path]) => path)).toEqual(['/static/files.json', '/static/tags/alpha.json', '/static/tags/beta.json']);
     expect(Object.keys(storage.WordTags.dict)).toEqual(['A', 'B']);
   });
 

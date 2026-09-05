@@ -389,22 +389,21 @@ export class EpisodeStorage {
   }
 
   async _loadStaticTagFiles() {
-    const staticFilesJson = typeof process !== 'undefined' ? process.env?.NEXT_PUBLIC_STATIC_FILES : null;
-    if (!staticFilesJson) {
-      return;
-    }
-
     let staticFiles;
     try {
-      staticFiles = JSON.parse(staticFilesJson);
+      const response = await fetch('/static/files.json');
+      if (!response.ok) {
+        return;
+      }
+      staticFiles = await response.json();
     } catch (err) {
-      console.warn('EpisodeStorage._loadStaticTagFiles: failed to parse NEXT_PUBLIC_STATIC_FILES', err);
+      console.warn('EpisodeStorage._loadStaticTagFiles: failed to load static manifest', err);
       return;
     }
 
-    const tagEntries = Array.isArray(staticFiles)
-      ? staticFiles
-      : (staticFiles && typeof staticFiles === 'object' && !Array.isArray(staticFiles) ? staticFiles.wordTags : null);
+    const tagEntries = staticFiles && typeof staticFiles === 'object' && !Array.isArray(staticFiles)
+      ? staticFiles.wordTags
+      : null;
 
     if (!Array.isArray(tagEntries)) {
       return;

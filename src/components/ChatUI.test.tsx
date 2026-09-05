@@ -43,6 +43,10 @@ beforeEach(() => {
   mocks.saveMessage.mockResolvedValue(undefined);
   mocks.markFailed.mockResolvedValue(undefined);
   mocks.subscribe.mockReturnValue(vi.fn());
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+    ok: true,
+    json: async () => ({ bots: { aurula: ['/static/bots/aurula/greeting.episode.json'] }, wordTags: [] }),
+  }));
   HTMLDivElement.prototype.scrollTo = vi.fn();
 });
 
@@ -60,7 +64,7 @@ describe('ChatUI', () => {
     expect(container.querySelector<HTMLElement>('.chat-stage')?.style.getPropertyValue('--chat-device-width')).toBe('720px');
   });
 
-  it('uses the bot message background color for its speech bubble and tail', () => {
+  it('uses the bot message background color for its speech bubble and tail', async () => {
     mocks.subscribe.mockImplementation((_userId, _botName, _conversationId, onMessages) => {
       onMessages([{
         id: 'bot-message-1', botName: 'aurula', conversationId: 'conversation-1', role: 'bot', text: 'こんにちは',
@@ -72,12 +76,12 @@ describe('ChatUI', () => {
 
     render(<ChatUI botName="aurula" />);
 
-    const bubble = screen.getByText('こんにちは');
+    const bubble = await screen.findByText('こんにちは');
     expect(bubble).toHaveStyle({ '--bubble-background': '#d6fdff' });
     expect(bubble).toHaveClass('chat-bubble--bot');
   });
 
-  it('uses the user message background color for its speech bubble and tail', () => {
+  it('uses the user message background color for its speech bubble and tail', async () => {
     mocks.subscribe.mockImplementation((_userId, _botName, _conversationId, onMessages) => {
       onMessages([{
         id: 'user-message-1', botName: 'aurula', conversationId: 'conversation-1', role: 'user', text: 'やあ',
@@ -89,13 +93,14 @@ describe('ChatUI', () => {
 
     render(<ChatUI botName="aurula" />);
 
-    const bubble = screen.getByText('やあ');
+    const bubble = await screen.findByText('やあ');
     expect(bubble).toHaveStyle({ '--bubble-background': '#789bc5' });
     expect(bubble).toHaveClass('chat-bubble--user');
   });
 
   it('deploys the selected bot and sends a valid message when Enter is pressed', async () => {
     render(<ChatUI botName="aurula" />);
+    await screen.findByRole('heading', { name: 'アウルラ' });
     const input = screen.getByLabelText('メッセージ');
 
     fireEvent.change(input, { target: { value: 'こんにちは' } });
@@ -124,6 +129,7 @@ describe('ChatUI', () => {
   it('keeps the persisted message and records failure when Bot input fails', async () => {
     mocks.bot.input.mockRejectedValue(new Error('Bot に接続できません'));
     render(<ChatUI botName="aurula" />);
+    await screen.findByRole('heading', { name: 'アウルラ' });
     const input = screen.getByLabelText('メッセージ');
 
     fireEvent.change(input, { target: { value: 'こんにちは' } });

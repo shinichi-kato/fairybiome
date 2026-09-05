@@ -1,6 +1,9 @@
 import fs from 'fs';
 import path from 'path';
 
+const staticFilesJson = getStaticFilesJson();
+fs.writeFileSync(path.join(process.cwd(), 'public', 'static', 'files.json'), staticFilesJson, 'utf8');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -18,8 +21,6 @@ const nextConfig = {
     NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
     NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
     NEXT_PUBLIC_FIREBASE_APP_ID: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-    STATIC_FILES: getStaticFilesJson(),
-    NEXT_PUBLIC_STATIC_FILES: getStaticFilesJson(),
   },
 
   // Turbopack 互換設定
@@ -55,7 +56,7 @@ function collectStaticFiles(dir, files = []) {
 }
 
 function normalizePath(filePath) {
-  return filePath.split(path.sep).join('/');
+  return '/public' + filePath.split(path.sep).join('/');
 }
 
 function getStaticFilesJson() {
