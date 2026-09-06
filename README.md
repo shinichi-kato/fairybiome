@@ -1,6 +1,6 @@
 # FairyBiome - A Chat Application with Chatbots
 
-v.30.1
+v.30.3
 
 * ブラウザ内で完結動作可能な軽量チャットボット
 * 専用のチャットルーム

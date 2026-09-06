@@ -4,6 +4,7 @@ Change log
 # v 0.30.3
 ## Changed
 * static下のファイル構成を/static/files.jsonファイルとして出力し環境変数化しない変更
+* 静的サイト化テスト
 
 # v 0.30.2
 ## Fixed
@@ -17,7 +18,4 @@ Change log
 
 ## TODO
 * 心の声の表示法
-* CMS化
-  - build後にpublic/index.htmlなどに反映していない問題への対処
-  - /static/files.jsonの内容を/public/コピー後も整合的にする対応
-  - /chat/[botName] を静的配信可能な構成に変更
+* reactivityの実装（contextに含まれるので不要かも）

@@ -80,7 +80,7 @@ export default function Main() {
             ))}
           </select>
           <Link
-            href={selectedBot ? `/chat/${encodeURIComponent(selectedBot)}` : '#'}
+            href={selectedBot ? `/chat?bot=${encodeURIComponent(selectedBot)}` : '#'}
             aria-disabled={!selectedBot}
             className={`block w-full rounded-lg py-2 text-center text-white ${
               selectedBot ? 'bg-primary hover:opacity-90' : 'pointer-events-none bg-gray-300'
