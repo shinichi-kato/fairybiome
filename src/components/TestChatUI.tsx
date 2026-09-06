@@ -1,7 +1,8 @@
 "use client"
 
-import { useState, useReducer } from "react"
+import { useState, useReducer, useEffect } from "react"
 import { EpisodeStorage } from "../EpisodeStorage/EpisodeStorage"
+import { loadStaticFiles, type StaticFilesManifest } from "../lib/staticFiles"
 
 type PartJson = {
   partName: string
@@ -18,11 +19,14 @@ type BotAndParts = {
 }
 
 type BotAndPartsAction =
+  | { type: 'SET_INITIAL_STATE'; state: BotAndParts }
   | { type: 'SET_SELECTED_BOT'; botName: string }
   | { type: 'SET_SELECTED_PART'; partName: string }
 
 function reducer(state: BotAndParts, action: BotAndPartsAction): BotAndParts {
   switch (action.type) {
+    case 'SET_INITIAL_STATE':
+      return action.state
     case 'SET_SELECTED_BOT': {
       const selectedBot = action.botName
       const partNames = selectedBot ? state.partTree[selectedBot] ?? [] : []
@@ -46,52 +50,8 @@ function reducer(state: BotAndParts, action: BotAndPartsAction): BotAndParts {
 }
 
 
-function initializeBotAndParts(): BotAndParts {
-  const staticFilesJson = process.env.NEXT_PUBLIC_STATIC_FILES
-  if (!staticFilesJson) {
-    return {
-      partTree: {},
-      botNames: [],
-      partNames: [],
-      selectedBot: "",
-      selectedPart: "",
-    }
-  }
-
-  let staticFiles
-  try {
-    staticFiles = JSON.parse(staticFilesJson)
-  } catch (err) {
-    console.warn('TestChatUI: failed to parse NEXT_PUBLIC_STATIC_FILES', err)
-    return {
-      partTree: {},
-      botNames: [],
-      partNames: [],
-      selectedBot: "",
-      selectedPart: "",
-    }
-  }
-
-  if (!staticFiles || typeof staticFiles !== 'object' || Array.isArray(staticFiles)) {
-    return {
-      partTree: {},
-      botNames: [],
-      partNames: [],
-      selectedBot: "",
-      selectedPart: "",
-    }
-  }
-
+function initializeBotAndParts(staticFiles: StaticFilesManifest): BotAndParts {
   const bots = staticFiles.bots
-  if (!bots || typeof bots !== 'object' || Array.isArray(bots)) {
-    return {
-      partTree: {},
-      botNames: [],
-      partNames: [],
-      selectedBot: "",
-      selectedPart: "",
-    }
-  }
 
   const partTreeSets: Record<string, Set<string>> = {}
 
@@ -135,14 +95,32 @@ function initializeBotAndParts(): BotAndParts {
 }
 
 export default function TestChatUI() {
-  const initialBotAndParts = initializeBotAndParts()
-  const [botAndParts, dispatch] = useReducer(reducer, initialBotAndParts)
+  const [botAndParts, dispatch] = useReducer(reducer, {
+    partTree: {},
+    botNames: [],
+    partNames: [],
+    selectedBot: "",
+    selectedPart: "",
+  })
   const [inputText, setInputText] = useState("")
   const [lastJson, setLastJson] = useState<PartJson | null>(null)
   const [status, setStatus] = useState<string | null>(null)
   const [storage, setStorage] = useState<any | null>(null)
   const [deployed, setDeployed] = useState(false)
   const [lastRepliedAt, setLastRepliedAt] = useState<string | null>(null)
+
+  useEffect(() => {
+    let disposed = false
+    void loadStaticFiles().then(staticFiles => {
+      if (disposed) return
+      const initial = initializeBotAndParts(staticFiles)
+      dispatch({ type: 'SET_INITIAL_STATE', state: initial })
+    })
+
+    return () => {
+      disposed = true
+    }
+  }, [])
 
   async function deployPart() {
     setStatus("deploying")

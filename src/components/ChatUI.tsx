@@ -7,6 +7,7 @@ import { useAuth } from '../auth/AuthProvider';
 import { ChatBiomebot } from '../biomebot/kernel.js';
 import { createConversationId, markChatLogMessageFailed, saveChatLogMessage, subscribeToChatLog } from '../lib/chatLog';
 import { avatarDirectory, avatarFileName, type BotDeployment, type ChatLogMessage, validateChatInput } from '../lib/chatMessage';
+import { loadStaticFiles } from '../lib/staticFiles';
 import FairyPanel from './Panel/FairyPanel';
 import UserPanel from './Panel/UserPanel';
 
@@ -17,21 +18,13 @@ type ChatUIProps = {
 
 const DEFAULT_CHAT_WIDTH = 600;
 
-function readBotPaths(): Record<string, string[]> {
-  try {
-    const staticFiles = JSON.parse(process.env.NEXT_PUBLIC_STATIC_FILES ?? '{}');
-    return staticFiles?.bots && typeof staticFiles.bots === 'object' ? staticFiles.bots : {};
-  } catch {
-    return {};
-  }
-}
-
 function makeId(): string {
   return globalThis.crypto.randomUUID();
 }
 
 export default function ChatUI({ botName, chatWidth = DEFAULT_CHAT_WIDTH }: ChatUIProps) {
   const { user, profile } = useAuth();
+  const userId = user?.uid;
   const [conversationId] = useState(createConversationId);
   const [messages, setMessages] = useState<ChatLogMessage[]>([]);
   const [input, setInput] = useState('');
@@ -63,73 +56,84 @@ export default function ChatUI({ botName, chatWidth = DEFAULT_CHAT_WIDTH }: Chat
   }, [messages]);
 
   useEffect(() => {
-    if (!user) {
+    if (!userId) {
       return;
     }
 
     let disposed = false;
     setIsDeploying(true);
     setError(null);
-    const unsubscribe = subscribeToChatLog(user.uid, botName, conversationId, setMessages, snapshotError => setError(snapshotError.message));
-    const bot = new ChatBiomebot(readBotPaths());
-    botRef.current = bot;
-    bot.displayNameCallbackFunction = (replyBotName: string, displayName: string) => {
-      if (disposed || replyBotName !== botName) {
-        return;
-      }
+    let unsubscribe: (() => void) | null = null;
+    let bot: ChatBiomebot | null = null;
 
-      setDeployment(prev => (prev ? { ...prev, displayName } : prev));
-    };
-    bot.replyCallbackFunction = async (_replyBotName: string, reply: ChatLogMessage & { messageId?: string }) => {
+    void loadStaticFiles().then(manifest => {
       if (disposed) {
         return;
       }
 
-      try {
-        await saveChatLogMessage(user.uid, {
-          ...reply,
-          id: reply.messageId ?? makeId(),
-          botName,
-          conversationId,
-          role: 'bot',
-          status: 'sent',
-          avatar: reply.emo || 'neutral',
-          emo: reply.emo || 'neutral',
-          createdAtClient: Date.now(),
-        });
-      } catch (callbackError) {
-        if (!disposed) {
-          setError(callbackError instanceof Error ? callbackError.message : '返信を保存できませんでした。');
+      unsubscribe = subscribeToChatLog(userId, botName, conversationId, setMessages, snapshotError => setError(snapshotError.message));
+      bot = new ChatBiomebot(manifest.bots);
+      botRef.current = bot;
+      bot.displayNameCallbackFunction = (replyBotName: string, displayName: string) => {
+        if (disposed || replyBotName !== botName) {
+          return;
         }
-      }
-    };
 
-    void bot.deploy(botName)
-      .then(result => {
-        if (!disposed) {
-          setDeployment(result);
+        setDeployment(prev => (prev ? { ...prev, displayName } : prev));
+      };
+      bot.replyCallbackFunction = async (_replyBotName: string, reply: ChatLogMessage & { messageId?: string }) => {
+        if (disposed) {
+          return;
         }
-      })
-      .catch(deployError => {
-        if (!disposed) {
-          setError(deployError instanceof Error ? deployError.message : 'Bot を起動できませんでした。');
+
+        try {
+          await saveChatLogMessage(userId, {
+            ...reply,
+            id: reply.messageId ?? makeId(),
+            botName,
+            conversationId,
+            role: 'bot',
+            status: 'sent',
+            avatar: reply.emo || 'neutral',
+            emo: reply.emo || 'neutral',
+            createdAtClient: Date.now(),
+          });
+        } catch (callbackError) {
+          if (!disposed) {
+            setError(callbackError instanceof Error ? callbackError.message : '返信を保存できませんでした。');
+          }
         }
-      })
-      .finally(() => {
-        if (!disposed) {
-          setIsDeploying(false);
-        }
-      });
+      };
+
+      void bot.deploy(botName)
+        .then(result => {
+          if (!disposed) {
+            setDeployment(result);
+          }
+        })
+        .catch(deployError => {
+          if (!disposed) {
+            setError(deployError instanceof Error ? deployError.message : 'Bot を起動できませんでした。');
+          }
+        })
+        .finally(() => {
+          if (!disposed) {
+            setIsDeploying(false);
+          }
+        });
+    });
 
     return () => {
       disposed = true;
-      unsubscribe();
-      void bot.shutdown(botName);
-      if (botRef.current === bot) {
+      unsubscribe?.();
+      if (bot) {
+        void bot.shutdown(botName);
+      }
+      if (botRef.current === bot && bot) {
         botRef.current = null;
       }
     };
-  }, [botName, conversationId, user]);
+  }, [botName, conversationId, userId]);
 
   async function sendMessage() {
     if (!user || !profile) {

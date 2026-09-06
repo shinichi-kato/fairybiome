@@ -10,10 +10,12 @@
   "scripts": {
     "build:workers": "node scripts/buildWorkers.mjs",
     "dump:episode-matrix": "node scripts/dumpEpisodeMatrix.mjs",
-    "predev": "npm run build:workers",
-    "dev": "rm -rf public/static && cp -r static public/static && next dev --webpack",
-    "prebuild": "npm run build:workers",
-    "build": "next build && rm -rf public/static && cp -r static public/static",
+    "sync:static": "node scripts/syncStatic.mjs",
+    "predev": "npm run build:workers && npm run sync:static",
+    "dev": "next dev --turbo",
+    "prebuild": "npm run build:workers && npm run sync:static",
+    "build": "next build",
+    
     "start": "next start",
     "lint": "next lint",
     "test": "vitest",

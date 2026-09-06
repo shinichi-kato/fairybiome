@@ -137,20 +137,20 @@ export class DataLoader {
    * @returns {Promise<object[]>}
    */
   async loadStaticTagFiles() {
-    // NEXT_PUBLIC_STATIC_FILES から tags/*.json を抽出
     const tagFiles = [];
 
-    if (typeof window !== 'undefined' && window.process?.env?.NEXT_PUBLIC_STATIC_FILES) {
-      try {
-        const files = JSON.parse(window.process.env.NEXT_PUBLIC_STATIC_FILES);
-        if (Array.isArray(files)) {
-          files
-            .filter(f => f.includes('tags/') && f.endsWith('.json'))
+    try {
+      const response = await fetch('/static/files.json');
+      if (response.ok) {
+        const files = await response.json();
+        if (files && typeof files === 'object' && Array.isArray(files.wordTags)) {
+          files.wordTags
+            .filter(f => typeof f === 'string' && f.includes('tags/') && f.endsWith('.json'))
             .forEach(f => tagFiles.push(f));
         }
-      } catch (err) {
-        console.warn('DataLoader.loadStaticTagFiles: failed to parse NEXT_PUBLIC_STATIC_FILES', err);
       }
+    } catch (err) {
+      console.warn('DataLoader.loadStaticTagFiles: failed to load static manifest', err);
     }
 
     // デフォルトのタグファイル

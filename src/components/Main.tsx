@@ -11,28 +11,32 @@ AuthProviderで認証後、以下のメニューを表示
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../auth/AuthProvider';
-
-function getBotNames(): string[] {
-  const staticFilesJson = process.env.NEXT_PUBLIC_STATIC_FILES;
-  if (!staticFilesJson) return [];
-
-  try {
-    const staticFiles = JSON.parse(staticFilesJson);
-    const bots = staticFiles?.bots;
-    if (!bots || typeof bots !== 'object' || Array.isArray(bots)) return [];
-    return Object.keys(bots).sort();
-  } catch {
-    return [];
-  }
-}
+import { loadStaticFiles } from '../lib/staticFiles';
 
 export default function Main() {
   const { profile, signOut } = useAuth();
-  const botNames = useMemo(getBotNames, []);
-  const [selectedBot, setSelectedBot] = useState(botNames[0] ?? '');
+  const [botNames, setBotNames] = useState<string[]>([]);
+  const [selectedBot, setSelectedBot] = useState('');
   const [signingOut, setSigningOut] = useState(false);
+
+  useEffect(() => {
+    let disposed = false;
+    void loadStaticFiles().then(manifest => {
+      if (disposed) {
+        return;
+      }
+
+      const names = Object.keys(manifest.bots).sort();
+      setBotNames(names);
+      setSelectedBot(current => current && names.includes(current) ? current : names[0] ?? '');
+    });
+
+    return () => {
+      disposed = true;
+    };
+  }, []);
 
   async function handleSignOut() {
     setSigningOut(true);
@@ -76,7 +80,7 @@ export default function Main() {
             ))}
           </select>
           <Link
-            href={selectedBot ? `/chat/${encodeURIComponent(selectedBot)}` : '#'}
+            href={selectedBot ? `/chat?bot=${encodeURIComponent(selectedBot)}` : '#'}
             aria-disabled={!selectedBot}
             className={`block w-full rounded-lg py-2 text-center text-white ${
               selectedBot ? 'bg-primary hover:opacity-90' : 'pointer-events-none bg-gray-300'
