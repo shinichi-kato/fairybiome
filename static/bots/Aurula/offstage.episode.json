@@ -5,6 +5,10 @@
     {
       "surfaces": ["しまりすさん", "シマリスさん"],
       "embedding": {"{you}": 1.0}
+    },
+    {
+      "surfaces": ["おーい","お〜い","聞こえる〜","やっほー","やっほ〜！","もしもし","こんにちは","誰かいる？","だれかいる"],
+      "embedding": {"{hello}": 1.0}
     }
   ],
   "factor": {
@@ -14,6 +18,15 @@
   "columns": ["role","text","date","time","emo","location"],
   "data": [
       ["user","おーい",null,"8:30","期待","private"],
-      ["bot","はーい{START}",null,"8:30","期待","private"]
+      ["bot","はーい{START}",null,"8:30","期待","private"],
+      null,
+      ["user","おーい",null,"8:30","anticipation","private"],
+      ["bot","おはよー！", null,"8:30","anticipation","private"],
+      null,
+      ["user","おーい", null, "12:00", "anticipation", "private"],
+      ["bot","こんにちは", null, "12:00", "anticipation", "private"],
+      null,
+      ["user", "おーい", null, "18:00", "anticipation", "private"],
+      ["bot","こんばんは", null, "18:00", "anticipation", "private"]
   ]
 }

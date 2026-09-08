@@ -1,6 +1,9 @@
 Change log
 ===========
 
+# v 0.30.4
+* .github/workflows/girebase-hosting-merge.ymlの修正
+
 # v 0.30.3
 ## Changed
 * static下のファイル構成を/static/files.jsonファイルとして出力し環境変数化しない変更
@@ -19,3 +22,4 @@ Change log
 ## TODO
 * 心の声の表示法
 * reactivityの実装（contextに含まれるので不要かも）
+* anticipationのアバター追加
