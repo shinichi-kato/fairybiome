@@ -9,7 +9,12 @@
   ],
   "factor": {
     "amplitude": 0.8,
-    "precision": 0.7
+    "precision": 0.7,
+    "reactivity": 0.7,
+    "weight": {
+      "role": 0.5, "text": 0.3, "target": 0.2, "date": 0.1,
+      "time": 0.1, "emo": 0.1, "facing": 0.1, "location": 0.1
+    }
   },
   "columns": ["role", "text", "emo", "target", "location"],
   "data": [
