@@ -116,11 +116,14 @@ export class OrchestratorPart extends Part {
         ...message.props,
         partNames: allPartNames,
       };
+      message.text = message.text.replace(/\{bot\}/g, this.displayName);
     }
+
 
     return {
       type: 'output',
       message,
+      
       props: {
         partNames: allPartNames,
       },

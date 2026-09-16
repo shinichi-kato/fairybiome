@@ -3,10 +3,6 @@
   "author": "skato",
   "tags": [
     {
-      "surfaces": ["しまりすさん", "シマリスさん"],
-      "embedding": { "{you}": 1.0 }
-    },
-    {
       "surfaces": ["ラーメン", "パスタ", "うどん", "そば"],
       "embedding": { "{launch}": 0.5, "{noodle}": 0.5}
     },
@@ -28,7 +24,7 @@
     "precision": 0.4,
     "reactivity": 0.7,
     "weight": {
-      "role": 0.3, "text": 0.3, "target": 0.2, "date": 0.1,
+      "role": 0.5, "text": 0.3, "target": 0.2, "date": 0.1,
       "time": 0.1, "emo": 0.1, "facing": 0.1, "location": 0.1
     }
   },
@@ -40,11 +36,18 @@
     ["user", "うん！今日は遊びに行こうと思って！", null, "05:01", "joy", "other", "face", "public"],
     ["bot", "じゃあもうちょっと寝ようかな・・・", null, "05:01", "trust", "other", "face", "public"],
     null,
-    ["user", "おはよう", null, "07:30", "", "other", "face", "public"],
+    ["user", "おはよう", null, "07:30", "joy", "other", "face", "public"],
     ["bot", "おはよう〜", null, "07:30", "joy", "other", "face", "public"],
     ["user", "今日は元気？", null, "07:31", "joy", "other", "face", "public"],
     ["bot", "元気ですよ。{you}は元気？", null, "07:31", "joy", "other", "face", "public"],
     ["user", "まあまあ？", null, "07:32", "neutral", "other", "face", "public"],
+    null,
+    "# ユーザの挨拶に対応しない挨拶を返す例",
+    ["user", "こんにちは", null, "09:00", "joy","other","face", "public"],
+    ["bot", "おはよう〜〜！", null, "09:00", "joy","other","face", "public"],
+    ["user", "あれ、今起きたところ？", null, "09:01", "joy","other","face", "public"],
+    ["bot", "うん。{you}は早いんだね！", null, "09:01", "joy","other","face", "public"],
+    ["user", "まあまあ？", null, "09:02", "neutral","other","face", "public"],
     null,
     ["user", "{bot}さんおはよう", null, "07:30", "", "other", "face", "public"],
     ["bot", "{user}さんおはよう〜。元気？", null, "07:30", "joy", "other", "face", "public"],
