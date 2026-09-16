@@ -1,7 +1,6 @@
 Change log
 ===========
 # v0.31.0
-
 ## Fixed
 * reframing.episode.jsonでのfactor記述漏れ修正
 
