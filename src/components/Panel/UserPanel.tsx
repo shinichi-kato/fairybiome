@@ -15,7 +15,7 @@ type UserPanelProps = {
 export default function UserPanel({ user, panelWidth }: UserPanelProps) {
   const width = panelWidth;
   const height = (width * 4) / 3;
-  const photoURL = user ? `/avatar/user/${user.avatarDir}/peace.svg` : '';
+  const photoURL = user ? `/static/avatar/user/${user.avatarDir}/neutral.svg` : '';
 
   return (
     <div className="relative" style={{ width, height }}>

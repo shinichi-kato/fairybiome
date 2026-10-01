@@ -1,10 +1,7 @@
 {
-    "description": "",
-    "tags": [
-        {
-            "{bot}": [
-                "アウルラ"
-            ]
-        }
-    ]
+  "description": "",
+  "tags": {
+    "{bot}": ["アウルラ"],
+    "{you}": ["あなた", "{user}さん"]
+  }
 }

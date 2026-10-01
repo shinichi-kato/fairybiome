@@ -9,6 +9,10 @@ import { AttentionEmbedding } from './modules/AttentionEmbedding.js';
 import { FeatureExtractor } from './modules/FeatureExtractor.js';
 import { MatrixBuilder } from './modules/MatrixBuilder.js';
 import { Retriever } from './modules/Retriever.js';
+import { DataLoader } from './modules/DataLoader.js';
+
+// 会話履歴として記憶するターン数（ユーザー発言+bot発言で1ターン）
+const DEFAULT_HISTORY_TURNS = 5;
 
 export class EpisodeStorage {
   constructor(firestore_token) {
@@ -33,6 +37,9 @@ export class EpisodeStorage {
     this.wordVector = [];
     this.indexMap = [];
     this.dataRows = [];
+    this.rowFeatureVectors = new Map();
+    this.continuousMaximums = {};
+    this.maxHistoryTurns = DEFAULT_HISTORY_TURNS;
     this.messageHistory = [];
     this._segmenter = new TinySegmenter();
 
@@ -41,6 +48,7 @@ export class EpisodeStorage {
     this.textEmbedding = new TextEmbedding(this.wordEmbedding, this._segmenter);
     this.attentionEmbedding = new AttentionEmbedding();
     this.featureExtractor = new FeatureExtractor();
+    this.dataLoader = new DataLoader();
     this.matrixBuilder = new MatrixBuilder({
       wordEmbedding: this.wordEmbedding,
       textEmbedding: this.textEmbedding,
@@ -185,8 +193,8 @@ export class EpisodeStorage {
     if (!botName || !partName) {
       return;
     }
-
-    const resourcePartName = partName.endsWith('.episode') ? partName : `${partName}.episode`;
+ 
+    const resourcePartName = partName;
     const path = `/static/bots/${encodeURIComponent(botName)}/${encodeURIComponent(resourcePartName)}.json`;
     let response;
 
@@ -257,9 +265,12 @@ export class EpisodeStorage {
       this.addWordTags(this.firestoreSource.tags, 'firestoreSource.tags');
     }
 
+    const emotionEmbeddings = await this.dataLoader.loadEmotionEmbeddings('/static/common/feature_emo.embed.json');
+    this.featureExtractor.setEmotionEmbeddings(emotionEmbeddings);
+
     const sourceTimestamp = this._getSourceTimestamp();
     const cached = await this._loadCache(botName, partName);
-    if (cached && this._isCacheFresh(cached.timestamp, sourceTimestamp)) {
+    if (cached && this._isCacheFresh(cached.timestamp, sourceTimestamp) && Array.isArray(cached.rowFeatures)) {
       this.cache = cached;
     }
 
@@ -274,12 +285,25 @@ export class EpisodeStorage {
     this.attentionVectors = this.attentionEmbedding.buildAttentionVectors(this.wordVector);
 
     if (this.cache && this._isCacheFresh(this.cache.timestamp, sourceTimestamp)) {
+      this.rowFeatureVectors = new Map(this.cache.rowFeatures.map(({ index, vector }) => [index, vector]));
+      this.continuousMaximums = this.cache.continuousMaximums || {};
       return true;
     }
 
     const { vocab, matrix } = this._buildCacheMeta(this.wordVector);
+    const { rowVectors, continuousMaximums } = this.matrixBuilder.buildRowFeatureVectors({
+      dataRows: this.dataRows,
+      columns: this._getColumns(),
+      factor: this.factor,
+      attentionVectors: this.attentionVectors,
+      indexMap: this.indexMap,
+    });
+    this.rowFeatureVectors = rowVectors;
+    this.continuousMaximums = continuousMaximums;
+
     const timestamp = sourceTimestamp > 0 ? sourceTimestamp : Date.now();
-    const cacheEntry = { botName, partName, timestamp, vocab, matrix };
+    const rowFeatures = Array.from(rowVectors.entries()).map(([index, vector]) => ({ index, vector }));
+    const cacheEntry = { botName, partName, timestamp, vocab, matrix, rowFeatures, continuousMaximums };
 
     await this._saveCache(cacheEntry);
     this.cache = cacheEntry;
@@ -288,7 +312,6 @@ export class EpisodeStorage {
 
   retrieve(message, verbose=false) {
     this.messageHistory = Array.isArray(this.messageHistory) ? this.messageHistory : [];
-    this.messageHistory.push(message);
 
     const text = typeof message === 'string'
       ? message
@@ -296,10 +319,13 @@ export class EpisodeStorage {
         ? message.text
         : '';
 
+    // 現在の発言を履歴へ加える前のスナップショットを畳み込み対象にする（自己参照を避ける）
+    const messageVector = this._buildMessageVector(message, this.messageHistory);
+
     const result = this.retriever.retrieve({
       message: text,
-      wordVector: this.wordVector,
-      indexMap: this.indexMap,
+      messageVector,
+      rowVectors: this.rowFeatureVectors,
       dataRows: this.dataRows,
       totalPrecision: this._getPrecisionThreshold(),
       textIndex: this._getTextIndex(),
@@ -307,10 +333,21 @@ export class EpisodeStorage {
     });
 
     this.WordTagsCache = this.retriever.buildWordTagSubstitutionMap(text, this.wordEmbedding);
-    this.vector = this.textEmbedding.embedText(text);
+    this.vector = messageVector;
+
+    this._pushHistory(message);
 
     if (result && result.status === 'ok') {
       const amplitude = typeof this.factor?.amplitude === 'number' ? this.factor.amplitude : 1;
+      console.log(`${this.partName} score=${result.score} amp=${amplitude}`);
+
+      const textIndex = this._getTextIndex();
+      this._pushHistory({
+        role: 'bot',
+        text: Array.isArray(result.row) && typeof result.row[textIndex] === 'string' ? result.row[textIndex] : '',
+        timestamp: new Date().toISOString(),
+      });
+
       return {
         row: result.row,
         score: result.score * amplitude,
@@ -318,6 +355,80 @@ export class EpisodeStorage {
     }
 
     return result;
+  }
+
+  _getColumns() {
+    return Array.isArray(this.staticSource?.columns)
+      ? this.staticSource.columns
+      : Array.isArray(this.firestoreSource?.columns)
+        ? this.firestoreSource.columns
+        : [];
+  }
+
+  // messageHistoryを直近 maxHistoryTurns*2 件（ユーザー+bot発言）に保つ
+  _pushHistory(entry) {
+    this.messageHistory.push(entry);
+    const maxEntries = this.maxHistoryTurns * 2;
+    while (this.messageHistory.length > maxEntries) {
+      this.messageHistory.shift();
+    }
+  }
+
+  // message.timestamp を episode の date/time 列フォーマット("M/D","H:MM")へ変換する
+  _timestampToDateTimeStrings(timestamp) {
+    if (timestamp === undefined || timestamp === null || timestamp === '') {
+      return { date: '', time: '' };
+    }
+
+    const parsed = timestamp instanceof Date ? timestamp : new Date(timestamp);
+    if (Number.isNaN(parsed.getTime())) {
+      return { date: '', time: '' };
+    }
+
+    const date = `${parsed.getMonth() + 1}/${parsed.getDate()}`;
+    const time = `${parsed.getHours()}:${String(parsed.getMinutes()).padStart(2, '0')}`;
+    return { date, time };
+  }
+
+  // message(role/text/target/emo/facing/location等)を columns 順の擬似rowへ変換する
+  _buildPseudoRow(message, columns) {
+    const fields = typeof message === 'object' && message !== null ? message : {};
+    const { date, time } = this._timestampToDateTimeStrings(fields.timestamp);
+    const valueByColumn = {
+      role: fields.role,
+      text: typeof message === 'string' ? message : fields.text,
+      target: fields.target,
+      date,
+      time,
+      emo: fields.emo,
+      facing: fields.facing,
+      location: fields.location,
+    };
+
+    return columns.map((column) => (typeof valueByColumn[column] === 'string' ? valueByColumn[column] : ''));
+  }
+
+  // 直近履歴のtextをAttentionで畳み込んだ、現在発言の最終特徴量ベクトル(x)を構築する
+  _buildMessageVector(message, history) {
+    const columns = this._getColumns();
+    const weights = this.factor?.weight || {};
+
+    const pseudoRow = this._buildPseudoRow(message, columns);
+    const baseVector = this.matrixBuilder.vectorizeRowColumns(pseudoRow, columns, weights, this.continuousMaximums);
+
+    const currentText = typeof message === 'string' ? message : (typeof message?.text === 'string' ? message.text : '');
+    const historyTextVectors = (Array.isArray(history) ? history : [])
+      .map((entry) => (typeof entry === 'string' ? entry : entry?.text))
+      .filter((historyText) => typeof historyText === 'string' && historyText.trim().length)
+      .map((historyText) => this.textEmbedding.embedText(historyText));
+    const currentTextVector = this.textEmbedding.embedText(currentText);
+
+    const block = [...historyTextVectors, currentTextVector];
+    const contexts = this.attentionEmbedding.buildAttentionVectors([block])[0] || [];
+    const attentionContext = contexts[contexts.length - 1] || {};
+
+    const textWeight = typeof weights.text === 'number' ? weights.text : 1;
+    return this.matrixBuilder.finalizeRowVector(baseVector, attentionContext, textWeight);
   }
 
   _buildWordTagSubstitutionMap(text) {

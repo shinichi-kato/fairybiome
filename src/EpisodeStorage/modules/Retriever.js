@@ -2,19 +2,13 @@
  * Retriever
  *
  * EpisodeStorage の retrieve 処理を分離したモジュール。
- * - message → vector 化
- * - flatVectors のスコア化
+ * - messageVector(x) と rowVectors のスコア化（x は呼び出し側で事前計算）
  * - precision threshold で候補選出
  * - next row の取得
  */
 
 export class Retriever {
-  constructor({
-    wordEmbedding = null,
-    textEmbedding = null,
-    featureExtractor = null,
-    defaultPrecision = 0,
-  } = {}) {
+  constructor({ wordEmbedding = null, textEmbedding = null, featureExtractor = null, defaultPrecision = 0 } = {}) {
     this.wordEmbedding = wordEmbedding;
     this.textEmbedding = textEmbedding;
     this.featureExtractor = featureExtractor;
@@ -23,67 +17,46 @@ export class Retriever {
 
   retrieve({
     message,
-    wordVector = [],
-    indexMap = [],
+    messageVector = null,
+    rowVectors = new Map(),
     dataRows = [],
     totalPrecision = 0,
     textIndex = 1,
     verbose = false,
   } = {}) {
-    const text = typeof message === 'string'
-      ? message
-      : message && typeof message.text === 'string'
-        ? message.text
-        : '';
+    // messageVector(x)は呼び出し側(EpisodeStorage)で履歴Attention込みに事前計算される
 
-    if (!text || !Array.isArray(wordVector) || !wordVector.length) {
+    const text =
+      typeof message === "string" ? message : message && typeof message.text === "string" ? message.text : "";
+
+    if (!text || !messageVector || !Object.keys(messageVector).length) {
       return {
-        status: 'error',
-        message: '入力メッセージがベクトル化できませんでした',
+        status: "error",
+        message: "入力メッセージがベクトル化できませんでした",
       };
     }
 
-    const messageVector = this.textEmbedding && typeof this.textEmbedding.embedText === 'function'
-      ? this.textEmbedding.embedText(text)
-      : {};
+    const rows = (Array.isArray(dataRows) ? dataRows : []).filter(
+      (item) => item && !item.separator && Array.isArray(item.row),
+    );
 
-    if (!messageVector || !Object.keys(messageVector).length) {
+    if (!rows.length) {
       return {
-        status: 'error',
-        message: '入力メッセージがベクトル化できませんでした',
+        status: "error",
+        message: "rowVectors が空です",
       };
     }
 
-    const flatVectors = [];
-    const flatIndexes = [];
-
-    for (let blockIndex = 0; blockIndex < wordVector.length; blockIndex += 1) {
-      const block = wordVector[blockIndex];
-      const blockIndexes = Array.isArray(indexMap[blockIndex]) ? indexMap[blockIndex] : [];
-      for (let entryIndex = 0; entryIndex < block.length; entryIndex += 1) {
-        flatVectors.push(block[entryIndex]);
-        flatIndexes.push(blockIndexes[entryIndex]);
-      }
-    }
-
-    if (!flatVectors.length) {
-      return {
-        status: 'error',
-        message: 'flatVectors が空です',
-      };
-    }
-
-    const scored = flatVectors
-      .map((vector, index) => ({
-        score: this.vectorDot(messageVector, vector),
-        index,
+    const scored = rows
+      .map((item) => ({
+        score: this.vectorDot(messageVector, rowVectors.get(item.index) || {}),
+        rowIndex: item.index,
       }))
       .sort((a, b) => b.score - a.score);
 
     const precision = totalPrecision >= 0 ? totalPrecision : this.defaultPrecision;
     const candidates = scored.filter((candidate) => {
-      const rowIndex = flatIndexes[candidate.index];
-      return candidate.score > precision && this.hasNextDataRow(rowIndex, dataRows);
+      return candidate.score > precision && this.hasNextDataRow(candidate.rowIndex, dataRows);
     });
 
     if (!candidates.length) {
@@ -92,11 +65,11 @@ export class Retriever {
         const ms = [];
         for (let i = 0; i < viewSize; i += 1) {
           const v = scored[i];
-          ms.push(`score: ${v.score}, index: ${v.index}`);
+          ms.push(`score: ${v.score}, rowIndex: ${v.rowIndex}`);
         }
         return {
-          status: 'low score',
-          message: ms.join('<br>'),
+          status: "low score",
+          message: ms.join("<br>"),
         };
       }
       return null;
@@ -105,13 +78,13 @@ export class Retriever {
     const topCount = Math.min(4, candidates.length);
     const topCandidates = candidates.slice(0, topCount);
     const selected = topCandidates[Math.floor(Math.random() * topCandidates.length)];
-    const matchedRowIndex = flatIndexes[selected.index];
+    const matchedRowIndex = selected.rowIndex;
     const nextRow = this.getNextDataRow(matchedRowIndex, dataRows);
 
     if (!nextRow) {
       if (verbose) {
         return {
-          status: 'no textRow',
+          status: "no textRow",
           message: `matchedRowIndex=${matchedRowIndex}, topCount=${topCount}`,
         };
       }
@@ -121,12 +94,16 @@ export class Retriever {
     const responseRow = Array.isArray(nextRow) ? [...nextRow] : nextRow;
     const substitutions = this.buildWordTagSubstitutionMap(text, this.wordEmbedding);
 
-    if (textIndex >= 0 && Array.isArray(responseRow) && typeof responseRow[textIndex] === 'string') {
-      responseRow[textIndex] = this.rewriteTextWithMatchedTags(responseRow[textIndex], substitutions, this.wordEmbedding);
+    if (textIndex >= 0 && Array.isArray(responseRow) && typeof responseRow[textIndex] === "string") {
+      responseRow[textIndex] = this.rewriteTextWithMatchedTags(
+        responseRow[textIndex],
+        substitutions,
+        this.wordEmbedding,
+      );
     }
 
     return {
-      status: 'ok',
+      status: "ok",
       row: responseRow,
       score: selected.score,
     };
@@ -134,21 +111,20 @@ export class Retriever {
 
   buildWordTagSubstitutionMap(text, wordEmbedding = this.wordEmbedding) {
     const substitutions = {};
-    if (!text || typeof text !== 'string' || !wordEmbedding?.dict) {
+    if (!text || typeof text !== "string" || !wordEmbedding?.dict) {
       return substitutions;
     }
 
-    const surfaces = Object.keys(wordEmbedding.dict)
-      .sort((a, b) => {
-        const diff = b.length - a.length;
-        return diff !== 0 ? diff : a.localeCompare(b);
-      });
+    const surfaces = Object.keys(wordEmbedding.dict).sort((a, b) => {
+      const diff = b.length - a.length;
+      return diff !== 0 ? diff : a.localeCompare(b);
+    });
 
     const used = Array(text.length).fill(false);
 
     for (const surface of surfaces) {
       const tag = wordEmbedding.dict[surface];
-      if (!tag || typeof tag.groupId !== 'number') {
+      if (!tag || typeof tag.groupId !== "number") {
         continue;
       }
       if (substitutions[tag.groupId]) {
@@ -186,13 +162,13 @@ export class Retriever {
   }
 
   rewriteTextWithMatchedTags(text, substitutions, wordEmbedding = this.wordEmbedding) {
-    if (!text || typeof text !== 'string' || Object.keys(substitutions).length === 0 || !wordEmbedding?.dict) {
+    if (!text || typeof text !== "string" || Object.keys(substitutions).length === 0 || !wordEmbedding?.dict) {
       return text;
     }
 
     const replacementMap = {};
     for (const [surface, info] of Object.entries(wordEmbedding.dict)) {
-      if (!info || typeof info.groupId !== 'number') {
+      if (!info || typeof info.groupId !== "number") {
         continue;
       }
 
@@ -211,7 +187,7 @@ export class Retriever {
       return text;
     }
 
-    let result = '';
+    let result = "";
     let index = 0;
 
     while (index < text.length) {
@@ -235,18 +211,18 @@ export class Retriever {
   }
 
   vectorDot(a, b) {
-    if (!a || !b || typeof a !== 'object' || typeof b !== 'object') {
+    if (!a || !b || typeof a !== "object" || typeof b !== "object") {
       return 0;
     }
 
     let sum = 0;
     Object.entries(a).forEach(([key, value]) => {
-      if (typeof value !== 'number' || Number.isNaN(value)) {
+      if (typeof value !== "number" || Number.isNaN(value)) {
         return;
       }
 
       const otherValue = b[key];
-      if (typeof otherValue === 'number' && !Number.isNaN(otherValue)) {
+      if (typeof otherValue === "number" && !Number.isNaN(otherValue)) {
         sum += value * otherValue;
       }
     });
@@ -261,17 +237,14 @@ export class Retriever {
         ? firestoreSource.columns
         : [];
 
-    const index = columns.indexOf('text');
+    const index = columns.indexOf("text");
     return index !== -1 ? index : 1;
   }
 
   getPrecisionThreshold({ staticSource = null, firestoreSource = null } = {}) {
-    const staticPrecision = typeof staticSource?.factor?.precision === 'number'
-      ? staticSource.factor.precision
-      : null;
-    const firestorePrecision = typeof firestoreSource?.factor?.precision === 'number'
-      ? firestoreSource.factor.precision
-      : null;
+    const staticPrecision = typeof staticSource?.factor?.precision === "number" ? staticSource.factor.precision : null;
+    const firestorePrecision =
+      typeof firestoreSource?.factor?.precision === "number" ? firestoreSource.factor.precision : null;
 
     if (staticPrecision !== null && firestorePrecision !== null) {
       return Math.min(staticPrecision, firestorePrecision);
@@ -286,7 +259,7 @@ export class Retriever {
   }
 
   hasNextDataRow(rowIndex, dataRows = []) {
-    if (typeof rowIndex !== 'number' || !Array.isArray(dataRows)) {
+    if (typeof rowIndex !== "number" || !Array.isArray(dataRows)) {
       return false;
     }
 
@@ -301,7 +274,7 @@ export class Retriever {
   }
 
   getNextDataRow(rowIndex, dataRows = []) {
-    if (typeof rowIndex !== 'number' || !Array.isArray(dataRows)) {
+    if (typeof rowIndex !== "number" || !Array.isArray(dataRows)) {
       return null;
     }
 

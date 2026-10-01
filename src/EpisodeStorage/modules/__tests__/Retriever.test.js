@@ -41,17 +41,11 @@ describe('Retriever', () => {
   });
 
   test('retrieve は候補を score と row で返す', () => {
-    const textEmbedding = {
-      embedText(text) {
-        if (text === 'hello') return { a: 1, b: 0 };
-        if (text === 'world') return { a: 1, b: 1 };
-        return { a: 1, b: 0 };
-      },
-    };
-
-    const retriever = new Retriever({ textEmbedding });
-    const wordVector = [[{ a: 1, b: 0 }, { a: 0.5, b: 0.5 }]];
-    const indexMap = [[0, 1]];
+    const retriever = new Retriever();
+    const rowVectors = new Map([
+      [0, { a: 1, b: 0 }],
+      [1, { a: 0.5, b: 0.5 }],
+    ]);
     const dataRows = [
       { separator: false, row: ['user', 'hello'], index: 0 },
       { separator: false, row: ['bot', 'world'], index: 1 },
@@ -60,8 +54,8 @@ describe('Retriever', () => {
 
     const result = retriever.retrieve({
       message: 'hello',
-      wordVector,
-      indexMap,
+      messageVector: { a: 1, b: 0 },
+      rowVectors,
       dataRows,
       totalPrecision: 0,
       textIndex: 1,

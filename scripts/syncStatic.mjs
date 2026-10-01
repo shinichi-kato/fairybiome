@@ -59,7 +59,7 @@ function getStaticFilesJson() {
           const urlPath = `/${normalizePath(filePath)}`;
           return urlPath.replace(/^\/public\/static\//, '/static/');
         })
-        .filter((urlPath) => urlPath.startsWith(`/static/bots/${botName}/`) && /\.(episode|orchestrator)\.json$/i.test(urlPath))
+        .filter((urlPath) => urlPath.startsWith(`/static/bots/${botName}/`) && /\.(episode|orchestrator|tags)\.json$/i.test(urlPath))
         .sort();
 
       if (normalizedPartPaths.length > 0) {

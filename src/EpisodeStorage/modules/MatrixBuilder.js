@@ -233,6 +233,150 @@ export class MatrixBuilder {
 
     return { vocab, matrix };
   }
+
+  /**
+   * 列の値を prefix 付き疎ベクトルへ変換（列ごとに固有の key 空間になる）
+   */
+  vectorizeColumnValue(column, value, { continuousMaximums = {} } = {}) {
+    if (column === 'text') {
+      const vector = this.textEmbedding && typeof this.textEmbedding.embedText === 'function'
+        ? this.textEmbedding.embedText(typeof value === 'string' ? value.trim() : '')
+        : {};
+      return this.prefixVector(column, vector);
+    }
+    if (column === 'date') {
+      const vector = this.featureExtractor && typeof this.featureExtractor.extractDate === 'function'
+        ? this.featureExtractor.extractDate(value)
+        : [];
+      return this.arrayVector(column, vector);
+    }
+    if (column === 'time') {
+      const vector = this.featureExtractor && typeof this.featureExtractor.extractTime === 'function'
+        ? this.featureExtractor.extractTime(value)
+        : [];
+      return this.arrayVector(column, vector);
+    }
+    if (column === 'emo') {
+      const vector = this.featureExtractor && typeof this.featureExtractor.extractEmotion === 'function'
+        ? this.featureExtractor.extractEmotion(value)
+        : [];
+      return this.arrayVector(column, vector);
+    }
+    if (typeof value === 'number') {
+      const maximum = continuousMaximums[column] || 1;
+      const vector = this.featureExtractor && typeof this.featureExtractor.extractContinuous === 'function'
+        ? this.featureExtractor.extractContinuous(value, maximum)
+        : [];
+      return this.arrayVector(column, vector);
+    }
+
+    const vector = this.wordEmbedding && typeof this.wordEmbedding.getEmbedding === 'function'
+      ? this.wordEmbedding.getEmbedding(value)
+      : undefined;
+    return this.prefixVector(column, vector);
+  }
+
+  /**
+   * row(=columns順の値配列) を factor.weight で重み付けした特徴量ベクトルへ変換（attention抜き）
+   */
+  vectorizeRowColumns(row = [], columns = [], weights = {}, continuousMaximums = {}) {
+    const result = {};
+    columns.forEach((column, columnIndex) => {
+      const value = Array.isArray(row) ? row[columnIndex] : undefined;
+      const weight = typeof weights[column] === 'number' ? weights[column] : 1;
+      const vector = this.vectorizeColumnValue(column, value, { continuousMaximums });
+      this.addWeightedVector(result, vector, weight);
+    });
+    return result;
+  }
+
+  /**
+   * attention ベクトルを合成し、全体を L2 正規化して最終特徴量ベクトルを得る
+   */
+  finalizeRowVector(baseVector = {}, attentionVector = {}, textWeight = 1) {
+    const combined = { ...baseVector };
+    this.addWeightedVector(combined, this.prefixVector('attention', attentionVector), textWeight);
+    return this.normalizeVector(combined);
+  }
+
+  /**
+   * dataRows(非separator行)ごとに、列特徴量+attentionを合成した最終特徴量ベクトルを構築する
+   * @returns {{ rowVectors: Map<number, object>, vocab: string[], continuousMaximums: object }}
+   */
+  buildRowFeatureVectors({ dataRows = [], columns = [], factor = {}, attentionVectors = [], indexMap = [] } = {}) {
+    const weights = (factor && typeof factor === 'object' && factor.weight) || {};
+    const rows = (Array.isArray(dataRows) ? dataRows : []).filter(
+      (item) => item && !item.separator && Array.isArray(item.row),
+    );
+
+    const continuousMaximums = {};
+    columns.forEach((column, columnIndex) => {
+      const maximum = Math.max(
+        0,
+        ...rows
+          .map((item) => item.row[columnIndex])
+          .filter((value) => typeof value === 'number' && Number.isFinite(value)),
+      );
+      continuousMaximums[column] = maximum;
+    });
+
+    const attentionByRow = new Map();
+    (Array.isArray(indexMap) ? indexMap : []).forEach((blockIndexes, blockIndex) => {
+      (Array.isArray(blockIndexes) ? blockIndexes : []).forEach((rowIndex, vectorIndex) => {
+        attentionByRow.set(rowIndex, attentionVectors[blockIndex]?.[vectorIndex] || {});
+      });
+    });
+
+    const textWeight = typeof weights.text === 'number' ? weights.text : 1;
+    const rowVectors = new Map();
+    const vocabSet = new Set();
+
+    rows.forEach((item) => {
+      const base = this.vectorizeRowColumns(item.row, columns, weights, continuousMaximums);
+      const finalVector = this.finalizeRowVector(base, attentionByRow.get(item.index), textWeight);
+      rowVectors.set(item.index, finalVector);
+      Object.keys(finalVector).forEach((key) => vocabSet.add(key));
+    });
+
+    return { rowVectors, vocab: Array.from(vocabSet).sort(), continuousMaximums };
+  }
+
+  prefixVector(prefix, vector) {
+    if (!vector || typeof vector !== 'object' || Array.isArray(vector)) {
+      return {};
+    }
+    return Object.fromEntries(
+      Object.entries(vector)
+        .filter(([, value]) => typeof value === 'number' && Number.isFinite(value))
+        .map(([key, value]) => [`${prefix}:${key}`, value]),
+    );
+  }
+
+  arrayVector(prefix, values) {
+    return Object.fromEntries(
+      (Array.isArray(values) ? values : [])
+        .filter((value) => typeof value === 'number' && Number.isFinite(value))
+        .map((value, index) => [`${prefix}:${index}`, value]),
+    );
+  }
+
+  normalizeVector(vector) {
+    if (!vector || typeof vector !== 'object') {
+      return {};
+    }
+    const norm = Math.sqrt(Object.values(vector).reduce((sum, value) => sum + value ** 2, 0));
+    if (norm === 0) {
+      return { ...vector };
+    }
+    return Object.fromEntries(Object.entries(vector).map(([key, value]) => [key, value / norm]));
+  }
+
+  addWeightedVector(target, vector, weight) {
+    Object.entries(this.normalizeVector(vector)).forEach(([key, value]) => {
+      target[key] = value * weight;
+    });
+    return target;
+  }
 }
 
 export default MatrixBuilder;

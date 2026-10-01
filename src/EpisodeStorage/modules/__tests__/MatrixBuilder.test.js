@@ -69,4 +69,55 @@ describe('MatrixBuilder', () => {
     expect(Array.isArray(meta.matrix)).toBe(true);
     expect(meta.matrix[0]).toHaveLength(meta.vocab.length);
   });
+
+  test('buildRowFeatureVectors は列ごとの特徴量とattentionを重み付け・正規化して合成する', () => {
+    const textEmbedding = createTextEmbedding();
+    const wordEmbedding = {
+      getEmbedding(surface) {
+        return surface === 'other' ? { other: 1.0 } : undefined;
+      },
+    };
+    const featureExtractor = {
+      extractDate: () => [0, 1],
+      extractTime: () => [1, 0],
+      extractEmotion: () => [0, 0],
+      extractContinuous: () => [0, 0],
+    };
+    const builder = new MatrixBuilder({ textEmbedding, wordEmbedding, featureExtractor });
+
+    const dataRows = [
+      { separator: false, index: 0, text: 'hello', row: ['bot', 'hello', 'other', '10/12'] },
+      { separator: false, index: 1, text: 'world', row: ['user', 'world', 'other', '10/12'] },
+    ];
+    const columns = ['role', 'text', 'target', 'date'];
+    const factor = { weight: { role: 0, text: 1, target: 1, date: 1 } };
+    const { blocks, indexMap } = builder.buildWordVectorBlocks(dataRows);
+    const attentionVectors = blocks.map((block) => block.map(() => ({})));
+    attentionVectors[0][1] = { hello: 1.0 }; // 2行目は1行目にattentionで畳み込まれたと仮定
+
+    const { rowVectors, vocab } = builder.buildRowFeatureVectors({
+      dataRows,
+      columns,
+      factor,
+      attentionVectors,
+      indexMap,
+    });
+
+    expect(rowVectors.size).toBe(2);
+    const firstVector = rowVectors.get(0);
+    const secondVector = rowVectors.get(1);
+
+    // role の重み0は寄与しないが、text/target/date/attentionキーは含まれる
+    expect(Object.keys(firstVector).some((key) => key.startsWith('role:'))).toBe(false);
+    expect(Object.keys(firstVector).some((key) => key.startsWith('text:'))).toBe(true);
+    expect(Object.keys(firstVector).some((key) => key.startsWith('target:'))).toBe(true);
+    expect(Object.keys(firstVector).some((key) => key.startsWith('date:'))).toBe(true);
+    expect(Object.keys(secondVector).some((key) => key.startsWith('attention:'))).toBe(true);
+
+    // L2正規化されている(ノルム=1)
+    const norm = Math.sqrt(Object.values(firstVector).reduce((sum, v) => sum + v ** 2, 0));
+    expect(norm).toBeCloseTo(1, 5);
+
+    expect(vocab.length).toBeGreaterThan(0);
+  });
 });
