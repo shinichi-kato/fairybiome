@@ -1,5 +1,10 @@
 Change log
 ===========
+# v0.32.0
+## Fixed
+* ユーザアバターのパス修正
+* Retriever.retrieve()に事前計算した特徴量行列が反映されない問題の対処
+
 # v0.31.0
 ## Fixed
 * reframing.episode.jsonでのfactor記述漏れ修正

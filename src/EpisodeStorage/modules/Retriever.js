@@ -2,8 +2,7 @@
  * Retriever
  *
  * EpisodeStorage の retrieve 処理を分離したモジュール。
- * - message → vector 化
- * - flatVectors のスコア化
+ * - messageVector(x) と rowVectors のスコア化（x は呼び出し側で事前計算）
  * - precision threshold で候補選出
  * - next row の取得
  */
@@ -18,80 +17,46 @@ export class Retriever {
 
   retrieve({
     message,
-    wordVector = [],
-    indexMap = [],
+    messageVector = null,
+    rowVectors = new Map(),
     dataRows = [],
     totalPrecision = 0,
     textIndex = 1,
     verbose = false,
   } = {}) {
-    /*
-    bugメモ：
-    vectorDot関数で使用される変数を観察したところ
-    * messageVetorに過去発言が畳み込まれていない
-    * 類似度行列のキーが(だ,や,遊び)のようになっていてattentionが含まれて
-      いない。
-    * 類似度行列の値が(1,1,1,0.5...)のような値で正規化(長さが1になる)が
-      されていない
-    →/scripts/dumpEpisodeMatrix.mjsで確認した類似度行列が実際には使われて
-    いないという問題
-
-    * messageVectorでもattentionを計算していない
-    →類似度行列と同様の計算が実施されていない問題
-    */
+    // messageVector(x)は呼び出し側(EpisodeStorage)で履歴Attention込みに事前計算される
 
     const text =
       typeof message === "string" ? message : message && typeof message.text === "string" ? message.text : "";
 
-    if (!text || !Array.isArray(wordVector) || !wordVector.length) {
+    if (!text || !messageVector || !Object.keys(messageVector).length) {
       return {
         status: "error",
         message: "入力メッセージがベクトル化できませんでした",
       };
     }
 
-    const messageVector =
-      this.textEmbedding && typeof this.textEmbedding.embedText === "function"
-        ? this.textEmbedding.embedText(text)
-        : {};
+    const rows = (Array.isArray(dataRows) ? dataRows : []).filter(
+      (item) => item && !item.separator && Array.isArray(item.row),
+    );
 
-    if (!messageVector || !Object.keys(messageVector).length) {
+    if (!rows.length) {
       return {
         status: "error",
-        message: "入力メッセージがベクトル化できませんでした",
+        message: "rowVectors が空です",
       };
     }
 
-    const flatVectors = [];
-    const flatIndexes = [];
-
-    for (let blockIndex = 0; blockIndex < wordVector.length; blockIndex += 1) {
-      const block = wordVector[blockIndex];
-      const blockIndexes = Array.isArray(indexMap[blockIndex]) ? indexMap[blockIndex] : [];
-      for (let entryIndex = 0; entryIndex < block.length; entryIndex += 1) {
-        flatVectors.push(block[entryIndex]);
-        flatIndexes.push(blockIndexes[entryIndex]);
-      }
-    }
-
-    if (!flatVectors.length) {
-      return {
-        status: "error",
-        message: "flatVectors が空です",
-      };
-    }
-
-    const scored = flatVectors
-      .map((vector, index) => ({
-        score: this.vectorDot(messageVector, vector),
-        index,
+    const scored = rows
+      .map((item) => ({
+        score: this.vectorDot(messageVector, rowVectors.get(item.index) || {}),
+        rowIndex: item.index,
       }))
       .sort((a, b) => b.score - a.score);
 
     const precision = totalPrecision >= 0 ? totalPrecision : this.defaultPrecision;
     const candidates = scored.filter((candidate) => {
-      const rowIndex = flatIndexes[candidate.index];
-      return candidate.score > precision && this.hasNextDataRow(rowIndex, dataRows);
+      return candidate.score > precision && this.hasNextDataRow(candidate.rowIndex, dataRows);
     });
 
     if (!candidates.length) {
@@ -100,7 +65,7 @@ export class Retriever {
         const ms = [];
         for (let i = 0; i < viewSize; i += 1) {
           const v = scored[i];
-          ms.push(`score: ${v.score}, index: ${v.index}`);
+          ms.push(`score: ${v.score}, rowIndex: ${v.rowIndex}`);
         }
         return {
           status: "low score",
@@ -113,7 +78,7 @@ export class Retriever {
     const topCount = Math.min(4, candidates.length);
     const topCandidates = candidates.slice(0, topCount);
     const selected = topCandidates[Math.floor(Math.random() * topCandidates.length)];
-    const matchedRowIndex = flatIndexes[selected.index];
+    const matchedRowIndex = selected.rowIndex;
     const nextRow = this.getNextDataRow(matchedRowIndex, dataRows);
 
     if (!nextRow) {
@@ -246,7 +211,6 @@ export class Retriever {
   }
 
   vectorDot(a, b) {
-    console.log("dot", a, b);
     if (!a || !b || typeof a !== "object" || typeof b !== "object") {
       return 0;
     }

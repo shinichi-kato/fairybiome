@@ -134,7 +134,7 @@ export default function ProfilePage() {
                     />
                     <img
                       className="h-24 w-24 object-contain"
-                      src={`/avatar/user/${avatar}/peace.svg`}
+                      src={`/static/avatar/user/${avatar}/neutral.svg`}
                       alt={`${avatar} のアバター`}
                     />
                     <span className="mt-1 block text-center text-sm">{avatar}</span>

@@ -18,6 +18,13 @@ export class FeatureExtractor {
     this.rbfGamma = 1.0;  // RBF kernel の幅パラメータ
   }
 
+  /**
+   * feature_emo.embed.json 読み込み後に感情マップを差し替える（インスタンスは再生成しない）
+   */
+  setEmotionEmbeddings(emotionEmbeddings) {
+    this.emotionToVector = this._buildEmotionToVector(emotionEmbeddings);
+  }
+
   _buildEmotionToVector(emotionEmbeddings) {
     const map = {};
 
@@ -145,7 +152,7 @@ export class FeatureExtractor {
     }
 
     const emotion = emotionStr.trim();  // 大文字小文字区別なし（精密マッチ）
-    return this.emotionToVector[emotion];
+    return this.emotionToVector[emotion] || [0, 0];
   }
 
   /**

@@ -144,7 +144,11 @@ describe('EpisodeStorage build cache and matrix', () => {
           embedding: { '兄': 1.0 },
         },
       ],
-      factor: { amplitude: 0.6, precision: 0.4 },
+      factor: {
+        amplitude: 0.6,
+        precision: 0.4,
+        weight: { role: 0, text: 1, date: 0, time: 0, emo: 0, facing: 0, location: 0 },
+      },
       timestamp: 123456,
       columns: ['role', 'text', 'date', 'time', 'emo', 'facing', 'location'],
       data: [
@@ -178,5 +182,57 @@ describe('EpisodeStorage build cache and matrix', () => {
     expect(matrix[0]).toEqual([1 / 1.5, 0.5 / 1.5, 0]);
     expect(matrix[1]).toEqual([0.5 / 1.75, 1.25 / 1.75, 0]);
     expect(matrix[2]).toEqual([0, 0, 1]);
+  });
+
+  it('caches row feature vectors alongside vocab/matrix', async () => {
+    const storage = new EpisodeStorage('botA');
+    storage.staticSource = {
+      title: '会話',
+      author: 'skato',
+      tags: [],
+      factor: { amplitude: 0.6, precision: 0.4 },
+      timestamp: 123456,
+      columns: ['role', 'text', 'date', 'time', 'emo', 'facing', 'location'],
+      data: [
+        ['bot', 'こんにちは', '10/12', '12:23', 'laugh', 'face', 'private'],
+        ['user', '今日はどう？', '10/12', '12:24', '', 'face', 'private'],
+      ],
+    };
+
+    await storage.build('botA', 'greeting');
+
+    expect(Array.isArray(storage.cache.rowFeatures)).toBe(true);
+    expect(storage.cache.rowFeatures.length).toBe(2);
+    expect(storage.rowFeatureVectors).toBeInstanceOf(Map);
+    expect(storage.rowFeatureVectors.size).toBe(2);
+    expect(Object.keys(storage.rowFeatureVectors.get(0)).some((key) => key.startsWith('text:'))).toBe(true);
+  });
+
+  it('keeps only the most recent maxHistoryTurns*2 entries in messageHistory', () => {
+    const storage = new EpisodeStorage('botA');
+
+    for (let i = 0; i < 20; i += 1) {
+      storage._pushHistory({ role: i % 2 === 0 ? 'user' : 'bot', text: `turn${i}` });
+    }
+
+    expect(storage.messageHistory.length).toBe(storage.maxHistoryTurns * 2);
+    expect(storage.messageHistory[0].text).toBe('turn10');
+  });
+
+  it('folds previous turns into the message vector via attention', () => {
+    const storage = new EpisodeStorage('botA');
+    storage.staticSource = { columns: ['role', 'text'] };
+    storage.factor = { weight: { role: 0, text: 1 } };
+
+    const withoutHistory = storage._buildMessageVector({ text: 'どうしたの' }, []);
+    const withHistory = storage._buildMessageVector(
+      { text: 'どうしたの' },
+      [{ role: 'user', text: '元気です' }],
+    );
+
+    const hasAttentionKey = (vector) => Object.keys(vector).some((key) => key.startsWith('attention:'));
+    expect(hasAttentionKey(withoutHistory)).toBe(false);
+    expect(hasAttentionKey(withHistory)).toBe(true);
+    expect(withHistory).not.toEqual(withoutHistory);
   });
 });
