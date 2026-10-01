@@ -3,6 +3,7 @@ Change log
 # v0.31.0
 ## Fixed
 * reframing.episode.jsonでのfactor記述漏れ修正
+* Retriever.retrieve()に事前計算した特徴量行列が反映されない問題の対処
 
 ## Changed
 * {user} {bot}などのencode/decode
@@ -17,6 +18,9 @@ Change log
 * 昼夜遷移イベント
 * ログ学習
 * ユーザの元気状態アバター
+* common下のtag辞書を有効化
+* attentionが効く範囲を強く長く
+* スコア表示
 
 
 # v0.30.4

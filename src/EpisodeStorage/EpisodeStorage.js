@@ -185,8 +185,8 @@ export class EpisodeStorage {
     if (!botName || !partName) {
       return;
     }
-
-    const resourcePartName = partName.endsWith('.episode') ? partName : `${partName}.episode`;
+ 
+    const resourcePartName = partName;
     const path = `/static/bots/${encodeURIComponent(botName)}/${encodeURIComponent(resourcePartName)}.json`;
     let response;
 
@@ -311,6 +311,7 @@ export class EpisodeStorage {
 
     if (result && result.status === 'ok') {
       const amplitude = typeof this.factor?.amplitude === 'number' ? this.factor.amplitude : 1;
+      console.log(`${this.partName} score=${result.score} amp=${amplitude}`);
       return {
         row: result.row,
         score: result.score * amplitude,

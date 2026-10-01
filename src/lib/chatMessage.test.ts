@@ -27,7 +27,7 @@ describe('avatarFileName', () => {
 
 describe('avatarDirectory', () => {
   it('uses the directory from legacy structured avatar data', () => {
-    expect(avatarDirectory({ dir: 'boy1', file: 'peace.svg' })).toBe('boy1');
+    expect(avatarDirectory({ dir: 'boy1', file: 'netural.svg' })).toBe('boy1');
   });
 
   it('uses a fallback when an avatar directory is not available', () => {

@@ -9,12 +9,7 @@
  */
 
 export class Retriever {
-  constructor({
-    wordEmbedding = null,
-    textEmbedding = null,
-    featureExtractor = null,
-    defaultPrecision = 0,
-  } = {}) {
+  constructor({ wordEmbedding = null, textEmbedding = null, featureExtractor = null, defaultPrecision = 0 } = {}) {
     this.wordEmbedding = wordEmbedding;
     this.textEmbedding = textEmbedding;
     this.featureExtractor = featureExtractor;
@@ -30,27 +25,40 @@ export class Retriever {
     textIndex = 1,
     verbose = false,
   } = {}) {
-    const text = typeof message === 'string'
-      ? message
-      : message && typeof message.text === 'string'
-        ? message.text
-        : '';
+    /*
+    bugメモ：
+    vectorDot関数で使用される変数を観察したところ
+    * messageVetorに過去発言が畳み込まれていない
+    * 類似度行列のキーが(だ,や,遊び)のようになっていてattentionが含まれて
+      いない。
+    * 類似度行列の値が(1,1,1,0.5...)のような値で正規化(長さが1になる)が
+      されていない
+    →/scripts/dumpEpisodeMatrix.mjsで確認した類似度行列が実際には使われて
+    いないという問題
+
+    * messageVectorでもattentionを計算していない
+    →類似度行列と同様の計算が実施されていない問題
+    */
+
+    const text =
+      typeof message === "string" ? message : message && typeof message.text === "string" ? message.text : "";
 
     if (!text || !Array.isArray(wordVector) || !wordVector.length) {
       return {
-        status: 'error',
-        message: '入力メッセージがベクトル化できませんでした',
+        status: "error",
+        message: "入力メッセージがベクトル化できませんでした",
       };
     }
 
-    const messageVector = this.textEmbedding && typeof this.textEmbedding.embedText === 'function'
-      ? this.textEmbedding.embedText(text)
-      : {};
+    const messageVector =
+      this.textEmbedding && typeof this.textEmbedding.embedText === "function"
+        ? this.textEmbedding.embedText(text)
+        : {};
 
     if (!messageVector || !Object.keys(messageVector).length) {
       return {
-        status: 'error',
-        message: '入力メッセージがベクトル化できませんでした',
+        status: "error",
+        message: "入力メッセージがベクトル化できませんでした",
       };
     }
 
@@ -68,8 +76,8 @@ export class Retriever {
 
     if (!flatVectors.length) {
       return {
-        status: 'error',
-        message: 'flatVectors が空です',
+        status: "error",
+        message: "flatVectors が空です",
       };
     }
 
@@ -95,8 +103,8 @@ export class Retriever {
           ms.push(`score: ${v.score}, index: ${v.index}`);
         }
         return {
-          status: 'low score',
-          message: ms.join('<br>'),
+          status: "low score",
+          message: ms.join("<br>"),
         };
       }
       return null;
@@ -111,7 +119,7 @@ export class Retriever {
     if (!nextRow) {
       if (verbose) {
         return {
-          status: 'no textRow',
+          status: "no textRow",
           message: `matchedRowIndex=${matchedRowIndex}, topCount=${topCount}`,
         };
       }
@@ -121,12 +129,16 @@ export class Retriever {
     const responseRow = Array.isArray(nextRow) ? [...nextRow] : nextRow;
     const substitutions = this.buildWordTagSubstitutionMap(text, this.wordEmbedding);
 
-    if (textIndex >= 0 && Array.isArray(responseRow) && typeof responseRow[textIndex] === 'string') {
-      responseRow[textIndex] = this.rewriteTextWithMatchedTags(responseRow[textIndex], substitutions, this.wordEmbedding);
+    if (textIndex >= 0 && Array.isArray(responseRow) && typeof responseRow[textIndex] === "string") {
+      responseRow[textIndex] = this.rewriteTextWithMatchedTags(
+        responseRow[textIndex],
+        substitutions,
+        this.wordEmbedding,
+      );
     }
 
     return {
-      status: 'ok',
+      status: "ok",
       row: responseRow,
       score: selected.score,
     };
@@ -134,21 +146,20 @@ export class Retriever {
 
   buildWordTagSubstitutionMap(text, wordEmbedding = this.wordEmbedding) {
     const substitutions = {};
-    if (!text || typeof text !== 'string' || !wordEmbedding?.dict) {
+    if (!text || typeof text !== "string" || !wordEmbedding?.dict) {
       return substitutions;
     }
 
-    const surfaces = Object.keys(wordEmbedding.dict)
-      .sort((a, b) => {
-        const diff = b.length - a.length;
-        return diff !== 0 ? diff : a.localeCompare(b);
-      });
+    const surfaces = Object.keys(wordEmbedding.dict).sort((a, b) => {
+      const diff = b.length - a.length;
+      return diff !== 0 ? diff : a.localeCompare(b);
+    });
 
     const used = Array(text.length).fill(false);
 
     for (const surface of surfaces) {
       const tag = wordEmbedding.dict[surface];
-      if (!tag || typeof tag.groupId !== 'number') {
+      if (!tag || typeof tag.groupId !== "number") {
         continue;
       }
       if (substitutions[tag.groupId]) {
@@ -186,13 +197,13 @@ export class Retriever {
   }
 
   rewriteTextWithMatchedTags(text, substitutions, wordEmbedding = this.wordEmbedding) {
-    if (!text || typeof text !== 'string' || Object.keys(substitutions).length === 0 || !wordEmbedding?.dict) {
+    if (!text || typeof text !== "string" || Object.keys(substitutions).length === 0 || !wordEmbedding?.dict) {
       return text;
     }
 
     const replacementMap = {};
     for (const [surface, info] of Object.entries(wordEmbedding.dict)) {
-      if (!info || typeof info.groupId !== 'number') {
+      if (!info || typeof info.groupId !== "number") {
         continue;
       }
 
@@ -211,7 +222,7 @@ export class Retriever {
       return text;
     }
 
-    let result = '';
+    let result = "";
     let index = 0;
 
     while (index < text.length) {
@@ -235,18 +246,19 @@ export class Retriever {
   }
 
   vectorDot(a, b) {
-    if (!a || !b || typeof a !== 'object' || typeof b !== 'object') {
+    console.log("dot", a, b);
+    if (!a || !b || typeof a !== "object" || typeof b !== "object") {
       return 0;
     }
 
     let sum = 0;
     Object.entries(a).forEach(([key, value]) => {
-      if (typeof value !== 'number' || Number.isNaN(value)) {
+      if (typeof value !== "number" || Number.isNaN(value)) {
         return;
       }
 
       const otherValue = b[key];
-      if (typeof otherValue === 'number' && !Number.isNaN(otherValue)) {
+      if (typeof otherValue === "number" && !Number.isNaN(otherValue)) {
         sum += value * otherValue;
       }
     });
@@ -261,17 +273,14 @@ export class Retriever {
         ? firestoreSource.columns
         : [];
 
-    const index = columns.indexOf('text');
+    const index = columns.indexOf("text");
     return index !== -1 ? index : 1;
   }
 
   getPrecisionThreshold({ staticSource = null, firestoreSource = null } = {}) {
-    const staticPrecision = typeof staticSource?.factor?.precision === 'number'
-      ? staticSource.factor.precision
-      : null;
-    const firestorePrecision = typeof firestoreSource?.factor?.precision === 'number'
-      ? firestoreSource.factor.precision
-      : null;
+    const staticPrecision = typeof staticSource?.factor?.precision === "number" ? staticSource.factor.precision : null;
+    const firestorePrecision =
+      typeof firestoreSource?.factor?.precision === "number" ? firestoreSource.factor.precision : null;
 
     if (staticPrecision !== null && firestorePrecision !== null) {
       return Math.min(staticPrecision, firestorePrecision);
@@ -286,7 +295,7 @@ export class Retriever {
   }
 
   hasNextDataRow(rowIndex, dataRows = []) {
-    if (typeof rowIndex !== 'number' || !Array.isArray(dataRows)) {
+    if (typeof rowIndex !== "number" || !Array.isArray(dataRows)) {
       return false;
     }
 
@@ -301,7 +310,7 @@ export class Retriever {
   }
 
   getNextDataRow(rowIndex, dataRows = []) {
-    if (typeof rowIndex !== 'number' || !Array.isArray(dataRows)) {
+    if (typeof rowIndex !== "number" || !Array.isArray(dataRows)) {
       return null;
     }
 

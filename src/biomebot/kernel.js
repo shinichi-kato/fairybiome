@@ -25,14 +25,14 @@ await biomebot.input(botName, message);
   配信する。
 
 */
-const workerRoot="/src/biomebot/parts";
+const workerRoot = "/src/biomebot/parts";
 
 // ファイル名で起動するworkerを切り替える
 const workerURL = {
-  "episode": `${workerRoot}/episode/EpisodePart.worker.js`,
-  "orchestator": `${workerRoot}/orchestrator/OrcehstratorPart.worker.js`,
-  "stageOrchestrator": `${workerRoot}/orchestrator/StageOrchestratorPart.worker.js`,
-}
+  episode: `${workerRoot}/episode/EpisodePart.worker.js`,
+  orchestator: `${workerRoot}/orchestrator/OrcehstratorPart.worker.js`,
+  stageOrchestrator: `${workerRoot}/orchestrator/StageOrchestratorPart.worker.js`,
+};
 
 export class Biomebot {
   /*
@@ -43,6 +43,7 @@ export class Biomebot {
     this.staticPaths = { ...paths };
     this.botPartMap = null;
     this.tagPaths = {};
+    this.expressionTags = {};
 
     this._generatePathDict(this.staticPaths);
     this.parts = initializeParts(this.botPartMap); //{partName: {state, worker}}
@@ -50,7 +51,8 @@ export class Biomebot {
     this.replyCallbackFunction = null;
     this.broadcastChannels = new Map();
     this.inputQueue = {};
-    this.tags = {}
+    this.tags = {};
+    this.currentUserName = "";
   }
 
   log(message) {
@@ -76,27 +78,27 @@ export class Biomebot {
      効なのはsuffixが'tags'であるもの
   */
   _generatePathDict(botPaths) {
-    const validParts = ['episode', 'concept', 'orchestrator','stageOrchestrator'];
+    // 有効に使われているか怪しい
+    const validParts = ["episode", "concept", "orchestrator", "stageOrchestrator"];
 
     for (const botName in botPaths) {
       this.botPartMap[botName] = [];
       this.tagPaths[botName] = [];
 
-      const targets = botPaths[botName].filter(path =>
-        path.endsWith('.json')
-      );
-
+      const targets = botPaths[botName].filter((path) => path.endsWith(".json"));
       for (const path of targets) {
-        const filename = path.split('/').pop(); // greeting.episode.json
+        const filename = path.split("/").pop(); // greeting.episode.json
 
-        const partName = filename.replace(/\.json$/, '');
-        const suffix = partName.split('.').pop();
+        const partName = filename.replace(/\.json$/, "");
+        const suffix = partName.split(".").pop();
+        console.log("partName:", partName, "suffix:", suffix);
 
         if (validParts.includes(suffix)) {
           this.botPartMap[botName].push(partName);
         }
 
-        if (suffix === 'tags') {
+        if (suffix === "tags") {
+          console.log(`Loading tags for ${botName} from ${path}`);
           this.tagPaths[botName].push(path);
         }
       }
@@ -112,7 +114,7 @@ export class Biomebot {
       for (const partName in bots[botName]) {
         const partId = `${botName}:${partName}`;
         if (!parts.has(partId)) {
-          parts.set(partId, { state: 'idle', worker: null });
+          parts.set(partId, { state: "idle", worker: null });
         }
       }
     }
@@ -132,7 +134,7 @@ export class Biomebot {
         },
       };
       for (const partName in bots[botName]) {
-        botStates[botName][partName] = 'idle';
+        botStates[botName][partName] = "idle";
       }
     }
     return botStates;
@@ -162,7 +164,8 @@ export class Biomebot {
   ----------------------------------------------------------
   */
   async input(botName, message) {
-    // inputされたメッセージをpartに配信したら、partからoutputが
+    // inputされたメッセージをpartに配信.
+    // その後、partからoutputが
     // 送られてくるまで次のinputをpartに送らない。
     const globalState = this._ensureInputState(botName);
     if (!globalState) {
@@ -178,9 +181,10 @@ export class Biomebot {
 
     if (this.broadcastChannels.has(botName)) {
       const channel = this.broadcastChannels.get(botName);
-      channel.postMessage({ 
-        type: 'input', 
-        message: this._encodeTags(botName, message) });
+      channel.postMessage({
+        type: "input",
+        message: this._encodeTags(botName, message),
+      });
     } else {
       globalState.isWaitingForOutput = false;
       throw new Error(`${botName} not deployed`);
@@ -206,7 +210,7 @@ export class Biomebot {
     if (this.broadcastChannels.has(botName)) {
       const channel = this.broadcastChannels.get(botName);
       channel.postMessage({
-        type: 'input',
+        type: "input",
         message: this._encodeTags(botName, next),
       });
       globalState.isWaitingForOutput = true;
@@ -227,19 +231,16 @@ export class Biomebot {
   どちらも指定されなければ、botNameに紐づく全てのパートを有効化する。
   */
   async activate(request) {
-    const { 
-      botName, 
-      partNames=[...this.botPartMap[botName]],
-      excludedPartNames =[]
-    } = request;
+    const { botName, partNames = [...this.botPartMap[botName]], excludedPartNames = [] } = request;
 
     if (!(botName in this.botPartMap)) {
       throw new Error(`invalid botName ${botName}`);
     }
     const botState = this.botStates[botName];
 
-    const targetPartNames = partNames.filter(
-      partName => { !excludedPartNames.includes(partName) && partName in this.botPartMap[botName] });
+    const targetPartNames = partNames.filter((partName) => {
+      !excludedPartNames.includes(partName) && partName in this.botPartMap[botName];
+    });
     // Process all parts in parallel
     const promises = targetPartNames.map(async (partName) => {
       const partId = `${botName}:${partName}`;
@@ -251,7 +252,7 @@ export class Biomebot {
       if (!part) {
         failedParts.push({
           partName,
-          error: 'Part not found',
+          error: "Part not found",
           timestamp: Date.now(),
         });
         return;
@@ -259,23 +260,23 @@ export class Biomebot {
 
       try {
         // Deploy if not deployed
-        if (part.state === 'idle') {
+        if (part.state === "idle") {
           await this._deployPart(botName, partName);
           this._loadTags(botName);
           this.broadcastChannels.set(botName, new BroadcastChannel(`biomebot-${botName}`));
         }
 
         // Send activate message and wait for response with timeout
-        part.state = 'deploying';
-        this._sendToWorkerChannel(botName, partName, { type: 'activate' });
+        part.state = "deploying";
+        this._sendToWorkerChannel(botName, partName, { type: "activate" });
 
         try {
-          await this._waitForPartResponse(botName, partName, 'activated', this.timeout);
-          part.state = 'active';
+          await this._waitForPartResponse(botName, partName, "activated", this.timeout);
+          part.state = "active";
           activatedParts.push(partName);
           botState.activePartCount++;
         } catch (error) {
-          part.state = 'failed';
+          part.state = "failed";
           part.errors.push(String(error));
           failedParts.push({
             partName,
@@ -284,7 +285,7 @@ export class Biomebot {
           });
         }
       } catch (error) {
-        part.state = 'failed';
+        part.state = "failed";
         part.errors.push(String(error));
         failedParts.push({
           partName,
@@ -297,7 +298,7 @@ export class Biomebot {
     await Promise.all(promises);
 
     const response = {
-      type: 'activateCompleted',
+      type: "activateCompleted",
       botName,
       activatedParts,
       failedParts,
@@ -309,11 +310,7 @@ export class Biomebot {
   }
 
   async deactivate(request) {
-    const { 
-      botName, 
-      partNames=[...this.botPartMap[botName]],
-      excludedPartNames =[]
-    } = request;
+    const { botName, partNames = [...this.botPartMap[botName]], excludedPartNames = [] } = request;
 
     if (!(botName in this.botPartMap)) {
       throw new Error(`invalid botName ${botName}`);
@@ -322,27 +319,28 @@ export class Biomebot {
     const deactivatedParts = [];
     const failedParts = [];
     const botState = this.botStates[botName];
-    const targetPartNames = partNames.filter(
-      partName => { !excludedPartNames.includes(partName) && partName in this.botPartMap[botName] });
+    const targetPartNames = partNames.filter((partName) => {
+      !excludedPartNames.includes(partName) && partName in this.botPartMap[botName];
+    });
 
     const promises = targetPartNames.map(async (partName) => {
       const partId = `${botName}:${partName}`;
       const part = this.parts.get(partId);
-      if (!part || part.state === 'idle') {
+      if (!part || part.state === "idle") {
         return; // Skip idle parts
       }
 
       try {
-        part.state = 'deactivating';
-        this.part.worker.postMessage({ type: 'deactivate' });
+        part.state = "deactivating";
+        this.part.worker.postMessage({ type: "deactivate" });
 
         try {
-          await this._waitForPartResponse(botName, partName, 'deactivated', this.timeout);
-          part.state = 'deactivated';
+          await this._waitForPartResponse(botName, partName, "deactivated", this.timeout);
+          part.state = "deactivated";
           deactivatedParts.push(partName);
           botState.activePartCount--;
         } catch (error) {
-          part.state = 'failed';
+          part.state = "failed";
           part.errors.push(String(error));
           failedParts.push({
             partName,
@@ -351,7 +349,7 @@ export class Biomebot {
           });
         }
       } catch (error) {
-        part.state = 'failed';
+        part.state = "failed";
         part.errors.push(String(error));
         failedParts.push({
           partName,
@@ -364,7 +362,7 @@ export class Biomebot {
     await Promise.all(promises);
 
     const response = {
-      type: 'deactivateCompleted',
+      type: "deactivateCompleted",
       botName,
       deactivatedParts,
       failedParts,
@@ -380,15 +378,15 @@ export class Biomebot {
    */
   async report(request) {
     const { botName, partNames } = request;
-    this.log(`Reporting bot: ${botName}, parts: ${partNames?.join(',') ?? 'all'}`);
+    this.log(`Reporting bot: ${botName}, parts: ${partNames?.join(",") ?? "all"}`);
 
     const botState = this.botPartMap.get(botName);
     if (!botState) {
       return {
-        type: 'reportCompleted',
+        type: "reportCompleted",
         botName,
         reports: {},
-        failedParts: [{ partName: 'all', error: 'Bot not initialized', timestamp: Date.now() }],
+        failedParts: [{ partName: "all", error: "Bot not initialized", timestamp: Date.now() }],
       };
     }
 
@@ -404,17 +402,17 @@ export class Biomebot {
       if (!part) {
         failedParts.push({
           partName,
-          error: 'Part not found',
+          error: "Part not found",
           timestamp: Date.now(),
         });
         return;
       }
 
       try {
-        this._sendToWorkerChannel(botName, partName, { type: 'report' });
+        this._sendToWorkerChannel(botName, partName, { type: "report" });
 
         try {
-          await this._waitForPartResponse(botName, partName, 'reported', this.timeout);
+          await this._waitForPartResponse(botName, partName, "reported", this.timeout);
           // Response is stored in part state, retrieve it here
           reports[partName] = {
             state: part.state,
@@ -439,7 +437,7 @@ export class Biomebot {
     await Promise.all(promises);
 
     const response = {
-      type: 'reportCompleted',
+      type: "reportCompleted",
       botName,
       reports,
       failedParts,
@@ -458,7 +456,7 @@ export class Biomebot {
 
     // Deactivate all parts
     await this.deactivate({
-      type: 'deactivate',
+      type: "deactivate",
       botName,
     });
 
@@ -483,14 +481,9 @@ export class Biomebot {
   }
 
   /**
- * Wait for a response from a worker part
- */
-  _waitForPartResponse(
-    botName,
-    partName,
-    expectedType,
-    timeout
-  ) {
+   * Wait for a response from a worker part
+   */
+  _waitForPartResponse(botName, partName, expectedType, timeout) {
     const waiterId = `${botName}:${partName}:${expectedType}`;
 
     return new Promise((resolve, reject) => {
@@ -511,54 +504,54 @@ export class Biomebot {
     if (!part) {
       throw new Error(`Part ${partName} not found for bot ${botName}`);
     }
-    if (part.state === 'blank') {
+    if (part.state === "blank") {
       const jsonPath = this.botPartMap[botName][partName];
-      const botType = partName.split('.').pop();
+      const botType = partName.split(".").pop();
       const worker = new Worker(workerURL[botType]);
 
       part.worker = worker;
-      part.state = 'deploying';
+      part.state = "deploying";
       part.deployedAt = Date.now();
       part.worker.postMessage({ type: "init", botName, partName });
       part.worker.onmessage = (e) => {
         const event = e.data;
         switch (event.type) {
-          case 'initialized':
-            part.state = 'idle';
+          case "initialized":
+            part.state = "idle";
             this.log(`Part ${partName} initialized for bot ${botName}`);
             break;
-          case 'deployed':
-            part.state = 'deployed';
+          case "deployed":
+            part.state = "deployed";
             this.log(`Part ${partName} deployed for bot ${botName}`);
             break;
-          case 'activated':
-            part.state = 'active';
+          case "activated":
+            part.state = "active";
             this.log(`Part ${partName} activated for bot ${botName}`);
             break;
-          case 'deactivated':
-            part.state = 'idle';
+          case "deactivated":
+            part.state = "idle";
             this.log(`Part ${partName} deactivated for bot ${botName}`);
             break;
-          case 'reported':
+          case "reported":
             // Handle report response if needed
             break;
-          case 'activate':
-            // activation request by orchestraotor part  
+          case "activate":
+            // activation request by orchestraotor part
             this.activate({
               botName: event.botName,
               partNames: event.partNames,
-              excludedPartNames: event.excludedPartNames
+              excludedPartNames: event.excludedPartNames,
             });
             break;
-          case 'deactivate':
+          case "deactivate":
             // deactivation request by orchestraotor part
             this.deactivate({
               botName: event.botName,
               partNames: event.partNames,
-              excludedPartNames: event.excludedPartNames
+              excludedPartNames: event.excludedPartNames,
             });
             break;
-          case 'output': {
+          case "output": {
             // orchestrator only emits final output; other parts emit innerVoice.
             const botName = event.botName;
             const botState = this.botStates?.[botName];
@@ -568,10 +561,9 @@ export class Biomebot {
 
             const m = {
               ...event.message,
-              text: this._decodeTags(event.botName, event.message?.text ?? '')
-            }
-            this._replyCallbackFunction?.(
-              event.botName, m);
+              text: this._decodeTags(event.botName, event.message?.text ?? ""),
+            };
+            this._replyCallbackFunction?.(event.botName, m);
 
             this._flushInputQueue(botName);
             break;
@@ -579,7 +571,7 @@ export class Biomebot {
           default:
             this.log(`Unknown message type from part ${partName}: ${event.type}`);
         }
-      }
+      };
     }
   }
 
@@ -628,19 +620,32 @@ export class Biomebot {
       }
     }
 
-    const sortedSurfaces = Object.keys(encode)
-      .sort((a, b) => b.length - a.length);
+    const sortedSurfaces = Object.keys(encode).sort((a, b) => b.length - a.length);
 
     this.tags ??= {};
     this.tags[botName] = {
       encode,
       decode,
       surfaces: sortedSurfaces,
-      tagNames: {}
+      tagNames: {},
     };
   }
 
+  async _readTagFile(path) {
+    const res = await fetch(path);
 
+    if (!res.ok) {
+      console.warn(`Failed to load tag file: ${path}`);
+      return;
+    }
+
+    const json = await res.json();
+    const tags = json.tags;
+
+    for (const key in tags) {
+      this.expressionTags[key] = json[key];
+    }
+  }
   /*
    * this.tags[botName].encode = { surface: tag }
    * を利用して、text中のsurfaceをtagに置換する。
@@ -659,9 +664,10 @@ export class Biomebot {
 
     // ユーザ名はmessageから取得
     const dname = message.displayName;
-    if(result.includes(dname)){
-      tags.tagNmaes["{user}"] = dname;
-      result = result.replaceAll(dname,"{user}");
+    this.currentUserName = dname;
+    if (result.includes(dname)) {
+      tags.tagNames["{user}"] = dname;
+      result = result.replaceAll(dname, "{user}");
     }
 
     for (const surface of tags.surfaces) {
@@ -681,11 +687,11 @@ export class Biomebot {
   }
 
   /*
- * this.tags[botName].decode = { tag: [surface1, surface2, ...] }
- * と
- * this.tags[botName].tagNames = { tag: surface }
- * を利用して、text中のtagをsurfaceに戻す。
- */
+   * this.tags[botName].decode = { tag: [surface1, surface2, ...] }
+   * と
+   * this.tags[botName].tagNames = { tag: surface }
+   * を利用して、text中のtagをsurfaceに戻す。
+   */
   _decodeTags(botName, text) {
     const tags = this.tags?.[botName];
 
@@ -695,13 +701,12 @@ export class Biomebot {
 
     let result = text;
 
-    const tagList = Object.keys(tags.decode)
-      .sort((a, b) => b.length - a.length);
+    result = result.replaceAll("{user}", this.currentUserName);
+
+    const tagList = Object.keys(tags.decode).sort((a, b) => b.length - a.length);
 
     for (const tag of tagList) {
-      const surface =
-        tags.tagNames[tag] ??
-        tags.decode[tag]?.[0];
+      const surface = tags.tagNames[tag] ?? tags.decode[tag]?.[0];
 
       if (!surface) {
         continue;
@@ -709,12 +714,15 @@ export class Biomebot {
 
       result = result.replaceAll(tag, surface);
     }
+    for(const tag in this.expressionTags){
+      result = result.replaceAll(tag, this.expressionTags[tag]);
+    }
 
     return result;
   }
 }
 
-const DEFAULT_CHAT_BACKGROUND_COLOR = '#DDDDDD';
+const DEFAULT_CHAT_BACKGROUND_COLOR = "#DDDDDD";
 
 function readBotAvatarDirs() {
   try {
@@ -726,7 +734,13 @@ function readBotAvatarDirs() {
 }
 
 function toPartName(path) {
-  return path.replace(/\\/g, '/').split('/').pop()?.replace(/\.json$/, '') ?? '';
+  return (
+    path
+      .replace(/\\/g, "/")
+      .split("/")
+      .pop()
+      ?.replace(/\.json$/, "") ?? ""
+  );
 }
 
 /**
@@ -743,18 +757,42 @@ export class ChatBiomebot {
     this.avatarDirs = readBotAvatarDirs();
     this.replyCallbackFunction = null;
     this.displayNameCallbackFunction = null;
+    this.expressionTags = {};
+  }
+
+  async _readTagFile(path) {
+    const res = await fetch(path);
+
+    if (!res.ok) {
+      console.warn(`Failed to load tag file: ${path}`);
+      return;
+    }
+
+    const json = await res.json();
+    const tags = json.tags;
+    console.log("json",json)
+    for (const key in tags) {
+      this.expressionTags[key] = tags[key];
+    }
   }
 
   async deploy(botName) {
-    const paths = this.botPaths[botName];
-    if (!Array.isArray(paths)) {
+    const tagPaths = this.botPaths[botName].filter((path) => /\.tags\.json$/i.test(path));
+    for (const path of tagPaths) {
+      await this._readTagFile(path);
+    }
+
+    const partPaths = this.botPaths[botName].filter((path) =>
+      /\.(episode|orchestrator|stageOrchestrator)\.json$/i.test(path),
+    );
+    if (!Array.isArray(partPaths)) {
       throw new Error(`invalid botName ${botName}`);
     }
 
     if (!this.broadcastChannels.has(botName)) {
       console.log(`[ChatBiomebot] Starting ${botName}`);
       const channel = new BroadcastChannel(`biomebot-${botName}`);
-      channel.onmessage = event => this._handleBroadcast(botName, event.data);
+      channel.onmessage = (event) => this._handleBroadcast(botName, event.data);
       this.broadcastChannels.set(botName, channel);
       this.botStates.set(botName, {
         isWaitingForOutput: false,
@@ -762,9 +800,9 @@ export class ChatBiomebot {
         inFlight: null,
         initializedWorkerCount: 0,
         activatedWorkerCount: 0,
-        workerCount: paths.length,
+        workerCount: partPaths.length,
       });
-      const workers = paths.map(path => this._createWorker(botName, toPartName(path)));
+      const workers = partPaths.map((path) => this._createWorker(botName, toPartName(path)));
       this.botWorkers.set(botName, workers);
       console.log(`[ChatBiomebot] Started ${botName}`);
     }
@@ -793,7 +831,7 @@ export class ChatBiomebot {
 
   async shutdown(botName) {
     for (const worker of this.botWorkers.get(botName) ?? []) {
-      worker.postMessage({ type: 'terminate' });
+      worker.postMessage({ type: "terminate" });
       worker.terminate();
     }
     this.botWorkers.delete(botName);
@@ -804,42 +842,42 @@ export class ChatBiomebot {
   }
 
   _createWorker(botName, partName) {
-    const workerUrl = partName.includes('orchestrator')
-      ? '/biomebot-workers/Orchestrator.worker.js'
-      : '/biomebot-workers/EpisodePart.worker.js';
-    const worker = new Worker(workerUrl, { type: 'module' });
+    const workerUrl = partName.includes("orchestrator")
+      ? "/biomebot-workers/Orchestrator.worker.js"
+      : "/biomebot-workers/EpisodePart.worker.js";
+    const worker = new Worker(workerUrl, { type: "module" });
 
     let initialized = false;
-    worker.onerror = event => {
+    worker.onerror = (event) => {
       console.error(`[ChatBiomebot] Worker error ${botName}:${partName}`, event.message);
     };
-    worker.onmessageerror = event => {
+    worker.onmessageerror = (event) => {
       console.error(`[ChatBiomebot] Worker message error ${botName}:${partName}`, event);
     };
-    worker.onmessage = event => {
-      if (!initialized && event.data?.type === 'initialized') {
+    worker.onmessage = (event) => {
+      if (!initialized && event.data?.type === "initialized") {
         initialized = true;
         console.log(`[ChatBiomebot] Initialized ${botName}:${partName}`);
         if (event.data.displayName) {
           this._setBotDisplayName(botName, event.data.displayName);
         }
-        worker.postMessage({ type: 'deploy', botName, partName });
+        worker.postMessage({ type: "deploy", botName, partName });
         return;
       }
 
-      if (event.data?.type === 'deployed') {
-        worker.postMessage({ type: 'activate', botName, partName });
+      if (event.data?.type === "deployed") {
+        worker.postMessage({ type: "activate", botName, partName });
         console.log(`[ChatBiomebot] Deployed ${botName}:${partName}`);
         this._markWorkerInitialized(botName);
         return;
       }
 
-      if (event.data?.type === 'activated') {
+      if (event.data?.type === "activated") {
         this._markWorkerActivated(botName);
         console.log(`[ChatBiomebot] Activated ${botName}:${partName}`);
       }
     };
-    worker.postMessage({ type: 'init', botName, partName });
+    worker.postMessage({ type: "init", botName, partName });
     return worker;
   }
 
@@ -876,12 +914,17 @@ export class ChatBiomebot {
 
     state.isWaitingForOutput = true;
     state.inFlight = message;
-    channel.postMessage({ type: 'input', message });
+    channel.postMessage({ type: "input", message });
   }
 
   _flushInputQueue(botName) {
     const state = this.botStates.get(botName);
-    if (!state || state.activatedWorkerCount < state.workerCount || state.isWaitingForOutput || state.inputQueue.length === 0) {
+    if (
+      !state ||
+      state.activatedWorkerCount < state.workerCount ||
+      state.isWaitingForOutput ||
+      state.inputQueue.length === 0
+    ) {
       return;
     }
 
@@ -889,7 +932,7 @@ export class ChatBiomebot {
   }
 
   _handleBroadcast(botName, event) {
-    if (event?.type !== 'output') {
+    if (event?.type !== "output") {
       return;
     }
 
@@ -901,10 +944,10 @@ export class ChatBiomebot {
     state.isWaitingForOutput = false;
     const output = event.message;
     if (output?.text) {
-      const emo = output.emo || 'neutral';
+      const emo = output.emo || "neutral";
       this.replyCallbackFunction?.(botName, {
         ...output,
-        role: 'bot',
+        role: "bot",
         timestamp: output.timestamp ?? new Date().toISOString(),
         displayName: this.botDisplayNames.get(botName) || botName,
         backgroundColor: output.backgroundColor || DEFAULT_CHAT_BACKGROUND_COLOR,
