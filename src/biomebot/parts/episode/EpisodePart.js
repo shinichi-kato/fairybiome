@@ -1,12 +1,12 @@
-import { Part } from '../part.js';
-import { Message } from '../../../Message.js';
-import { EpisodeStorage } from '../../../EpisodeStorage/EpisodeStorage.js';
+import { Part } from "../part.js";
+import { Message } from "../../../Message.js";
+import { EpisodeStorage } from "../../../EpisodeStorage/EpisodeStorage.js";
 
 export class EpisodePart extends Part {
   constructor() {
     super();
-    this.engineName = 'Episode';
-    this.engine = new EpisodeStorage('dummy');
+    this.engineName = "Episode";
+    this.engine = new EpisodeStorage("dummy");
     this.columns = [];
     this.data = [];
     this.factor = {};
@@ -14,7 +14,7 @@ export class EpisodePart extends Part {
 
   async init(botName, partName, firestoreToken = null) {
     const data = await this._init(botName, partName, firestoreToken);
-    if (!data || typeof data !== 'object') {
+    if (!data || typeof data !== "object") {
       return false;
     }
 
@@ -37,7 +37,7 @@ export class EpisodePart extends Part {
 
   report() {
     return {
-      status: 'ok',
+      status: "ok",
       botName: this.botName,
       partName: this.partName,
       engine: this.engineName,
@@ -47,15 +47,15 @@ export class EpisodePart extends Part {
   }
 
   receive(message) {
-    if (!this.engine || typeof this.engine.retrieve !== 'function') {
-      return { status: 'error', message: 'engine not ready' };
+    if (!this.engine || typeof this.engine.retrieve !== "function") {
+      return { status: "error", message: "engine not ready" };
     }
     return this.engine.retrieve(message);
   }
 
   input(message) {
     const result = this.receive(message);
-    if (!result || result.status === 'error') {
+    if (!result || result.status === "error") {
       return [];
     }
 
@@ -64,23 +64,27 @@ export class EpisodePart extends Part {
       return [];
     }
 
-    return [new Message({
-      role: 'bot',
-      text: row[1] ?? '',
-      target: 'other',
-      timestamp: new Date().toISOString(),
-      emo: '',
-      facing: 'face',
-      location: 'private',
-      ecoState: '',
-      displayName: this.partName,
-      backgroundColor: '',
-      props: {
-        botName: this.botName,
-        partNames: [this.partName],
-        score: typeof result.score === 'number' ? result.score : 0,
-      },
-    })];
+    const emoIndex = this.columns.indexOf("emo");
+
+    return [
+      new Message({
+        role: "bot",
+        text: row[1] ?? "",
+        target: "other",
+        timestamp: new Date().toISOString(),
+        emo: emoIndex >= 0 ? row[emoIndex] : null,
+        facing: "face",
+        location: row[4],
+        ecoState: "",
+        displayName: this.botName,
+        backgroundColor: "",
+        props: {
+          botName: this.botName,
+          partNames: [this.partName],
+          score: typeof result.score === "number" ? result.score : 0,
+        },
+      }),
+    ];
   }
 
   inputinnerVoice(message) {

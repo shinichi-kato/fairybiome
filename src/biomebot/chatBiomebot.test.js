@@ -89,6 +89,39 @@ describe('ChatBiomebot', () => {
     }));
   });
 
+  it('decodes tags in the output before delivering a Bot reply callback', async () => {
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        tags: {
+          '{bot}': ['アウルラ'],
+          '{you}': ['あなた', '{user}さん'],
+        },
+      }),
+    });
+    const bot = new ChatBiomebot({ aurula: ['static/bots/Aurula/main.tags.json'] });
+    const callback = vi.fn();
+    bot.replyCallbackFunction = callback;
+    bot.botDisplayNames.set('aurula', 'アウルラ');
+
+    try {
+      await bot.deploy('aurula');
+      await bot.input('aurula', { messageId: 'user-message-1', displayName: 'たろう', text: 'こんにちは' });
+
+      bot._handleBroadcast('aurula', {
+        type: 'output',
+        message: { text: '{bot}さん、{user}さん。{you}です。' },
+      });
+
+      expect(callback).toHaveBeenCalledWith('aurula', expect.objectContaining({
+        text: 'アウルラさん、たろうさん。あなたです。',
+      }));
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
   it('queues input until the current reply arrives', async () => {
     const bot = new ChatBiomebot({ aurula: [] });
     await bot.deploy('aurula');

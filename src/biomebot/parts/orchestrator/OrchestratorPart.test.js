@@ -45,4 +45,28 @@ describe('OrchestratorPart', () => {
 
     vi.restoreAllMocks();
   });
+
+  it('preserves the other emotion when the stronger self message has no emotion', () => {
+    const part = new OrchestratorPart();
+    part.innerVoicePool = [
+      new Message({
+        role: 'bot',
+        text: 'other message',
+        target: 'other',
+        emo: 'joy',
+        props: { score: 8, partNames: ['episode'], botName: 'demo' },
+      }),
+      new Message({
+        role: 'bot',
+        text: 'self message',
+        target: 'self',
+        emo: null,
+        props: { score: 10, partNames: ['orchestrator'], botName: 'demo' },
+      }),
+    ];
+
+    const result = part.integrate();
+
+    expect(result.message.emo).toBe('joy');
+  });
 });

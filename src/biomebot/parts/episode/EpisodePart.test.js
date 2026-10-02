@@ -27,4 +27,20 @@ describe('EpisodePart', () => {
 
     fetchSpy.mockRestore();
   });
+
+  it('reads emotion from its configured column instead of a fixed row index', () => {
+    const part = new EpisodePart();
+    part.botName = 'demo-bot';
+    part.partName = 'greeting';
+    part.columns = ['role', 'text', 'date', 'time', 'emo', 'target', 'facing', 'location'];
+    vi.spyOn(part, 'receive').mockReturnValue({
+      status: 'ok',
+      row: ['bot', 'おはよ〜。早起きだねえ。', null, '05:00', 'joy', 'other', 'face', 'public'],
+      score: 0.8,
+    });
+
+    const [message] = part.input({ text: 'おはよう！' });
+
+    expect(message.emo).toBe('joy');
+  });
 });

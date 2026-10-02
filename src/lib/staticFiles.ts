@@ -1,4 +1,5 @@
 export type StaticFilesManifest = {
+  version?: string;
   bots: Record<string, string[]>;
   wordTags: string[];
 };
@@ -15,7 +16,11 @@ function parseManifest(value: unknown): StaticFilesManifest {
     return EMPTY_MANIFEST;
   }
 
-  const { bots, wordTags } = value as { bots?: unknown; wordTags?: unknown };
+  const { version, bots, wordTags } = value as {
+    version?: unknown;
+    bots?: unknown;
+    wordTags?: unknown;
+  };
   if (!bots || typeof bots !== 'object' || Array.isArray(bots) || !isStringArray(wordTags)) {
     return EMPTY_MANIFEST;
   }
@@ -27,7 +32,11 @@ function parseManifest(value: unknown): StaticFilesManifest {
     }
   }
 
-  return { bots: normalizedBots, wordTags };
+  return {
+    version: typeof version === 'string' ? version : undefined,
+    bots: normalizedBots,
+    wordTags,
+  };
 }
 
 export function loadStaticFiles(): Promise<StaticFilesManifest> {
