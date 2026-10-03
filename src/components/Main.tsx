@@ -18,6 +18,7 @@ import { loadStaticFiles } from '../lib/staticFiles';
 export default function Main() {
   const { profile, signOut } = useAuth();
   const [botNames, setBotNames] = useState<string[]>([]);
+  const [versionNumber, setVersionNumber] = useState('');
   const [selectedBot, setSelectedBot] = useState('');
   const [signingOut, setSigningOut] = useState(false);
 
@@ -30,6 +31,7 @@ export default function Main() {
 
       const names = Object.keys(manifest.bots).sort();
       setBotNames(names);
+      setVersionNumber(manifest.version ?? '');
       setSelectedBot(current => current && names.includes(current) ? current : names[0] ?? '');
     });
 
@@ -98,6 +100,7 @@ export default function Main() {
         >
           サインアウト
         </button>
+        <div>version: {versionNumber}</div>
       </div>
     </main>
   );

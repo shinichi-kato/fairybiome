@@ -1,5 +1,12 @@
 Change log
 ===========
+# v0.32.1
+## Fixed
+* episodeのemoがoutputまで伝播しない問題の対処
+* {you}が復元されない問題の対処
+* version表示
+
+
 # v0.32.0
 ## Fixed
 * ユーザアバターのパス修正

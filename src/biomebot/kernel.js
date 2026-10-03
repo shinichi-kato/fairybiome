@@ -760,7 +760,7 @@ export class ChatBiomebot {
     this.expressionTags = {};
   }
 
-  async _readTagFile(path) {
+  async _readTagFile(botName, path) {
     const res = await fetch(path);
 
     if (!res.ok) {
@@ -769,17 +769,43 @@ export class ChatBiomebot {
     }
 
     const json = await res.json();
-    const tags = json.tags;
-    console.log("json",json)
-    for (const key in tags) {
-      this.expressionTags[key] = tags[key];
+    const tags = json.tags ?? {};
+    this.expressionTags[botName] ??= {};
+    for (const [tag, surfaces] of Object.entries(tags)) {
+      this.expressionTags[botName][tag] = surfaces;
     }
+  }
+
+  _decodeTags(botName, text, userName) {
+    let result = text;
+    const tags = this.expressionTags[botName] ?? {};
+    const tagList = Object.keys(tags).sort((a, b) => b.length - a.length);
+
+    for (const tag of tagList) {
+      if (tag === "{bot}") {
+        continue;
+      }
+
+      const surfaces = tags[tag];
+      const surface = Array.isArray(surfaces) ? surfaces[0] : surfaces;
+      if (typeof surface === "string" && surface) {
+        result = result.replaceAll(tag, surface);
+      }
+    }
+
+    result = result.replaceAll(
+      "{bot}",
+      this.botDisplayNames.get(botName) || botName,
+    );
+    result = result.replaceAll("{user}", userName || "あなた");
+
+    return result;
   }
 
   async deploy(botName) {
     const tagPaths = this.botPaths[botName].filter((path) => /\.tags\.json$/i.test(path));
     for (const path of tagPaths) {
-      await this._readTagFile(path);
+      await this._readTagFile(botName, path);
     }
 
     const partPaths = this.botPaths[botName].filter((path) =>
@@ -943,10 +969,12 @@ export class ChatBiomebot {
 
     state.isWaitingForOutput = false;
     const output = event.message;
+
     if (output?.text) {
       const emo = output.emo || "neutral";
       this.replyCallbackFunction?.(botName, {
         ...output,
+        text: this._decodeTags(botName, output.text, state.inFlight?.displayName),
         role: "bot",
         timestamp: output.timestamp ?? new Date().toISOString(),
         displayName: this.botDisplayNames.get(botName) || botName,

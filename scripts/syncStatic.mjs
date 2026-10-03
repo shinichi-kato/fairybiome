@@ -4,6 +4,10 @@ import path from 'path';
 
 const srcStaticDir = path.join(process.cwd(), 'static');
 const destStaticDir = path.join(process.cwd(), 'public', 'static');
+const readme = fs.readFileSync(path.join(process.cwd(), 'README.md'), 'utf8');
+const versionMatch = readme.match(/^version\s+([^\s]+)$/m);
+if (!versionMatch) throw new Error('README.md に version 行が見つかりません。');
+const versionNumber = versionMatch[1];
 
 try {
   // 1. 古い public/static を一度きれいに削除
@@ -43,7 +47,7 @@ function normalizePath(filePath) {
 }
 
 function getStaticFilesJson() {
-  const staticFiles = { bots: {}, wordTags: [] };
+  const staticFiles = { version: versionNumber, bots: {}, wordTags: [] };
 
   // スキャン対象は新しくコピーされた public/static/bots
   const botsDir = path.join(process.cwd(), 'public', 'static', 'bots');

@@ -107,7 +107,14 @@ export class OrchestratorPart extends Part {
       ...(selectedSelf?.props?.partNames ?? []),
     ])];
 
-    if (message && selectedOther && selectedSelf && selfScore > otherScore) {
+    if (
+      message &&
+      selectedOther &&
+      selectedSelf &&
+      selfScore > otherScore &&
+      typeof selectedSelf.emo === 'string' &&
+      selectedSelf.emo
+    ) {
       message.emo = selectedSelf.emo;
     }
 

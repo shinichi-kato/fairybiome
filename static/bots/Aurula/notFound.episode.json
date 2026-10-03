@@ -9,7 +9,7 @@
   ],
   "factor": {
     "amplitude": 1,
-    "precision": 0.4
+    "precision": 0.1
   },
   "columns": ["role","text","date","time","emo","facing", "location"],
   "data": [
