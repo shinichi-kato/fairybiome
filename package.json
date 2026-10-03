@@ -1,6 +1,6 @@
 {
   "name": "fairybiome",
-  "version": "0.20.0-next",
+  "version": "0.32.1",
   "private": true,
   "type": "module",
   "browserslist": [
