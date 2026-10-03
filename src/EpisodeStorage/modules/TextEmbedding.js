@@ -19,7 +19,10 @@ export class TextEmbedding {
    * @returns {object} - {key: weight, ...}
    */
   embedText(text) {
-    const tokens = this.segmentText(text);
+    const embeddingText = typeof text === 'string'
+      ? text.replace(/\{UNKNOWN_\d+\}/g, ' ')
+      : text;
+    const tokens = this.segmentText(embeddingText);
     const features = {};
 
     // 逆順で処理（複合語マッピング用）

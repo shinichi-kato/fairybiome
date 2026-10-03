@@ -273,7 +273,12 @@ export class MatrixBuilder {
     const vector = this.wordEmbedding && typeof this.wordEmbedding.getEmbedding === 'function'
       ? this.wordEmbedding.getEmbedding(value)
       : undefined;
-    return this.prefixVector(column, vector);
+    const prefixed = this.prefixVector(column, vector);
+    // role など語彙埋め込みに存在しないカテゴリ値は one-hot で表現する
+    if (Object.keys(prefixed).length === 0 && typeof value === 'string' && value !== '') {
+      return { [`${column}:${value}`]: 1 };
+    }
+    return prefixed;
   }
 
   /**

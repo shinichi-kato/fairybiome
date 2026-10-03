@@ -1,5 +1,14 @@
 Change log
 ===========
+# v0.33.0
+## Added
+* 未知語を出現順に{UNKNOWN_1}、{UNKNOWN_2}...に割り当てる
+* 未知語が未取得の場合`それ`にフォールバック
+
+## Fixed
+* パートのinnerVoiceが無限連鎖しない改善
+* role, targetが特徴量に含まれていなかった点の対処（1-hot vector化）
+
 # v0.32.1
 ## Fixed
 * episodeのemoがoutputまで伝播しない問題の対処

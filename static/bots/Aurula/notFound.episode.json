@@ -9,11 +9,22 @@
   ],
   "factor": {
     "amplitude": 1,
-    "precision": 0.1
+    "precision": 0.4,
+    "weight": {
+      "role": 0.3, "text": 0.3, "target": 0.2, "date": 0.1,
+      "time": 0.1, "emo": 0.1, "facing": 0.1, "location": 0.1
+    }
   },
-  "columns": ["role","text","date","time","emo","facing", "location"],
+  "columns": ["role","text","date","time","emo","target"],
   "data": [
-      ["user","？", null,null,"期待",null,"private"],
-      ["bot","うーん",null,null,"期待",null,"private"]
+      ["user","？", null,null,"trust","other"],
+      ["bot","うーん",null,null,"trust","other"],
+      null,
+      ["user","{UNKNOWN_1}って思った。", null,null,"neutral", "other"],
+      ["bot","{you}は{UNKNOWN_1}って思ったんだね。", null,null,"trust","other"],
+      null,
+      ["user","{UNKNOWN_1}だよ", null,null,"neutral", "other"],
+      ["bot","{UNKNOWN_1}って何？", null,null,"trust","other"],
+      null
   ]
 }

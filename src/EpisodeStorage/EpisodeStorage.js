@@ -1,5 +1,11 @@
-// * dateなどの特徴量は正しく計算が実装されているか？
-// * ハイパーパラメータの取り扱いが見つからない
+/*
+ * Unknown-word slots:
+ * - Use the same {UNKNOWN_n} marker in the saved prompt and paired reply.
+ * - Retrieval captures the input substring between the prompt's surrounding
+ *   literal text. A matching slot contributes one wildcard dimension.
+ * - Literal unknown tokens remain lexical features outside declared slots.
+ */
+
 
 import Dexie from 'dexie';
 import { TinySegmenter } from '../tinysegmenter.js';
@@ -13,6 +19,7 @@ import { DataLoader } from './modules/DataLoader.js';
 
 // 会話履歴として記憶するターン数（ユーザー発言+bot発言で1ターン）
 const DEFAULT_HISTORY_TURNS = 5;
+const ROW_FEATURE_VERSION = 3;
 
 export class EpisodeStorage {
   constructor(firestore_token) {
@@ -270,7 +277,7 @@ export class EpisodeStorage {
 
     const sourceTimestamp = this._getSourceTimestamp();
     const cached = await this._loadCache(botName, partName);
-    if (cached && this._isCacheFresh(cached.timestamp, sourceTimestamp) && Array.isArray(cached.rowFeatures)) {
+    if (cached && cached.featureVersion === ROW_FEATURE_VERSION && this._isCacheFresh(cached.timestamp, sourceTimestamp) && Array.isArray(cached.rowFeatures)) {
       this.cache = cached;
     }
 
@@ -303,7 +310,7 @@ export class EpisodeStorage {
 
     const timestamp = sourceTimestamp > 0 ? sourceTimestamp : Date.now();
     const rowFeatures = Array.from(rowVectors.entries()).map(([index, vector]) => ({ index, vector }));
-    const cacheEntry = { botName, partName, timestamp, vocab, matrix, rowFeatures, continuousMaximums };
+    const cacheEntry = { botName, partName, timestamp, featureVersion: ROW_FEATURE_VERSION, vocab, matrix, rowFeatures, continuousMaximums };
 
     await this._saveCache(cacheEntry);
     this.cache = cacheEntry;

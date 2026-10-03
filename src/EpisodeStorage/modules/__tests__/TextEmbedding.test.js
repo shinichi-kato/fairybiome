@@ -84,4 +84,15 @@ describe('TextEmbedding', () => {
       'です': 1,
     });
   });
+
+  test('embedText はスロット記号を未知語特徴として扱わない', () => {
+    const textEmbedding = new TextEmbedding(createWordEmbedding({}), {
+      segment: (text) => text.includes('を見た') ? ['を', '見た'] : [],
+    });
+
+    const result = textEmbedding.embedText('{UNKNOWN_1}を見たことがある {UNKNOWN_1}');
+
+    expect(Object.keys(result)).not.toContain('{UNKNOWN_1}');
+    expect(result).toHaveProperty('見た');
+  });
 });

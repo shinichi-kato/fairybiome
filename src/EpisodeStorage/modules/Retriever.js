@@ -48,10 +48,21 @@ export class Retriever {
     }
 
     const scored = rows
-      .map((item) => ({
-        score: this.vectorDot(messageVector, rowVectors.get(item.index) || {}),
-        rowIndex: item.index,
-      }))
+      .map((item) => {
+        const slotMatch = this.matchUnknownSlots(item.text, text);
+        if (slotMatch.hasSlots && !slotMatch.captures) {
+          return null;
+        }
+
+        const baseScore = this.vectorDot(messageVector, rowVectors.get(item.index) || {});
+        const slotCount = Object.keys(slotMatch.captures || {}).length;
+        return {
+          score: slotCount ? (baseScore + slotCount) / (1 + slotCount) : baseScore,
+          rowIndex: item.index,
+          slotCaptures: slotMatch.captures || {},
+        };
+      })
+      .filter(Boolean)
       .sort((a, b) => b.score - a.score);
 
     const precision = totalPrecision >= 0 ? totalPrecision : this.defaultPrecision;
@@ -100,6 +111,10 @@ export class Retriever {
         substitutions,
         this.wordEmbedding,
       );
+      responseRow[textIndex] = this.rewriteTextWithUnknownSlots(
+        responseRow[textIndex],
+        selected.slotCaptures,
+      );
     }
 
     return {
@@ -107,6 +122,74 @@ export class Retriever {
       row: responseRow,
       score: selected.score,
     };
+  }
+
+  matchUnknownSlots(patternText, inputText) {
+    const slotPattern = /\{UNKNOWN_(\d+)\}/g;
+    const markers = [...(typeof patternText === 'string' ? patternText : '').matchAll(slotPattern)];
+    if (!markers.length) {
+      return { hasSlots: false, captures: {} };
+    }
+
+    if (typeof inputText !== 'string') {
+      return { hasSlots: true, captures: null };
+    }
+
+    const escapeRegExp = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    let pattern = '';
+    let lastIndex = 0;
+    const captures = {};
+
+    for (let markerIndex = 0; markerIndex < markers.length; markerIndex += 1) {
+      const marker = markers[markerIndex];
+      const slotId = marker[1];
+      if (Object.prototype.hasOwnProperty.call(captures, slotId)) {
+        return { hasSlots: true, captures: null };
+      }
+
+      const literal = patternText.slice(lastIndex, marker.index);
+      const hasFollowingLiteral = markerIndex < markers.length - 1
+        ? marker.index + marker[0].length < markers[markerIndex + 1].index
+        : marker.index + marker[0].length < patternText.length;
+      if (markerIndex < markers.length - 1 && !hasFollowingLiteral) {
+        return { hasSlots: true, captures: null };
+      }
+
+      pattern += escapeRegExp(literal);
+      pattern += hasFollowingLiteral ? '([\\s\\S]+?)' : '([\\s\\S]+)';
+      lastIndex = marker.index + marker[0].length;
+      captures[slotId] = null;
+    }
+
+    pattern += escapeRegExp(patternText.slice(lastIndex));
+    const match = new RegExp(pattern).exec(inputText);
+    if (!match) {
+      return { hasSlots: true, captures: null };
+    }
+
+    markers.forEach((marker, index) => {
+      const capturedText = match[index + 1].trim();
+      if (!capturedText) {
+        captures[marker[1]] = null;
+      } else {
+        captures[marker[1]] = capturedText;
+      }
+    });
+
+    if (Object.values(captures).some((capture) => capture === null)) {
+        return { hasSlots: true, captures: null };
+    }
+
+    return { hasSlots: true, captures };
+  }
+
+  rewriteTextWithUnknownSlots(text, captures = {}) {
+    if (typeof text !== 'string') {
+      return text;
+    }
+    return text.replace(/\{UNKNOWN_(\d+)\}/g, (placeholder, slotId) => (
+      Object.prototype.hasOwnProperty.call(captures, slotId) ? captures[slotId] : 'それ'
+    ));
   }
 
   buildWordTagSubstitutionMap(text, wordEmbedding = this.wordEmbedding) {

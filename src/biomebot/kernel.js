@@ -932,15 +932,18 @@ export class ChatBiomebot {
   }
 
   _sendInput(botName, message) {
+    // turnId(=messageId)で各partのinnerVoice連鎖をターン内に閉じ込める
     const state = this.botStates.get(botName);
     const channel = this.broadcastChannels.get(botName);
     if (!state || !channel) {
       throw new Error(`${botName} is not deployed`);
     }
 
+    const turnId = message?.messageId ?? globalThis.crypto.randomUUID();
     state.isWaitingForOutput = true;
     state.inFlight = message;
-    channel.postMessage({ type: "input", message });
+    state.turnId = turnId;
+    channel.postMessage({ type: "input", turnId, message });
   }
 
   _flushInputQueue(botName) {
@@ -964,6 +967,10 @@ export class ChatBiomebot {
 
     const state = this.botStates.get(botName);
     if (!state) {
+      return;
+    }
+
+    if (state.turnId && event.turnId !== state.turnId) {
       return;
     }
 

@@ -63,12 +63,21 @@ export class OrchestratorPart extends Part {
   }
 
   integrate() {
-    const otherCandidates = this.innerVoicePool
+    // 同一part・同一テキストの重複を除く
+    const seen = new Set();
+    const pool = this.innerVoicePool.filter((message) => {
+      const key = `${(message.props?.partNames ?? []).join(',')}|${message.target}|${message.text}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+    const otherCandidates = pool
       .filter((message) => message.target === 'other')
       .sort((a, b) => (b.props?.score ?? 0) - (a.props?.score ?? 0))
       .slice(0, 3);
 
-    const selfCandidates = this.innerVoicePool
+    const selfCandidates = pool
       .filter((message) => message.target === 'self')
       .sort((a, b) => (b.props?.score ?? 0) - (a.props?.score ?? 0))
       .slice(0, 3);

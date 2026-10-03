@@ -66,13 +66,13 @@ describe('ChatBiomebot', () => {
     expect(postMessage).not.toHaveBeenCalled();
 
     worker.onmessage({ data: { type: 'initialized' } });
-    expect(postMessage).not.toHaveBeenCalledWith({ type: 'input', message: { messageId: 'first', text: 'こんにちは' } });
+    expect(postMessage).not.toHaveBeenCalledWith({ type: 'input', turnId: 'first', message: { messageId: 'first', text: 'こんにちは' } });
 
     worker.onmessage({ data: { type: 'deployed' } });
-    expect(postMessage).not.toHaveBeenCalledWith({ type: 'input', message: { messageId: 'first', text: 'こんにちは' } });
+    expect(postMessage).not.toHaveBeenCalledWith({ type: 'input', turnId: 'first', message: { messageId: 'first', text: 'こんにちは' } });
 
     worker.onmessage({ data: { type: 'activated' } });
-    expect(postMessage).toHaveBeenCalledWith({ type: 'input', message: { messageId: 'first', text: 'こんにちは' } });
+    expect(postMessage).toHaveBeenCalledWith({ type: 'input', turnId: 'first', message: { messageId: 'first', text: 'こんにちは' } });
   });
 
   it('adds display and correlation fields before delivering a Bot reply callback', async () => {
@@ -82,7 +82,7 @@ describe('ChatBiomebot', () => {
     await bot.deploy('aurula');
     await bot.input('aurula', { messageId: 'user-message-1', text: 'こんにちは' });
 
-    bot._handleBroadcast('aurula', { type: 'output', message: { text: 'やあ', emo: 'happy' } });
+    bot._handleBroadcast('aurula', { type: 'output', turnId: 'user-message-1', message: { text: 'やあ', emo: 'happy' } });
 
     expect(callback).toHaveBeenCalledWith('aurula', expect.objectContaining({
       role: 'bot', text: 'やあ', avatar: 'happy', emo: 'happy', replyTo: 'user-message-1',
@@ -111,6 +111,7 @@ describe('ChatBiomebot', () => {
 
       bot._handleBroadcast('aurula', {
         type: 'output',
+        turnId: 'user-message-1',
         message: { text: '{bot}さん、{user}さん。{you}です。' },
       });
 
@@ -132,7 +133,7 @@ describe('ChatBiomebot', () => {
     await bot.input('aurula', { messageId: 'second', text: '二つ目' });
     expect(postMessage).toHaveBeenCalledTimes(1);
 
-    bot._handleBroadcast('aurula', { type: 'output', message: { text: '返信' } });
+    bot._handleBroadcast('aurula', { type: 'output', turnId: 'first', message: { text: '返信' } });
     expect(postMessage).toHaveBeenCalledTimes(2);
   });
 });
