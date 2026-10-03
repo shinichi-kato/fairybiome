@@ -11,6 +11,7 @@
  const orchestratorPart = new OrchestratorPart();
 
  let broadcastChannel = null;
+ let currentTurnId = null;
  onmessage = async (messageEvent) => {
     const event = messageEvent.data;
     switch (event.type) {
@@ -22,10 +23,14 @@
                 const payload = channelEvent.data;
                 switch (payload.type) {
                     case 'input': {
+                        const turnId = payload.turnId ?? null;
+                        currentTurnId = turnId;
                         orchestratorPart.polling().then((output) => {
                             if (!output) return;
+                            currentTurnId = null;
                             const message = {
                                 type: 'output',
+                                turnId,
                                 botName: orchestratorPart.botName,
                                 message: output.message,
                                 props: output.props,
@@ -37,7 +42,9 @@
                         break;
                     }
                     case 'innerVoice': {
-                        orchestratorPart.receiveinnerVoice(payload.message);
+                        if (currentTurnId !== null && payload.turnId === currentTurnId) {
+                            orchestratorPart.receiveinnerVoice(payload.message);
+                        }
                         break;
                     }
                     default:

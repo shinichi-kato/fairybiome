@@ -12,6 +12,20 @@ import EpisodePart from './EpisodePart.js';
 
 const episodePart = new EpisodePart();
 let broadcastChannel = null;
+let currentTurnId = null;
+const closedTurns = [];
+const MAX_CLOSED_TURNS = 20;
+
+const getMaxHops = () => {
+  const value = episodePart.factor?.maxHops;
+  return Number.isInteger(value) && value > 0 ? value : 2;
+};
+
+const postInnerVoices = (messages, turnId, hop) => {
+  for (const message of messages) {
+    broadcastChannel.postMessage({ type: 'innerVoice', turnId, hop, message });
+  }
+};
 
 onmessage = async (messageEvent) => {
   const event = messageEvent.data ?? {};
@@ -25,20 +39,27 @@ onmessage = async (messageEvent) => {
 
         switch (payload.type) {
           case 'input': {
-            const messages = episodePart.input(payload.message);
-            for (const message of messages) {
-              broadcastChannel.postMessage({ type: 'innerVoice', message });
-            }
+            currentTurnId = payload.turnId ?? null;
+            postInnerVoices(episodePart.input(payload.message), currentTurnId, 1);
             break;
           }
           case 'innerVoice': {
-            const messages = episodePart.inputinnerVoice(payload.message);
-            for (const message of messages) {
-              broadcastChannel.postMessage({ type: 'innerVoice', message });
+            const hop = payload.hop ?? 1;
+            if (
+              payload.turnId !== currentTurnId ||
+              closedTurns.includes(payload.turnId) ||
+              hop >= getMaxHops()
+            ) {
+              break;
             }
+            postInnerVoices(episodePart.inputinnerVoice(payload.message), payload.turnId, hop + 1);
             break;
           }
           case 'output': {
+            if (payload.turnId != null) {
+              closedTurns.push(payload.turnId);
+              if (closedTurns.length > MAX_CLOSED_TURNS) closedTurns.shift();
+            }
             episodePart.getOutput(payload.message);
             break;
           }

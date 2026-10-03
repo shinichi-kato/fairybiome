@@ -37,6 +37,7 @@ describe('EpisodeStorage build cache and matrix', () => {
     expect(storage.cache.botName).toBe('botA');
     expect(storage.cache.partName).toBe('greeting');
     expect(storage.cache.timestamp).toBe(123456);
+    expect(storage.cache.featureVersion).toBe(3);
     expect(Array.isArray(storage.cache.vocab)).toBe(true);
     expect(Array.isArray(storage.cache.matrix)).toBe(true);
     expect(storage.cache.matrix.length).toBe(storage.cache.vocab.length);
@@ -71,6 +72,34 @@ describe('EpisodeStorage build cache and matrix', () => {
     expect(storage2.cache.matrix).toEqual(storage1.cache.matrix);
   });
 
+  it('rebuilds row features from caches with an older feature version', async () => {
+    const storage = new EpisodeStorage('botA');
+    storage.staticSource = {
+      title: '挨拶',
+      author: 'skato',
+      tags: [],
+      factor: { amplitude: 1, precision: 0.1 },
+      timestamp: 123456,
+      columns: ['role', 'text'],
+      data: [
+        ['user', 'こんにちは'],
+        ['bot', 'はい'],
+      ],
+    };
+    await storage._saveCache({
+      botName: 'botA',
+      partName: 'greeting',
+      timestamp: 123456,
+      featureVersion: 1,
+      rowFeatures: [{ index: 0, vector: { stale: 1 } }],
+    });
+
+    await storage.build('botA', 'greeting');
+
+    expect(storage.cache.featureVersion).toBe(3);
+    expect(storage.rowFeatureVectors.get(0)).not.toHaveProperty('stale');
+  });
+
   it('exposes the modular pipeline used during build and retrieve', async () => {
     const storage = new EpisodeStorage('botA');
     storage.staticSource = {
@@ -100,6 +129,57 @@ describe('EpisodeStorage build cache and matrix', () => {
       row: ['user', '今日はどう？', '10/12', '12:24', '', 'face', 'private'],
       score: expect.any(Number),
     });
+  });
+
+  it('retrieves a slot prompt and reflects its captured unknown word in the response', async () => {
+    const storage = new EpisodeStorage('botA');
+    storage.staticSource = {
+      title: '未知語スロット',
+      author: 'skato',
+      tags: [],
+      factor: {
+        amplitude: 1,
+        precision: 0.1,
+        weight: { role: 0, text: 1 },
+      },
+      timestamp: 123456,
+      columns: ['role', 'text'],
+      data: [
+        ['user', '{UNKNOWN_1}を見たことがある'],
+        ['bot', '{UNKNOWN_1}なんだね'],
+      ],
+    };
+
+    await storage.build('botA', 'unknown-slot');
+    const response = storage.retrieve({ text: '貂を見たことがある' });
+
+    expect(response.row[1]).toBe('貂なんだね');
+    expect(response.score).toBeGreaterThan(0.1);
+  });
+
+  it('restores a leading unknown slot before Japanese quotative text', async () => {
+    const storage = new EpisodeStorage('botA');
+    storage.staticSource = {
+      title: '未知語スロット',
+      author: 'skato',
+      tags: [],
+      factor: {
+        amplitude: 1,
+        precision: 0.1,
+        weight: { role: 0, text: 1 },
+      },
+      timestamp: 123456,
+      columns: ['role', 'text'],
+      data: [
+        ['user', '{UNKNOWN_1}って思った。'],
+        ['bot', '{UNKNOWN_1}って思ったんだね。'],
+      ],
+    };
+
+    await storage.build('botA', 'unknown-slot-quotative');
+    const response = storage.retrieve({ text: '異世界系って思った。' });
+
+    expect(response.row[1]).toBe('異世界系って思ったんだね。');
   });
 
   it('throws a proper Error when botName or partName is missing', async () => {

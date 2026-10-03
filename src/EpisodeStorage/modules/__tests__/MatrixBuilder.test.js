@@ -107,8 +107,8 @@ describe('MatrixBuilder', () => {
     const firstVector = rowVectors.get(0);
     const secondVector = rowVectors.get(1);
 
-    // role の重み0は寄与しないが、text/target/date/attentionキーは含まれる
-    expect(Object.keys(firstVector).some((key) => key.startsWith('role:'))).toBe(false);
+    // role は語彙埋め込みが無くても one-hot で含まれる(重み0なので値は0)
+    expect(Object.keys(firstVector).some((key) => key.startsWith('role:'))).toBe(true);
     expect(Object.keys(firstVector).some((key) => key.startsWith('text:'))).toBe(true);
     expect(Object.keys(firstVector).some((key) => key.startsWith('target:'))).toBe(true);
     expect(Object.keys(firstVector).some((key) => key.startsWith('date:'))).toBe(true);
