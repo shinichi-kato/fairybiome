@@ -356,19 +356,43 @@ export class EpisodeStorage {
       // console.log(`${this.partName} score=${result.score} text=${text} `);
       console.log(`${this.partName} score=${result.score} result=${JSON.stringify(result)}`);
 
+      const roleIndex = this._getColumns().indexOf('role');
+      const rowRole = roleIndex >= 0 && result.row[roleIndex] === 'user' ? 'user' : 'bot';
       this._pushHistory({
-        role: 'bot',
+        role: rowRole,
         text: text,
         timestamp: new Date().toISOString(),
       });
 
       return {
         row: result.row,
+        index: result.index,
+        slotCaptures: result.slotCaptures,
         score: result.score * amplitude,
       };
     }
 
     return result;
+  }
+
+  // user行を想起した候補が採用されたとき、次のbot行を返す
+  resolveCandidate({ index, slotCaptures = {}, inputText = '' } = {}) {
+    const textIndex = this._getTextIndex();
+    const resolved = this.retriever.resolveBotRow({
+      rowIndex: index,
+      dataRows: this.dataRows,
+      roleIndex: this._getColumns().indexOf('role'),
+      textIndex,
+      inputText,
+      slotCaptures,
+    });
+    if (!resolved) {
+      return null;
+    }
+
+    const text = typeof resolved.row[textIndex] === 'string' ? resolved.row[textIndex] : '';
+    this._pushHistory({ role: 'bot', text, timestamp: new Date().toISOString() });
+    return resolved;
   }
 
   _getColumns() {

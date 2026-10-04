@@ -12,6 +12,8 @@
 
  let broadcastChannel = null;
  let currentTurnId = null;
+ const RESOLVE_TIMEOUT_MSEC = 1000;
+ const pendingCandidates = new Map();
  onmessage = async (messageEvent) => {
     const event = messageEvent.data;
     switch (event.type) {
@@ -29,7 +31,7 @@
                             if (!output) return;
                             currentTurnId = null;
                             const message = {
-                                type: 'output',
+                                type: output.type ?? 'output',
                                 turnId,
                                 botName: orchestratorPart.botName,
                                 message: output.message,
@@ -38,7 +40,26 @@
                             if (broadcastChannel) {
                                 broadcastChannel.postMessage(message);
                             }
+                            if (message.type === 'outputCandidate') {
+                                // 担当partが解決できない場合にターンが止まらないようにする
+                                const timeout = orchestratorPart.factor?.resolveTimeout_msec ?? RESOLVE_TIMEOUT_MSEC;
+                                pendingCandidates.set(turnId, setTimeout(() => {
+                                    pendingCandidates.delete(turnId);
+                                    broadcastChannel?.postMessage({
+                                        type: 'output',
+                                        turnId,
+                                        botName: orchestratorPart.botName,
+                                        message: null,
+                                        props: { partNames: [] },
+                                    });
+                                }, timeout));
+                            }
                         });
+                        break;
+                    }
+                    case 'output': {
+                        clearTimeout(pendingCandidates.get(payload.turnId));
+                        pendingCandidates.delete(payload.turnId);
                         break;
                     }
                     case 'innerVoice': {

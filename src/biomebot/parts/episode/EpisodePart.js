@@ -66,10 +66,12 @@ export class EpisodePart extends Part {
     }
 
     const emoIndex = this.columns.indexOf("emo");
+    const roleIndex = this.columns.indexOf("role");
+    const rowRole = roleIndex >= 0 && row[roleIndex] === "user" ? "user" : "bot";
 
     return [
       new Message({
-        role: "bot",
+        role: rowRole,
         text: row[1] ?? "",
         target: "other",
         timestamp: new Date().toISOString(),
@@ -83,9 +85,45 @@ export class EpisodePart extends Part {
           botName: this.botName,
           partNames: [this.partName],
           score: typeof result.score === "number" ? result.score : 0,
+          episode: {
+            partName: this.partName,
+            rowIndex: result.index ?? null,
+            role: rowRole,
+            slotCaptures: result.slotCaptures ?? {},
+            inputText: typeof message?.text === "string" ? message.text : "",
+          },
         },
       }),
     ];
+  }
+
+  // outputCandidateとして採用されたuser行の想起から、次のbot行のMessageを作る
+  resolveCandidate(candidate) {
+    const episode = candidate?.props?.episode;
+    if (!episode || episode.partName !== this.partName || typeof episode.rowIndex !== "number") {
+      return null;
+    }
+
+    const resolved = this.engine.resolveCandidate({
+      index: episode.rowIndex,
+      slotCaptures: episode.slotCaptures,
+      inputText: episode.inputText,
+    });
+    if (!resolved) {
+      return null;
+    }
+
+    const emoIndex = this.columns.indexOf("emo");
+    return new Message({
+      ...candidate,
+      role: "bot",
+      text: resolved.row[1] ?? "",
+      emo: emoIndex >= 0 ? resolved.row[emoIndex] : candidate.emo,
+      props: {
+        ...candidate.props,
+        episode: { ...episode, rowIndex: resolved.index, role: "bot" },
+      },
+    });
   }
 
   inputinnerVoice(message) {

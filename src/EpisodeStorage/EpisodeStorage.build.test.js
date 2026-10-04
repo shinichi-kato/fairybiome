@@ -126,7 +126,9 @@ describe('EpisodeStorage build cache and matrix', () => {
 
     const response = storage.retrieve({ text: 'こんにちは' });
     expect(response).toEqual({
-      row: ['bot', '元気です', '10/12', '12:25', 'happy', 'face', 'private'],
+      row: ['user', '今日はどう？', '10/12', '12:24', '', 'face', 'private'],
+      index: 1,
+      slotCaptures: {},
       score: expect.any(Number),
     });
   });
@@ -237,8 +239,15 @@ describe('EpisodeStorage build cache and matrix', () => {
     const response = storage.retrieve({ text: 'こんにちは' });
 
     expect(response).toEqual({
-      row: ['bot', '元気です', '10/12', '12:25', 'happy', 'face', 'private'],
+      row: ['user', '今日はどう？', '10/12', '12:24', '', 'face', 'private'],
+      index: 1,
+      slotCaptures: {},
       score: expect.any(Number),
+    });
+
+    expect(storage.resolveCandidate({ index: 1, inputText: 'こんにちは' })).toEqual({
+      row: ['bot', '元気です', '10/12', '12:25', 'happy', 'face', 'private'],
+      index: 2,
     });
   });
 

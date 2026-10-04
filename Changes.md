@@ -1,5 +1,10 @@
 Change log
 ===========
+# v0.34.1
+## Fixed
+* innerVoiceではuser/bot発言を許可、output前に発言候補がuser行ならbot
+  行を探すよう修正
+
 # v0.34.0
 ## Added
 * role違いの返答を抑制するためroleにpenaltyを設定

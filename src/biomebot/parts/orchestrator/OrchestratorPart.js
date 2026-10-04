@@ -136,10 +136,12 @@ export class OrchestratorPart extends Part {
     }
 
 
+    // user行の想起は発話できないため、担当partがbot行へ解決する(outputCandidate)
+    const needsResolve = message?.props?.episode?.role === 'user';
+
     return {
-      type: 'output',
+      type: needsResolve ? 'outputCandidate' : 'output',
       message,
-      
       props: {
         partNames: allPartNames,
       },
