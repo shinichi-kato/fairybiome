@@ -50,6 +50,7 @@ export class EpisodePart extends Part {
     if (!this.engine || typeof this.engine.retrieve !== "function") {
       return { status: "error", message: "engine not ready" };
     }
+    
     return this.engine.retrieve(message);
   }
 

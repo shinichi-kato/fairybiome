@@ -20,13 +20,14 @@
     }
   ],
   "factor": {
-    "amplitude": 0.6,
+    "amplitude": 1,
     "precision": 0.4,
     "reactivity": 0.7,
     "weight": {
-      "role": 0.5, "text": 0.3, "target": 0.2, "date": 0.1,
-      "time": 0.1, "emo": 0.1, "facing": 0.1, "location": 0.1
-    }
+      "role": 0.1, "text": 0.3, "target": 0.2, "date": 0.1,
+      "time": 0.3, "emo": 0.1, "facing": 0.1, "location": 0.1
+    },
+    "penalty": {"role": -5.0}
   },
   "columns": ["role", "text", "date", "time", "emo", "target", "facing", "location"],
   "data": [
@@ -58,7 +59,7 @@
     ["bot", "こんちは！今日は何してるの？", null, "11:30", "joy", "other", "face", "public"],
     ["user", "仕事してるよ。{you}は？", null, "11:31", "trust", "other", "face", "public"],
     ["bot", "私はお昼ご飯食べてるよ。{you}もお昼ご飯食べた？", null, "11:31", "joy", "other", "face", "public"],
-    ["user", "まだだよー。お腹空いたよ。{you}は何食べたの？", null, "11:32", "sad", "other", "face", "public"],
+    ["user", "まだだよー。お腹空いたよ。{you}は何食べたの？", null, "11:32", "sadness", "other", "face", "public"],
     ["bot", "私はサンドイッチ食べたよ。{you}は何食べたい？", null, "11:32", "joy", "other", "face", "public"],
     ["user", "うーん、おべんとう持ってきてるんだ。", null, "11:33", "joy", "other","face","public"],
     ["bot", "いいなー", null, "11:33", "surprise", "other", "face", "public"],
@@ -67,11 +68,11 @@
     ["bot", "今日は。今起きたとこだよ", null, "11:30", "joy", "other", "face", "public"],
     ["user", "昨日遅かったの？", null, "11:31", "neutral", "other", "face", "public"],
     ["bot", "うーん。遊びすぎたかなー", null, "11:31", "joy", "other", "face", "public"],
-    ["user", "{you}はどんな遊びしてたの？", null, "11:32", "sad", "other", "face", "public"],
+    ["user", "{you}はどんな遊びしてたの？", null, "11:32", "sadness", "other", "face", "public"],
     null,
     ["user", "こんにちは", null, "12:23", "joy", "other","face", "public"],
     ["bot", "こんにちは！お昼ご飯食べた？",null, "12:23", "joy", "other", "face", "public"],
-    ["user", "まだだよー。お腹空いたよ", null, "12:24", "sad", "other", "face", "public"],
+    ["user", "まだだよー。お腹空いたよ", null, "12:24", "sadness", "other", "face", "public"],
     ["bot", "そうなんだ。{you}は何食べたい？", null, "12:24", "trust", "other", "face", "public"],
     ["user", "うーん、ラーメンかな。", null, "12:25", "joy", "other", "face", "public"],
     ["bot", "ラーメンいいね！私も食べたいな〜。", null, "12:25", "joy", "other", "face", "public"],
@@ -88,7 +89,7 @@
     ["bot", "今日はどうだった？", null, "18:01", "joy","other","face","public"],
     ["user", "学校で友達とけんかしちゃった", null, "18:01", "sadness","other","face","public"],
     ["bot", "え・・・そうだったの。大丈夫？", null, "18:02", "fear","other","face","public"],
-    ["user", "{I}は大丈夫。", null, "18:02", "sad","other","face","public"],
+    ["user", "{I}は大丈夫。", null, "18:02", "sadness","other","face","public"],
     null,
     ["user", "こんばんは", null, "20:00", "joy", "other", "face", "public"],
     ["bot", "こんばんは！今日はどんな一日だった？", null, "20:00", "joy", "other", "face", "public"],
@@ -138,10 +139,31 @@
     ["bot", "そうだね。雪を見ると冬を感じるよね。", "1/1", null, "joy", "other", "face", "public"],
     ["user", "うん、雪の中で雪だるま作りたいな。{you}は？", "1/1", null, "joy", "other", "face", "public"],
     ["bot", "私も雪だるま作りたいな！雪の中で遊ぶの楽しそうだね。", "1/1", null, "joy", "other", "face", "public"],
-    null,
+    "# 時間と食い違う挨拶",
     ["user", "こんにちは！", null, "23:00", "trust", "other", "face", "public"],
     ["bot", "こんばんは！だね！{you}は今日どうだった？", null, "23:00", "joy", "other", "face", "public"],
     ["user", "まあまあかな。{you}は？", null, "23:01", "trust", "other", "face", "public"],
-    ["bot", "私は元気。", null, "23:01", "joy","other","face","public"]
+    ["bot", "私は元気。", null, "23:01", "joy","other","face","public"],
+    null,
+    ["user", "こんばんは",null, "13:00", "joy", "other", "face", "public"],
+    ["bot", "ていうか、今お昼だよ？", null, "13:00", "joy", "other", "face", "public"],
+    ["user", "あ、そうか。{you}は今何してるの？", null, "13:01", "trust", "other", "face", "public"],
+    ["bot", "私はお昼ご飯食べてるよ。{you}は何食べた？", null, "13:01", "joy","other","face","public"],
+    ["user", "まだだよー。お腹空いたよ。{you}は何食べたの？", null, "13:02", "sadness","other","face","public"],
+    ["bot", "私はサンドイッチ食べたよ。{you}は何食べたい？", null, "13:02", "joy","other","face","public"],
+    null,
+    ["user", "こんばんは", null, "07:00", "joy", "other", "face", "public"],
+    ["bot", "おはよう〜！って、今何時？", null, "07:00", "joy", "other", "face", "public"],
+    ["user", "うん！今日は遊びに行こうと思って！", null, "07:01", "joy", "other", "face", "public"],
+    ["bot", "じゃあもうちょっと寝ようかな・・・", null, "07:01", "trust","other","face","public"],
+    null,
+    ["user", "おはよう！", null, "23:00", "joy", "other", "face", "public"],
+    ["bot", "こんばんは！だね！{you}は今日どうだった？", null, "23:00", "joy", "other", "face", "public"],
+    ["user", "まあまあかな。{you}は？", null, "23:01", "trust", "other", "face", "public"],
+    ["bot", "私は元気。", null, "23:01", "joy","other","face","public"],
+    null,
+    ["user", "こんばんは",null, "13:00", "joy", "other", "face", "public"],
+    ["bot", "ていうか、今お昼だよ？", null, "13:00", "joy", "other", "face", "public"],
+    ["user", "あ、そうか。{you}は今何してるの？", null, "13:01", "trust", "other", "face", "public"]
   ]
 }

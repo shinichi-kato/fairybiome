@@ -1,5 +1,9 @@
 Change log
 ===========
+# v0.34
+## Added
+* role違いの返答を抑制するためroleにpenaltyを設定
+
 # v0.33.0
 ## Added
 * 未知語を出現順に{UNKNOWN_1}、{UNKNOWN_2}...に割り当てる

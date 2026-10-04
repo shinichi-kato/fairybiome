@@ -13,7 +13,13 @@
   ],
   "factor": {
     "amplitude": 1,
-    "precision": 0.4
+    "precision": 0.4,
+    "reactivity": 0.7,
+    "weight": {
+      "role": 0.3, "text": 0.3, "target": 0.2, "date": 0.1,
+      "time": 0.1, "emo": 0.1, "facing": 0.1, "location": 0.1
+    },
+    "penalty": {"role": -2.0}
   },
   "columns": ["role","text","date","time","emo","location"],
   "data": [

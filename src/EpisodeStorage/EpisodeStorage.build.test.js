@@ -131,6 +131,35 @@ describe('EpisodeStorage build cache and matrix', () => {
     });
   });
 
+  it('applies factor.penalty.role to a candidate whose role differs from the message role', async () => {
+    const storage = new EpisodeStorage('botA');
+    storage.staticSource = {
+      title: 'role penalty',
+      author: 'skato',
+      tags: [],
+      factor: {
+        amplitude: 1,
+        precision: 0.2,
+        weight: { role: 1 },
+        penalty: { role: -0.4 },
+      },
+      timestamp: 123456,
+      columns: ['role', 'text'],
+      data: [
+        ['bot', 'hello'],
+        ['user', 'response'],
+      ],
+    };
+
+    await storage.build('botA', 'role-penalty');
+    storage.rowFeatureVectors = new Map([[0, { 'role:bot': 1 }]]);
+    storage._buildMessageVector = () => ({ 'role:user': 1 });
+
+    const response = storage.retrieve({ role: 'user', text: 'hello' });
+
+    expect(response).toBeNull();
+  });
+
   it('retrieves a slot prompt and reflects its captured unknown word in the response', async () => {
     const storage = new EpisodeStorage('botA');
     storage.staticSource = {

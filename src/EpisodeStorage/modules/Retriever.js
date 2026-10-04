@@ -5,6 +5,10 @@
  * - messageVector(x) と rowVectors のスコア化（x は呼び出し側で事前計算）
  * - precision threshold で候補選出
  * - next row の取得
+ 
+ 計算事項
+ * roleが異なっていた場合scoreにfactor.penalty.roleを加算
+ 
  */
 
 export class Retriever {
@@ -17,11 +21,15 @@ export class Retriever {
 
   retrieve({
     message,
+    messageRole = null,
     messageVector = null,
     rowVectors = new Map(),
     dataRows = [],
     totalPrecision = 0,
     textIndex = 1,
+    roleIndex = -1,
+    rolePenalty = null,
+    roleWeight = 1,
     verbose = false,
   } = {}) {
     // messageVector(x)は呼び出し側(EpisodeStorage)で履歴Attention込みに事前計算される
@@ -47,6 +55,12 @@ export class Retriever {
       };
     }
 
+    const knownRoles = new Set(
+      rows
+        .map((item) => roleIndex >= 0 ? item.row[roleIndex] : null)
+        .filter((role) => typeof role === 'string' && role.length > 0),
+    );
+
     const scored = rows
       .map((item) => {
         const slotMatch = this.matchUnknownSlots(item.text, text);
@@ -56,8 +70,22 @@ export class Retriever {
 
         const baseScore = this.vectorDot(messageVector, rowVectors.get(item.index) || {});
         const slotCount = Object.keys(slotMatch.captures || {}).length;
+        const slotAdjustedScore = slotCount ? (baseScore + slotCount) / (1 + slotCount) : baseScore;
+        const rowRole = roleIndex >= 0 ? item.row[roleIndex] : null;
+        const hasComparableRoles =
+          typeof messageRole === 'string' && messageRole.length > 0 &&
+          typeof rowRole === 'string' && rowRole.length > 0 &&
+          knownRoles.has(messageRole) && knownRoles.has(rowRole) &&
+          roleWeight !== 0;
+        const roleScore = hasComparableRoles
+          ? this.vectorDot(
+              this.filterVectorByPrefix(messageVector, 'role:'),
+              this.filterVectorByPrefix(rowVectors.get(item.index) || {}, 'role:'),
+            )
+          : null;
+        const penalty = typeof rolePenalty === 'number' && Number.isFinite(rolePenalty) ? rolePenalty : 0;
         return {
-          score: slotCount ? (baseScore + slotCount) / (1 + slotCount) : baseScore,
+          score: slotAdjustedScore + (hasComparableRoles && roleScore === 0 ? penalty : 0),
           rowIndex: item.index,
           slotCaptures: slotMatch.captures || {},
         };
@@ -311,6 +339,15 @@ export class Retriever {
     });
 
     return sum;
+  }
+
+  filterVectorByPrefix(vector, prefix) {
+    if (!vector || typeof vector !== 'object' || Array.isArray(vector)) {
+      return {};
+    }
+    return Object.fromEntries(
+      Object.entries(vector).filter(([key]) => key.startsWith(prefix)),
+    );
   }
 
   getTextIndex({ staticSource = null, firestoreSource = null } = {}) {
