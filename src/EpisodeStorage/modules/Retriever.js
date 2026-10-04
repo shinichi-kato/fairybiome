@@ -90,7 +90,16 @@ export class Retriever {
 
     const precision = totalPrecision >= 0 ? totalPrecision : this.defaultPrecision;
     const candidates = scored.filter((candidate) => {
-      return candidate.score > precision && this.hasNextDataRow(candidate.rowIndex, dataRows, roleIndex);
+      if (candidate.score <= precision) {
+        return false;
+      }
+      const next = this.findNextDataItem(candidate.rowIndex, dataRows);
+      if (!next) {
+        return false;
+      }
+      // user行は想起のみ。採用後にbot行へ解決できる候補だけ残す
+      return roleIndex < 0 || next.row[roleIndex] !== 'user'
+        || this.findNextBotRow(next.index, dataRows, roleIndex) !== null;
     });
 
     if (!candidates.length) {
@@ -113,7 +122,8 @@ export class Retriever {
     const topCandidates = candidates.slice(0, topCount);
     const selected = topCandidates[Math.floor(Math.random() * topCandidates.length)];
     const matchedRowIndex = selected.rowIndex;
-    const nextRow = this.getNextDataRow(matchedRowIndex, dataRows, roleIndex);
+    const nextItem = this.findNextDataItem(matchedRowIndex, dataRows);
+    const nextRow = nextItem ? nextItem.row : null;
 
     if (!nextRow) {
       if (verbose) {
@@ -125,26 +135,37 @@ export class Retriever {
       return null;
     }
 
-    const responseRow = Array.isArray(nextRow) ? [...nextRow] : nextRow;
-    const substitutions = this.buildWordTagSubstitutionMap(text, this.wordEmbedding);
+    return {
+      status: "ok",
+      row: this.rewriteRow(nextRow, text, textIndex, selected.slotCaptures),
+      index: nextItem.index,
+      matchedRowIndex,
+      slotCaptures: selected.slotCaptures,
+      score: selected.score,
+    };
+  }
 
+  rewriteRow(row, inputText, textIndex, slotCaptures = {}) {
+    const responseRow = Array.isArray(row) ? [...row] : row;
     if (textIndex >= 0 && Array.isArray(responseRow) && typeof responseRow[textIndex] === "string") {
+      const substitutions = this.buildWordTagSubstitutionMap(inputText, this.wordEmbedding);
       responseRow[textIndex] = this.rewriteTextWithMatchedTags(
         responseRow[textIndex],
         substitutions,
         this.wordEmbedding,
       );
-      responseRow[textIndex] = this.rewriteTextWithUnknownSlots(
-        responseRow[textIndex],
-        selected.slotCaptures,
-      );
+      responseRow[textIndex] = this.rewriteTextWithUnknownSlots(responseRow[textIndex], slotCaptures);
     }
+    return responseRow;
+  }
 
-    return {
-      status: "ok",
-      row: responseRow,
-      score: selected.score,
-    };
+  // user行の想起が採用された後に、次のbot行を探して返す
+  resolveBotRow({ rowIndex, dataRows = [], roleIndex = -1, textIndex = 1, inputText = "", slotCaptures = {} } = {}) {
+    const item = this.findNextBotRow(rowIndex, dataRows, roleIndex);
+    if (!item) {
+      return null;
+    }
+    return { row: this.rewriteRow(item.row, inputText, textIndex, slotCaptures), index: item.index };
   }
 
   matchUnknownSlots(patternText, inputText) {
@@ -373,12 +394,15 @@ export class Retriever {
     return this.defaultPrecision;
   }
 
-  hasNextDataRow(rowIndex, dataRows = [], roleIndex = -1) {
-    return this.getNextDataRow(rowIndex, dataRows, roleIndex) !== null;
+  hasNextDataRow(rowIndex, dataRows = []) {
+    return this.findNextDataItem(rowIndex, dataRows) !== null;
   }
 
-  // roleIndex>=0 のとき role が 'user' の行は飛ばし、bot 行に行き着くまで探す
-  getNextDataRow(rowIndex, dataRows = [], roleIndex = -1) {
+  getNextDataRow(rowIndex, dataRows = []) {
+    return this.findNextDataItem(rowIndex, dataRows)?.row ?? null;
+  }
+
+  findNextDataItem(rowIndex, dataRows = []) {
     if (typeof rowIndex !== "number" || !Array.isArray(dataRows)) {
       return null;
     }
@@ -386,10 +410,26 @@ export class Retriever {
     for (let nextIndex = rowIndex + 1; nextIndex < dataRows.length; nextIndex += 1) {
       const row = dataRows[nextIndex];
       if (row && !row.separator && Array.isArray(row.row)) {
-        if (roleIndex >= 0 && row.row[roleIndex] === 'user') {
-          continue;
-        }
-        return row.row;
+        return { index: nextIndex, row: row.row };
+      }
+    }
+
+    return null;
+  }
+
+  // セパレータ(話題の区切り)を跨がず、roleが'bot'の最初の行を探す
+  findNextBotRow(rowIndex, dataRows = [], roleIndex = -1) {
+    if (typeof rowIndex !== "number" || !Array.isArray(dataRows) || roleIndex < 0) {
+      return null;
+    }
+
+    for (let nextIndex = rowIndex + 1; nextIndex < dataRows.length; nextIndex += 1) {
+      const row = dataRows[nextIndex];
+      if (!row || row.separator) {
+        break;
+      }
+      if (Array.isArray(row.row) && row.row[roleIndex] === 'bot') {
+        return { index: nextIndex, row: row.row };
       }
     }
 

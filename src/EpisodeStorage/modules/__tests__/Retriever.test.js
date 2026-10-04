@@ -40,6 +40,21 @@ describe('Retriever', () => {
     expect(retriever.hasNextDataRow(1, dataRows)).toBe(false);
   });
 
+  test('findNextBotRow はuser行を飛ばしセパレータを跨がずbot行を探す', () => {
+    const retriever = new Retriever();
+    const dataRows = [
+      { separator: false, row: ['bot', 'a'] },
+      { separator: false, row: ['user', 'b'] },
+      { separator: false, row: ['user', 'c'] },
+      { separator: false, row: ['bot', 'd'] },
+      { separator: true },
+      { separator: false, row: ['bot', 'e'] },
+    ];
+
+    expect(retriever.findNextBotRow(1, dataRows, 0)).toEqual({ index: 3, row: ['bot', 'd'] });
+    expect(retriever.findNextBotRow(3, dataRows, 0)).toBeNull();
+  });
+
   test('retrieve は候補を score と row で返す', () => {
     const retriever = new Retriever();
     const rowVectors = new Map([

@@ -55,6 +55,22 @@ onmessage = async (messageEvent) => {
             postInnerVoices(episodePart.inputinnerVoice(payload.message), payload.turnId, hop + 1);
             break;
           }
+          case 'outputCandidate': {
+            if (payload.turnId != null) {
+              closedTurns.push(payload.turnId);
+              if (closedTurns.length > MAX_CLOSED_TURNS) closedTurns.shift();
+            }
+            if (payload.message?.props?.episode?.partName === episodePart.partName) {
+              broadcastChannel.postMessage({
+                type: 'output',
+                turnId: payload.turnId,
+                botName: payload.botName,
+                message: episodePart.resolveCandidate(payload.message),
+                props: payload.props,
+              });
+            }
+            break;
+          }
           case 'output': {
             if (payload.turnId != null) {
               closedTurns.push(payload.turnId);
