@@ -331,11 +331,15 @@ export class EpisodeStorage {
 
     const result = this.retriever.retrieve({
       message: text,
+      messageRole: typeof message === 'object' && message !== null ? message.role : null,
       messageVector,
       rowVectors: this.rowFeatureVectors,
       dataRows: this.dataRows,
       totalPrecision: this._getPrecisionThreshold(),
       textIndex: this._getTextIndex(),
+      roleIndex: this._getColumns().indexOf('role'),
+      rolePenalty: this.factor?.penalty?.role,
+      roleWeight: this.factor?.weight?.role,
       verbose,
     });
 
@@ -346,12 +350,14 @@ export class EpisodeStorage {
 
     if (result && result.status === 'ok') {
       const amplitude = typeof this.factor?.amplitude === 'number' ? this.factor.amplitude : 1;
-      console.log(`${this.partName} score=${result.score} amp=${amplitude}`);
-
+      
       const textIndex = this._getTextIndex();
+      const text = Array.isArray(result.row) && typeof result.row[textIndex] === 'string' ? result.row[textIndex] : '';
+      console.log(`${this.partName} score=${result.score} text=${text} `);
+
       this._pushHistory({
         role: 'bot',
-        text: Array.isArray(result.row) && typeof result.row[textIndex] === 'string' ? result.row[textIndex] : '',
+        text: text,
         timestamp: new Date().toISOString(),
       });
 

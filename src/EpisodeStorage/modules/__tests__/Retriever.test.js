@@ -66,6 +66,104 @@ describe('Retriever', () => {
     expect(Array.isArray(result.row)).toBe(true);
   });
 
+  test('retrieve は既知のroleが不一致ならrole penaltyを閾値判定前に適用する', () => {
+    const retriever = new Retriever();
+    const dataRows = [
+      { separator: false, row: ['bot', 'hello'], text: 'hello', index: 0 },
+      { separator: false, row: ['user', 'reply'], text: 'reply', index: 1 },
+    ];
+
+    const result = retriever.retrieve({
+      message: 'hello',
+      messageRole: 'user',
+      messageVector: { 'role:user': 0.6, 'text:hello': 0.8 },
+      rowVectors: new Map([[0, { 'role:bot': 0.6, 'text:hello': 0.8 }]]),
+      dataRows,
+      totalPrecision: 0.5,
+      roleIndex: 0,
+      rolePenalty: -0.4,
+      verbose: true,
+    });
+
+    expect(result.status).toBe('low score');
+    expect(result.message).toMatch(/^score: 0\.24\d*, rowIndex: 0/);
+  });
+
+  test('retrieve は一致、欠落、未知のroleにはrole penaltyを適用しない', () => {
+    const retriever = new Retriever();
+    const dataRows = [
+      { separator: false, row: ['user', 'hello'], text: 'hello', index: 0 },
+      { separator: false, row: ['bot', 'reply'], text: 'reply', index: 1 },
+    ];
+    const common = {
+      message: 'hello',
+      messageVector: { 'role:user': 0.6, 'text:hello': 0.8 },
+      rowVectors: new Map([[0, { 'role:user': 0.6, 'text:hello': 0.8 }]]),
+      dataRows,
+      totalPrecision: 0.5,
+      roleIndex: 0,
+      rolePenalty: -0.4,
+    };
+
+    const matchingRole = retriever.retrieve({ ...common, messageRole: 'user' });
+    const missingRole = retriever.retrieve({ ...common, messageRole: null });
+    const unknownRole = retriever.retrieve({
+      ...common,
+      messageRole: 'visitor',
+      messageVector: { 'role:visitor': 0.6, 'text:hello': 0.8 },
+    });
+
+    expect(matchingRole.score).toBe(1);
+    expect(missingRole.score).toBe(1);
+    expect(unknownRole.score).toBeCloseTo(0.64);
+  });
+
+  test('retrieve はrole weightが0またはpenalty未設定なら減点しない', () => {
+    const retriever = new Retriever();
+    const dataRows = [
+      { separator: false, row: ['bot', 'hello'], text: 'hello', index: 0 },
+      { separator: false, row: ['user', 'reply'], text: 'reply', index: 1 },
+    ];
+    const common = {
+      message: 'hello',
+      messageRole: 'user',
+      messageVector: { 'role:user': 0.6, 'text:hello': 0.8 },
+      rowVectors: new Map([[0, { 'role:bot': 0.6, 'text:hello': 0.8 }]]),
+      dataRows,
+      totalPrecision: 0.5,
+      roleIndex: 0,
+    };
+
+    const noPenalty = retriever.retrieve(common);
+    const disabledRole = retriever.retrieve({ ...common, rolePenalty: -0.4, roleWeight: 0 });
+
+    expect(noPenalty.score).toBeCloseTo(0.64);
+    expect(disabledRole.score).toBeCloseTo(0.64);
+  });
+
+  test('retrieve はslot調整後にrole penaltyを適用する', () => {
+    const retriever = new Retriever();
+    const dataRows = [
+      { separator: false, row: ['bot', '{UNKNOWN_1}'], text: '{UNKNOWN_1}', index: 0 },
+      { separator: false, row: ['user', 'reply'], text: 'reply', index: 1 },
+    ];
+
+    const result = retriever.retrieve({
+      message: 'hello',
+      messageRole: 'user',
+      messageVector: { 'role:user': 0.6, 'text:hello': 0.8 },
+      rowVectors: new Map([[0, { 'role:bot': 0.6, 'text:hello': 0.8 }]]),
+      dataRows,
+      totalPrecision: 0.7,
+      roleIndex: 0,
+      rolePenalty: -0.2,
+      verbose: true,
+    });
+
+    expect(result.status).toBe('low score');
+    expect(result.message).toMatch(/^score: 0\.62\d*, rowIndex: 0/);
+  });
+
   test('retrieve はスロットに未知語を捕捉して返信の明示 placeholder を置換する', () => {
     const tokens = ['貂', '犬', 'を', '見た', 'こと', 'が', 'ある'];
     const textEmbedding = {

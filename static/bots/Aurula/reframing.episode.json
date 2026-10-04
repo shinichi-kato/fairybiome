@@ -8,13 +8,14 @@
     }
   ],
   "factor": {
-    "amplitude": 0.8,
+    "amplitude": 1.0,
     "precision": 0.3,
     "reactivity": 0.7,
     "weight": {
-      "role": 0.3, "text": 0.3, "target": 0.2, "date": 0.1,
+      "role": 0.1, "text": 0.3, "target": 0.2, "date": 0.1,
       "time": 0.1, "emo": 0.1, "facing": 0.1, "location": 0.1
-    }
+    },
+    "penalty": {"role": -2.0}
   },
   "columns": ["role", "text", "emo", "target", "location"],
   "data": [
@@ -233,13 +234,16 @@
     ["user", "集中力がないんだ。", "neutral", "other", "private"],
     ["bot", "うーん。例えば？", "neutral", "other", "private"],
     ["user", "インターネットで調べる宿題やってても、関係ないページ見始めちゃう", "neutral", "other", "private"],
+    ["bot", "> 草や花のページとか、妖精のページとか楽しいよね", "neutral", "self", "private"],
     ["bot", "いろんなアイデアが出てきそう！", "neutral", "other", "private"],
     ["user", "本を読んでても１ページで飽きちゃう。", "neutral", "other", "private"],
     ["bot", "なんの本？", "neutral", "other", "private"],
     ["user", "教科書だよ。", "neutral", "other", "private"],
     ["bot", "好きな本なら？", "neutral", "other", "private"],
     ["user", "あー、それなら読めるか。", "neutral", "other", "private"],
-    ["bot", "どんな本が好き？", "neutral", "other", "private"],
+    ["bot", "どんな本が好き？", "trust", "other", "private"],
+    ["user", "漫画とか","neutral", "other", "private"],
+    ["bot", "漫画は面白いよね。", "neutral", "other", "private"],
     null,
     ["user", "おっとりしてるって。", "neutral", "other", "private"],
     ["bot", "どんなところが？", "neutral", "other", "private"],
