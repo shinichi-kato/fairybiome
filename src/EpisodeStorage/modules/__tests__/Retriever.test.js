@@ -122,7 +122,7 @@ describe('Retriever', () => {
     const retriever = new Retriever();
     const dataRows = [
       { separator: false, row: ['bot', 'hello'], text: 'hello', index: 0 },
-      { separator: false, row: ['user', 'reply'], text: 'reply', index: 1 },
+      { separator: false, row: ['bot', 'reply'], text: 'reply', index: 1 },
     ];
     const common = {
       message: 'hello',

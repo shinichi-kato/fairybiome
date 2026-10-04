@@ -353,7 +353,8 @@ export class EpisodeStorage {
       
       const textIndex = this._getTextIndex();
       const text = Array.isArray(result.row) && typeof result.row[textIndex] === 'string' ? result.row[textIndex] : '';
-      console.log(`${this.partName} score=${result.score} text=${text} `);
+      // console.log(`${this.partName} score=${result.score} text=${text} `);
+      console.log(`${this.partName} score=${result.score} result=${JSON.stringify(result)}`);
 
       this._pushHistory({
         role: 'bot',

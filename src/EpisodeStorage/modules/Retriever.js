@@ -77,15 +77,10 @@ export class Retriever {
           typeof rowRole === 'string' && rowRole.length > 0 &&
           knownRoles.has(messageRole) && knownRoles.has(rowRole) &&
           roleWeight !== 0;
-        const roleScore = hasComparableRoles
-          ? this.vectorDot(
-              this.filterVectorByPrefix(messageVector, 'role:'),
-              this.filterVectorByPrefix(rowVectors.get(item.index) || {}, 'role:'),
-            )
-          : null;
+        const roleMismatch = hasComparableRoles && rowRole !== messageRole;
         const penalty = typeof rolePenalty === 'number' && Number.isFinite(rolePenalty) ? rolePenalty : 0;
         return {
-          score: slotAdjustedScore + (hasComparableRoles && roleScore === 0 ? penalty : 0),
+          score: slotAdjustedScore + (roleMismatch ? penalty : 0),
           rowIndex: item.index,
           slotCaptures: slotMatch.captures || {},
         };
@@ -95,7 +90,7 @@ export class Retriever {
 
     const precision = totalPrecision >= 0 ? totalPrecision : this.defaultPrecision;
     const candidates = scored.filter((candidate) => {
-      return candidate.score > precision && this.hasNextDataRow(candidate.rowIndex, dataRows);
+      return candidate.score > precision && this.hasNextDataRow(candidate.rowIndex, dataRows, roleIndex);
     });
 
     if (!candidates.length) {
@@ -118,7 +113,7 @@ export class Retriever {
     const topCandidates = candidates.slice(0, topCount);
     const selected = topCandidates[Math.floor(Math.random() * topCandidates.length)];
     const matchedRowIndex = selected.rowIndex;
-    const nextRow = this.getNextDataRow(matchedRowIndex, dataRows);
+    const nextRow = this.getNextDataRow(matchedRowIndex, dataRows, roleIndex);
 
     if (!nextRow) {
       if (verbose) {
@@ -378,22 +373,12 @@ export class Retriever {
     return this.defaultPrecision;
   }
 
-  hasNextDataRow(rowIndex, dataRows = []) {
-    if (typeof rowIndex !== "number" || !Array.isArray(dataRows)) {
-      return false;
-    }
-
-    for (let nextIndex = rowIndex + 1; nextIndex < dataRows.length; nextIndex += 1) {
-      const row = dataRows[nextIndex];
-      if (row && !row.separator && Array.isArray(row.row)) {
-        return true;
-      }
-    }
-
-    return false;
+  hasNextDataRow(rowIndex, dataRows = [], roleIndex = -1) {
+    return this.getNextDataRow(rowIndex, dataRows, roleIndex) !== null;
   }
 
-  getNextDataRow(rowIndex, dataRows = []) {
+  // roleIndex>=0 のとき role が 'user' の行は飛ばし、bot 行に行き着くまで探す
+  getNextDataRow(rowIndex, dataRows = [], roleIndex = -1) {
     if (typeof rowIndex !== "number" || !Array.isArray(dataRows)) {
       return null;
     }
@@ -401,6 +386,9 @@ export class Retriever {
     for (let nextIndex = rowIndex + 1; nextIndex < dataRows.length; nextIndex += 1) {
       const row = dataRows[nextIndex];
       if (row && !row.separator && Array.isArray(row.row)) {
+        if (roleIndex >= 0 && row.row[roleIndex] === 'user') {
+          continue;
+        }
         return row.row;
       }
     }

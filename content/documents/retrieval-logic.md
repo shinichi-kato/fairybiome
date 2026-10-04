@@ -51,15 +51,19 @@
 1. **メッセージのベクトル化**
    - 入力 message を、特徴量行列計算と同じ方法でベクトル化
    - history に含まれる text は、Attention で畳み込む
+   - role, date, time ,targetなども特徴量として考慮
 
 2. **類似度計算**
    - $\text{similarity}(i) = \vec{message} \cdot \vec{matrix[i]}$
    - 各行との cos 類似度を計算
+   - 不適切なroleが選択されないようペナルティを設定(どれくらい意味があるか？)
 
 3. **候補選択**
    - 類似度が `factor.precision` より大きい行を候補に
    - 上位 3 行を選択（複数ある場合）
    - 候補がなければ `[]` を返す
+   - 返答候補のroleがuserの場合、botにいきあたるまで次を探す
+
 
 4. **返答生成**
    - 候補からランダムに 1 行選択
