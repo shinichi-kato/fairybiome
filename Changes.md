@@ -1,8 +1,12 @@
 Change log
 ===========
-# v0.34
+# v0.34.0
 ## Added
 * role違いの返答を抑制するためroleにpenaltyを設定
+
+## Fixed
+* 返答候補がuser行の場合bot行にいきあたるまで次を探すよう修正
+* 辞書調整
 
 # v0.33.0
 ## Added
