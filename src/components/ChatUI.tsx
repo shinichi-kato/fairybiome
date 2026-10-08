@@ -6,7 +6,7 @@ import { type CSSProperties, type KeyboardEvent, useEffect, useRef, useState } f
 import { useAuth } from '../auth/AuthProvider';
 import { ChatBiomebot } from '../biomebot/kernel.js';
 import { createConversationId, markChatLogMessageFailed, saveChatLogMessage, subscribeToChatLog } from '../lib/chatLog';
-import { avatarDirectory, avatarFileName, type BotDeployment, type ChatLogMessage, validateChatInput } from '../lib/chatMessage';
+import { avatarDirectory, botAvatarFileName, type BotDeployment, type ChatLogMessage, validateChatInput } from '../lib/chatMessage';
 import { loadStaticFiles } from '../lib/staticFiles';
 import FairyPanel from './Panel/FairyPanel';
 import UserPanel from './Panel/UserPanel';
@@ -184,73 +184,74 @@ export default function ChatUI({ botName, chatWidth = DEFAULT_CHAT_WIDTH }: Chat
       style={{ '--chat-device-width': `${chatWidth}px` } as CSSProperties}
     >
       <div className="chat-device flex h-full flex-col overflow-hidden bg-secondary px-3 py-3">
-      <header className="flex items-center border-b border-gray-300 pb-3">
-        <Link href="/" aria-label="メインメニューに戻る" className="inline-flex h-10 w-10 items-center justify-center text-primary hover:bg-white">
-          <ArrowLeft aria-hidden="true" size={22} />
-        </Link>
-        <h1 className="ml-2 text-lg font-bold text-gray-900">{deployment?.displayName ?? botName}</h1>
-        {isDeploying && <span className="ml-2 text-sm text-gray-600">起動中...</span>}
-      </header>
+        <header className="flex items-center border-b border-gray-300 pb-3">
+          <Link href="/" aria-label="メインメニューに戻る" className="inline-flex h-10 w-10 items-center justify-center text-primary hover:bg-white">
+            <ArrowLeft aria-hidden="true" size={22} />
+          </Link>
+          <h1 className="ml-2 text-lg font-bold text-gray-900">{deployment?.displayName ?? botName}</h1>
+          {isDeploying && <span className="ml-2 text-sm text-gray-600">起動中...</span>}
+        </header>
 
-      <div ref={logRef} className="min-h-0 flex-1 overflow-y-auto py-4" aria-live="polite">
-        {messages.map(message => {
-          const isBot = message.role === 'bot';
-          const avatarPath = isBot
-            ? `/static/bots/${message.botName}/avatar/${avatarFileName('bot', message.emo)}`
-            : `/static/avatar/user/${message.avatarDir}/neutral.svg`;
-          return (
-            <article key={message.id} className={`mb-4 flex items-end gap-2 ${isBot ? '' : 'flex-row-reverse'}`}>
-              <img className="h-11 w-11 shrink-0 object-contain" src={avatarPath} alt="" />
-              <div className={`max-w-[78%] ${isBot ? '' : 'text-right'}`}>
-                <p className="mb-1 text-xs font-semibold text-gray-700">{message.displayName}</p>
-                <p
-                  className={`relative whitespace-pre-wrap break-words text-left text-gray-900 ${isBot ? 'chat-bubble--bot' : 'chat-bubble--user'}`}
-                  style={{ '--bubble-background': message.backgroundColor } as CSSProperties}
-                >
-                  {message.text}
-                </p>
-                {message.status === 'failed' && <p className="mt-1 text-xs text-red-700">{message.error ?? '送信に失敗しました。'}</p>}
-              </div>
-            </article>
-          );
-        })}
-      </div>
-      <div className="flex shrink-0 items-end justify-between">
-        {latestBotMessage ? (
-          <FairyPanel
-            repr={{
-              botName: latestBotMessage.botName,
-              avatar: latestBotMessage.avatar,
-              backgroundColor: latestBotMessage.backgroundColor,
-              botState: latestBotMessage.emo,
-            }}
+        <div ref={logRef} className="min-h-0 flex-1 overflow-y-auto py-4" aria-live="polite">
+          {messages.map(message => {
+            const isBot = message.role === 'bot';
+            const avatarPath = isBot
+              ? `/static/bots/${message.botName}/avatar/${botAvatarFileName(message.emo, deployment?.avatarFiles)}`
+              : `/static/avatar/user/${message.avatarDir}/neutral.svg`;
+            return (
+              <article key={message.id} className={`mb-4 flex items-end gap-2 ${isBot ? '' : 'flex-row-reverse'}`}>
+                <img className="h-11 w-11 shrink-0 object-contain" src={avatarPath} alt="" />
+                <div className={`max-w-[78%] ${isBot ? '' : 'text-right'}`}>
+                  <p className="mb-1 text-xs font-semibold text-gray-700">{message.displayName}</p>
+                  <p
+                    className={`relative whitespace-pre-wrap break-words text-left text-gray-900 ${isBot ? 'chat-bubble--bot' : 'chat-bubble--user'}`}
+                    style={{ '--bubble-background': message.backgroundColor } as CSSProperties}
+                  >
+                    {message.text}
+                  </p>
+                  {message.status === 'failed' && <p className="mt-1 text-xs text-red-700">{message.error ?? '送信に失敗しました。'}</p>}
+                </div>
+              </article>
+            );
+          })}
+        </div>
+        <div className="flex shrink-0 items-end justify-between">
+          {latestBotMessage ? (
+            <FairyPanel
+              repr={{
+                botName: latestBotMessage.botName,
+                avatar: latestBotMessage.avatar,
+                backgroundColor: latestBotMessage.backgroundColor,
+                botState: latestBotMessage.emo,
+                avatarFile: botAvatarFileName(latestBotMessage.emo, deployment?.avatarFiles),
+              }}
+            />
+          ) : <div />}
+          <UserPanel
+            user={profile ? {
+              displayName: profile.displayName,
+              avatarDir: avatarDirectory(profile.avatar),
+              backgroundColor: profile.backgroundColor,
+            } : null}
+            panelWidth={192}
           />
-        ) : <div />}
-        <UserPanel
-          user={profile ? {
-            displayName: profile.displayName,
-            avatarDir: avatarDirectory(profile.avatar),
-            backgroundColor: profile.backgroundColor,
-          } : null}
-          panelWidth={192}
-        />
-      </div>
+        </div>
 
 
-      <form className="flex shrink-0 items-end gap-2 border-t border-gray-300 pt-3" onSubmit={event => { event.preventDefault(); void sendMessage(); }}>
-        <textarea aria-label="メッセージ" className="min-h-11 flex-1 resize-none border border-gray-500 bg-white px-3 py-2 text-base focus:outline-2 focus:outline-primary" 
-          maxLength={200} 
-          onChange={event => setInput(event.target.value)} 
-          onKeyDown={handleInputKeyDown} 
-          rows={2} 
-          value={input} 
-          placeholder="メッセージを入力..."
+        <form className="flex shrink-0 items-end gap-2 border-t border-gray-300 pt-3" onSubmit={event => { event.preventDefault(); void sendMessage(); }}>
+          <textarea aria-label="メッセージ" className="min-h-11 flex-1 resize-none border border-gray-500 bg-white px-3 py-2 text-base focus:outline-2 focus:outline-primary"
+            maxLength={200}
+            onChange={event => setInput(event.target.value)}
+            onKeyDown={handleInputKeyDown}
+            rows={2}
+            value={input}
+            placeholder="メッセージを入力..."
           />
-        <button type="submit" aria-label="送信" className="flex h-11 w-11 shrink-0 items-center justify-center bg-primary text-white disabled:opacity-50" disabled={!input.trim()}>
-          <Send aria-hidden="true" size={20} />
-        </button>
-      </form>
-      {error && <p className="shrink-0 pt-2 text-sm text-red-700" role="alert">{error}</p>}
+          <button type="submit" aria-label="送信" className="flex h-11 w-11 shrink-0 items-center justify-center bg-primary text-white disabled:opacity-50" disabled={!input.trim()}>
+            <Send aria-hidden="true" size={20} />
+          </button>
+        </form>
+        {error && <p className="shrink-0 pt-2 text-sm text-red-700" role="alert">{error}</p>}
       </div>
     </main>
   );

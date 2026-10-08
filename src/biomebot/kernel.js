@@ -724,13 +724,17 @@ export class Biomebot {
 
 const DEFAULT_CHAT_BACKGROUND_COLOR = "#DDDDDD";
 
-function readBotAvatarDirs() {
-  try {
-    const configured = process.env.NEXT_PUBLIC_BOT_AVATAR_DIRS;
-    return configured ? JSON.parse(configured) : {};
-  } catch {
-    return {};
+// {neutral: "neutral.png"}。同名のpngとsvgがあればpngを優先する。
+function buildAvatarFiles(paths = []) {
+  /** @type {Record<string, string>} */
+  const files = {};
+  for (const path of paths) {
+    const m = /\/avatar\/([a-z0-9_-]+)\.(svg|png)$/i.exec(path);
+    if (m && (!files[m[1]] || m[2].toLowerCase() === "png")) {
+      files[m[1]] = `${m[1]}.${m[2].toLowerCase()}`;
+    }
   }
+  return files;
 }
 
 function toPartName(path) {
@@ -754,7 +758,6 @@ export class ChatBiomebot {
     this.botWorkers = new Map();
     this.botStates = new Map();
     this.botDisplayNames = new Map();
-    this.avatarDirs = readBotAvatarDirs();
     this.replyCallbackFunction = null;
     this.displayNameCallbackFunction = null;
     this.expressionTags = {};
@@ -837,6 +840,7 @@ export class ChatBiomebot {
       botName,
       displayName: this.botDisplayNames.get(botName) || botName,
       backgroundColor: DEFAULT_CHAT_BACKGROUND_COLOR,
+      avatarFiles: buildAvatarFiles(this.botPaths[botName]),
     };
   }
 
@@ -986,7 +990,7 @@ export class ChatBiomebot {
         timestamp: output.timestamp ?? new Date().toISOString(),
         displayName: this.botDisplayNames.get(botName) || botName,
         backgroundColor: output.backgroundColor || DEFAULT_CHAT_BACKGROUND_COLOR,
-        avatarDir: this.avatarDirs[botName] || botName,
+        avatarDir: botName,
         avatar: emo,
         emo,
         messageId: globalThis.crypto.randomUUID(),
