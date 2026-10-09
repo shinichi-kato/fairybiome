@@ -29,6 +29,17 @@ describe('ChatBiomebot', () => {
     };
   });
 
+  it('builds the avatar file dictionary preferring png over svg', async () => {
+    const bot = new ChatBiomebot({ aurula: [
+      '/static/bots/aurula/avatar/neutral.png',
+      '/static/bots/aurula/avatar/neutral.svg',
+      '/static/bots/aurula/avatar/joy.svg',
+    ] });
+
+    const result = await bot.deploy('aurula');
+    expect(result.avatarFiles).toEqual({ neutral: 'neutral.png', joy: 'joy.svg' });
+  });
+
   it('deploys workers and returns the display metadata required by ChatUI', async () => {
     const bot = new ChatBiomebot({ aurula: ['static/bots/aurula/greeting.episode.json'] });
 
@@ -36,6 +47,7 @@ describe('ChatBiomebot', () => {
       botName: 'aurula',
       displayName: 'aurula',
       backgroundColor: '#DDDDDD',
+      avatarFiles: {},
     });
     expect(worker.postMessage).toHaveBeenNthCalledWith(1, { type: 'init', botName: 'aurula', partName: 'greeting.episode' });
     expect(worker.postMessage).toHaveBeenNthCalledWith(2, { type: 'deploy', botName: 'aurula', partName: 'greeting.episode' });

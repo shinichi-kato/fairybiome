@@ -24,6 +24,7 @@ export type BotDeployment = {
   botName: string;
   displayName: string;
   backgroundColor: string;
+  avatarFiles?: Record<string, string>;
 };
 
 export function avatarDirectory(value: unknown, fallback = 'unknown_user'): string {
@@ -48,6 +49,10 @@ export function validateChatInput(value: string): string | null {
   }
 
   return null;
+}
+
+export function botAvatarFileName(emo: string, avatarFiles?: Record<string, string>): string {
+  return avatarFiles?.[emo] ?? avatarFiles?.neutral ?? avatarFileName('bot', emo);
 }
 
 export function avatarFileName(role: ChatRole, emo: string): string {

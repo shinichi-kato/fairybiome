@@ -1,5 +1,9 @@
 Change log
 ===========
+# v0.35.0
+## Added
+* チャットボットのアバターにpngも使用可能にした
+
 # v0.34.1
 ## Fixed
 * innerVoiceではuser/bot発言を許可、output前に発言候補がuser行ならbot
