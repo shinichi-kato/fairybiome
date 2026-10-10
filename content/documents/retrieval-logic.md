@@ -318,6 +318,11 @@ async embedMessage(message) {
 
 - **amplitude**: 返答の確度・信頼度を表す。高いほど「確信度が高い返答」を表現（スコア = 類似度 × amplitude）
 - **precision**: 検索のしきい値。低いほど「曖昧な返答も許容」、高いほど「完全一致のみ」
+- **refractory** (α, 0 < α < 1, 省略可): 不応期の減衰係数。採用された発言ごとに Δt を数え(直近=1)、係数は α^Δt
+- **penalty.repetition** (λ ≥ 0, 省略可): 不応期ペナルティの強さ。refractory と両方指定時のみ有効
+  - 記憶: 採用された候補の「入力と一致した行」のtext埋め込み(直近8件)
+  - `penalty = max_i( max(0, cos(candidate, memory_i) - 0.3) * α^Δt_i )`、`順位用スコア = score - λ * penalty`
+  - precision判定と返却scoreは元のscoreのまま。上位4件の選定順位にのみ使用
 - **reactivity**: innerVoice への反応性。低いと反応が少ない、高いと頻繁に反応
 
 ---

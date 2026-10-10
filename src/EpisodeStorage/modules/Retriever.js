@@ -30,6 +30,7 @@ export class Retriever {
     roleIndex = -1,
     rolePenalty = null,
     roleWeight = 1,
+    repetition = null,
     verbose = false,
   } = {}) {
     // messageVector(x)は呼び出し側(EpisodeStorage)で履歴Attention込みに事前計算される
@@ -118,8 +119,10 @@ export class Retriever {
       return null;
     }
 
-    const topCount = Math.min(4, candidates.length);
-    const topCandidates = candidates.slice(0, topCount);
+    // 不応期ペナルティは順位付けにのみ使い、precision判定と返却scoreには影響させない
+    const ranked = this.applyRepetitionPenalty(candidates, dataRows, repetition);
+    const topCount = Math.min(4, ranked.length);
+    const topCandidates = ranked.slice(0, topCount);
     const selected = topCandidates[Math.floor(Math.random() * topCandidates.length)];
     const matchedRowIndex = selected.rowIndex;
     const nextItem = this.findNextDataItem(matchedRowIndex, dataRows);
@@ -143,6 +146,37 @@ export class Retriever {
       slotCaptures: selected.slotCaptures,
       score: selected.score,
     };
+  }
+
+  // penalty = max_i( max(0, cos(candidate, memory_i) - baseline) * alpha^dt_i )
+  // adjusted = score - lambda * penalty で並べ替える
+  applyRepetitionPenalty(candidates, dataRows, repetition) {
+    const { memories, alpha, lambda, baseline = 0 } = repetition || {};
+    if (!this.textEmbedding || !Array.isArray(memories) || !memories.length
+      || !(lambda > 0) || !(alpha > 0 && alpha < 1)) {
+      return candidates;
+    }
+
+    const textByIndex = new Map(dataRows.map((item) => [item?.index, item?.text]));
+    const adjusted = candidates.map((candidate) => {
+      const text = textByIndex.get(candidate.rowIndex);
+      const vector = typeof text === 'string' && text ? this.textEmbedding.embedText(text) : null;
+      let penalty = 0;
+      if (vector) {
+        memories.forEach(({ vector: memoryVector, dt }) => {
+          const similarity = Math.max(0, this.cosine(vector, memoryVector) - baseline);
+          penalty = Math.max(penalty, similarity * alpha ** dt);
+        });
+      }
+      return { ...candidate, adjustedScore: candidate.score - lambda * penalty };
+    });
+
+    return adjusted.sort((a, b) => b.adjustedScore - a.adjustedScore);
+  }
+
+  cosine(a, b) {
+    const denominator = Math.sqrt(this.vectorDot(a, a) * this.vectorDot(b, b));
+    return denominator > 0 ? this.vectorDot(a, b) / denominator : 0;
   }
 
   rewriteRow(row, inputText, textIndex, slotCaptures = {}) {

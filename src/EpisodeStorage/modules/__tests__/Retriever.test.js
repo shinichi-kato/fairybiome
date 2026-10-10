@@ -269,4 +269,49 @@ describe('Retriever', () => {
 
     expect(retriever.rewriteTextWithUnknownSlots('{UNKNOWN_1}って何？')).toBe('それって何？');
   });
+
+  describe('applyRepetitionPenalty', () => {
+    const textEmbedding = {
+      embedText: (text) => (text.startsWith('A') ? { a: 1 } : { b: 1 }),
+    };
+    const dataRows = [
+      { index: 0, text: 'A1' },
+      { index: 1, text: 'B1' },
+    ];
+    const candidates = [
+      { rowIndex: 0, score: 0.9 },
+      { rowIndex: 1, score: 0.8 },
+    ];
+    const base = { alpha: 0.5, lambda: 1, baseline: 0.3 };
+
+    test('直近の類似発言を抑制し、順位を入れ替える', () => {
+      const retriever = new Retriever({ textEmbedding });
+      const ranked = retriever.applyRepetitionPenalty(candidates, dataRows, {
+        ...base,
+        memories: [{ vector: { a: 1 }, dt: 1 }],
+      });
+      // penalty = (1-0.3)*0.5 = 0.35
+      expect(ranked.map((c) => c.rowIndex)).toEqual([1, 0]);
+      expect(ranked[1].adjustedScore).toBeCloseTo(0.55);
+    });
+
+    test('時間が経つと減衰して元の順位に戻る', () => {
+      const retriever = new Retriever({ textEmbedding });
+      const ranked = retriever.applyRepetitionPenalty(candidates, dataRows, {
+        ...base,
+        memories: [{ vector: { a: 1 }, dt: 6 }],
+      });
+      expect(ranked.map((c) => c.rowIndex)).toEqual([0, 1]);
+    });
+
+    test('ベースライン以下の類似度は無視し、記憶なしなら何もしない', () => {
+      const retriever = new Retriever({ textEmbedding });
+      const unrelated = retriever.applyRepetitionPenalty(candidates, dataRows, {
+        ...base,
+        memories: [{ vector: { c: 1 }, dt: 1 }],
+      });
+      expect(unrelated.map((c) => c.adjustedScore)).toEqual([0.9, 0.8]);
+      expect(retriever.applyRepetitionPenalty(candidates, dataRows, { ...base, memories: [] })).toBe(candidates);
+    });
+  });
 });

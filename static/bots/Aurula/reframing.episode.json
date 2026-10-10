@@ -10,12 +10,12 @@
   "factor": {
     "amplitude": 1.0,
     "precision": 0.3,
-    "reactivity": 0.7,
+    "refractory": 0.9,
     "weight": {
       "role": 0.1, "text": 0.3, "target": 0.2, "date": 0.1,
       "time": 0.1, "emo": 0.1, "facing": 0.1, "location": 0.1
     },
-    "penalty": {"role": -2.0}
+    "penalty": {"role": -2.0, "repetition": 0.4}
   },
   "columns": ["role", "text", "emo", "target", "location"],
   "data": [

@@ -19,6 +19,9 @@ import { DataLoader } from './modules/DataLoader.js';
 
 // 会話履歴として記憶するターン数（ユーザー発言+bot発言で1ターン）
 const DEFAULT_HISTORY_TURNS = 5;
+// 不応期: 記憶する採用発言数と、類似度のベースライン(これ以下の類似はペナルティ対象外)
+const MAX_REPETITION_MEMORY = 8;
+const REPETITION_BASELINE = 0.3;
 const ROW_FEATURE_VERSION = 3;
 
 export class EpisodeStorage {
@@ -49,6 +52,8 @@ export class EpisodeStorage {
     this.continuousMaximums = {};
     this.maxHistoryTurns = DEFAULT_HISTORY_TURNS;
     this.messageHistory = [];
+    // 採用された「入力と一致した行」のtextベクトル(古い順)。不応期ペナルティに使う
+    this.repetitionMemory = [];
     this._segmenter = new TinySegmenter();
 
     this.wordEmbedding = new WordEmbedding();
@@ -342,6 +347,7 @@ export class EpisodeStorage {
       roleIndex: this._getColumns().indexOf('role'),
       rolePenalty: this.factor?.penalty?.role,
       roleWeight: this.factor?.weight?.role,
+      repetition: this._buildRepetition(),
       verbose,
     });
 
@@ -370,6 +376,7 @@ export class EpisodeStorage {
         row: result.row,
         index: result.index,
         slotCaptures: result.slotCaptures,
+        matchedRowIndex: result.matchedRowIndex,
         score: result.score * amplitude,
       };
     }
@@ -378,7 +385,8 @@ export class EpisodeStorage {
   }
 
   // user行を想起した候補が採用されたとき、次のbot行を返す
-  resolveCandidate({ index, slotCaptures = {}, inputText = '' } = {}) {
+  resolveCandidate({ index, slotCaptures = {}, inputText = '', matchedRowIndex = null } = {}) {
+    this._pushRepetitionMemory(matchedRowIndex);
     const textIndex = this._getTextIndex();
     const resolved = this.retriever.resolveBotRow({
       rowIndex: index,
@@ -395,6 +403,36 @@ export class EpisodeStorage {
     const text = typeof resolved.row[textIndex] === 'string' ? resolved.row[textIndex] : '';
     this._pushHistory({ role: 'bot', text, timestamp: new Date().toISOString() });
     return resolved;
+  }
+
+  // 直近の採用発言のうち新しいものを Δt=1,2,... として返す
+  _buildRepetition() {
+    const alpha = this.factor?.refractory;
+    const lambda = this.factor?.penalty?.repetition;
+    if (typeof alpha !== 'number' || typeof lambda !== 'number') {
+      return null;
+    }
+    const count = this.repetitionMemory.length;
+    return {
+      alpha,
+      lambda,
+      baseline: REPETITION_BASELINE,
+      memories: this.repetitionMemory.map((vector, i) => ({ vector, dt: count - i })),
+    };
+  }
+
+  _pushRepetitionMemory(matchedRowIndex) {
+    if (typeof matchedRowIndex !== 'number') {
+      return;
+    }
+    const item = this.dataRows.find((row) => row?.index === matchedRowIndex);
+    if (!item || typeof item.text !== 'string' || !item.text) {
+      return;
+    }
+    this.repetitionMemory.push(this.textEmbedding.embedText(item.text));
+    while (this.repetitionMemory.length > MAX_REPETITION_MEMORY) {
+      this.repetitionMemory.shift();
+    }
   }
 
   _getColumns() {
@@ -892,7 +930,18 @@ export function validateData(data) {
   if (!data.factor || typeof data.factor !== 'object' || Array.isArray(data.factor)) {
     errors.push('factor must be an object');
   } else {
-    const { amplitude, precision } = data.factor;
+    const { amplitude, precision, refractory, penalty } = data.factor;
+    if (refractory !== undefined) {
+      if (typeof refractory !== 'number' || Number.isNaN(refractory)) {
+        errors.push('factor.refractory must be a number');
+      } else if (!(refractory > 0 && refractory < 1.0)) {
+        errors.push('factor.refractory must be > 0 and < 1.0');
+      }
+    }
+    const repetition = penalty && typeof penalty === 'object' ? penalty.repetition : undefined;
+    if (repetition !== undefined && (typeof repetition !== 'number' || !(repetition >= 0))) {
+      errors.push('factor.penalty.repetition must be a number >= 0');
+    }
     if (typeof amplitude !== 'number' || Number.isNaN(amplitude)) {
       errors.push('factor.amplitude must be a number');
     } else if (!(amplitude > 0 && amplitude <= 10.0)) { // amplitudeのmax=10は暫定値
