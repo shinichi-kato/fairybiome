@@ -1,5 +1,5 @@
 import 'fake-indexeddb/auto';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { EpisodeStorage } from './EpisodeStorage';
 
 async function clearEpisodeStorageDb() {
@@ -106,7 +106,7 @@ describe('EpisodeStorage build cache and matrix', () => {
       title: '会話',
       author: 'skato',
       tags: [],
-      factor: { amplitude: 0.6, precision: 0.4 },
+      factor: { amplitude: 0.6, precision: 0.4, weight: { date: 0, time: 0 } },
       timestamp: 123456,
       columns: ['role', 'text', 'date', 'time', 'emo', 'facing', 'location'],
       data: [
@@ -225,7 +225,7 @@ describe('EpisodeStorage build cache and matrix', () => {
       title: '会話',
       author: 'skato',
       tags: [],
-      factor: { amplitude: 0.6, precision: 0.4 },
+      factor: { amplitude: 0.6, precision: 0.4, weight: { date: 0, time: 0 } },
       timestamp: 123456,
       columns: ['role', 'text', 'date', 'time', 'emo', 'facing', 'location'],
       data: [
@@ -352,5 +352,83 @@ describe('EpisodeStorage build cache and matrix', () => {
     expect(hasAttentionKey(withoutHistory)).toBe(false);
     expect(hasAttentionKey(withHistory)).toBe(true);
     expect(withHistory).not.toEqual(withoutHistory);
+  });
+
+  it('uses createdAtClient for date/time features when building the message vector', () => {
+    const storage = new EpisodeStorage('botA');
+    storage.staticSource = { columns: ['date', 'time'] };
+    storage.factor = { weight: { date: 1, time: 1 } };
+    const timestamp = new Date(2026, 9, 9, 23, 55).getTime();
+    const expectedDate = new Date(timestamp);
+    const pseudoRow = storage._buildPseudoRow(
+      { role: 'user', text: 'こんばんは', createdAtClient: timestamp },
+      storage.staticSource.columns,
+    );
+
+    expect(pseudoRow).toEqual([
+      `${expectedDate.getMonth() + 1}/${expectedDate.getDate()}`,
+      `${expectedDate.getHours()}:${String(expectedDate.getMinutes()).padStart(2, '0')}`,
+    ]);
+
+    const messageVector = storage._buildMessageVector(
+      { role: 'user', text: 'こんばんは', createdAtClient: timestamp },
+      [],
+    );
+    expect(messageVector['time:0']).not.toBe(0);
+    expect(messageVector['time:1']).not.toBe(0);
+    expect(messageVector['date:0']).not.toBe(0);
+    expect(messageVector['date:1']).not.toBe(0);
+  });
+
+  it('uses the current date/time when the message has no timestamp', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 9, 9, 23, 55));
+
+    try {
+      const storage = new EpisodeStorage('botA');
+      const pseudoRow = storage._buildPseudoRow({ text: 'こんばんは' }, ['date', 'time']);
+
+      expect(pseudoRow).toEqual(['10/9', '23:55']);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('prefers the 21:00 greeting over the 07:00 greeting at 23:55', async () => {
+    const storage = new EpisodeStorage('botA');
+    storage.staticSource = {
+      title: '挨拶',
+      author: 'skato',
+      tags: [],
+      factor: {
+        amplitude: 1,
+        precision: 0.2,
+        weight: { role: 0, text: 0, date: 0, time: 1, emo: 0, target: 0, facing: 0, location: 0 },
+      },
+      timestamp: 123456,
+      columns: ['role', 'text', 'date', 'time', 'emo', 'target', 'facing', 'location'],
+      data: [
+        ['user', 'こんばんは', null, '21:00', 'neutral', 'other', 'face', 'public'],
+        ['bot', 'こんばんは、もう夜だね', null, '21:00', 'joy', 'other', 'face', 'public'],
+        null,
+        ['user', 'こんばんは', null, '07:00', 'joy', 'other', 'face', 'public'],
+        ['bot', 'おはよう、今何時？', null, '07:00', 'joy', 'other', 'face', 'public'],
+      ],
+    };
+
+    await storage.build('botA', 'greeting-time');
+
+    const timestamp = new Date(2026, 9, 9, 23, 55).getTime();
+    // retrieveは上位候補からランダムに選ぶため、最上位候補に固定する
+    vi.spyOn(Math, 'random').mockReturnValue(0);
+    const response = storage.retrieve({
+      role: 'user',
+      text: 'こんばんわ',
+      createdAtClient: timestamp,
+    });
+
+    expect(response.row[1]).toBe('こんばんは、もう夜だね');
+    expect(response.index).toBe(1);
+    vi.restoreAllMocks();
   });
 });

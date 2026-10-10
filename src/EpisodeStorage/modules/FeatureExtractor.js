@@ -49,9 +49,9 @@ export class FeatureExtractor {
       Object.entries(emb).forEach(([key, value]) => {
         if (typeof value !== 'number') return;
 
-        if (key.endsWith('_sin')) {
+        if (/_sin\}?$/.test(key)) {
           sin = value;
-        } else if (key.endsWith('_cos')) {
+        } else if (/_cos\}?$/.test(key)) {
           cos = value;
         }
       });

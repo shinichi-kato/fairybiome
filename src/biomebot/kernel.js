@@ -760,6 +760,7 @@ export class ChatBiomebot {
     this.botDisplayNames = new Map();
     this.replyCallbackFunction = null;
     this.displayNameCallbackFunction = null;
+    this.errorCallbackFunction = null;
     this.expressionTags = {};
   }
 
@@ -965,6 +966,17 @@ export class ChatBiomebot {
   }
 
   _handleBroadcast(botName, event) {
+    if (event?.type === "error") {
+      if (typeof event.text === "string" && event.text) {
+        this.errorCallbackFunction?.(botName, {
+          partName: event.partName,
+          text: event.text,
+          displayName: this.botDisplayNames.get(botName) || botName,
+        });
+      }
+      return;
+    }
+
     if (event?.type !== "output") {
       return;
     }

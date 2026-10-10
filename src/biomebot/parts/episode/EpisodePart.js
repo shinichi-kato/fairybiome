@@ -97,6 +97,11 @@ export class EpisodePart extends Part {
     ];
   }
 
+  // 読み込み時に記録されたエラー文を取り出す（取り出すと空になる）
+  takeLoadErrors() {
+    return this.engine.loadErrors?.splice(0) ?? [];
+  }
+
   // outputCandidateとして採用されたuser行の想起から、次のbot行のMessageを作る
   resolveCandidate(candidate) {
     const episode = candidate?.props?.episode;
