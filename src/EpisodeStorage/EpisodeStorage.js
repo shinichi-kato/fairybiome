@@ -38,6 +38,7 @@ export class EpisodeStorage {
     this.data;
     this.firestore_token = firestore_token;
     this.staticSource = null;
+    this.loadErrors = [];
     this.firestoreSource = null;
     this.cache = null;
     this.attentionVectors = null;
@@ -222,6 +223,7 @@ export class EpisodeStorage {
       data = await response.json();
     } catch (err) {
       console.warn(`EpisodeStorage.readStatic: invalid JSON in "${path}"`, err);
+      this.loadErrors.push(`${path} のJSONに書き間違いがあります: ${err.message}`);
       return;
     }
 
@@ -431,7 +433,12 @@ export class EpisodeStorage {
   // message(role/text/target/emo/facing/location等)を columns 順の擬似rowへ変換する
   _buildPseudoRow(message, columns) {
     const fields = typeof message === 'object' && message !== null ? message : {};
-    const { date, time } = this._timestampToDateTimeStrings(fields.timestamp);
+    const timestamp = fields.timestamp !== undefined && fields.timestamp !== null && fields.timestamp !== ''
+      ? fields.timestamp
+      : fields.createdAtClient !== undefined && fields.createdAtClient !== null && fields.createdAtClient !== ''
+        ? fields.createdAtClient
+        : Date.now();
+    const { date, time } = this._timestampToDateTimeStrings(timestamp);
     const valueByColumn = {
       role: fields.role,
       text: typeof message === 'string' ? message : fields.text,

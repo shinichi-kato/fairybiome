@@ -30,6 +30,7 @@ export default function ChatUI({ botName, chatWidth = DEFAULT_CHAT_WIDTH }: Chat
   const [input, setInput] = useState('');
   const [deployment, setDeployment] = useState<BotDeployment | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [botErrors, setBotErrors] = useState<{ id: string; text: string; displayName: string }[]>([]);
   const [isDeploying, setIsDeploying] = useState(true);
   const viewportRef = useRef<HTMLElement>(null);
   const logRef = useRef<HTMLDivElement>(null);
@@ -53,7 +54,7 @@ export default function ChatUI({ botName, chatWidth = DEFAULT_CHAT_WIDTH }: Chat
 
   useEffect(() => {
     logRef.current?.scrollTo({ top: logRef.current.scrollHeight });
-  }, [messages]);
+  }, [messages, botErrors]);
 
   useEffect(() => {
     if (!userId) {
@@ -63,6 +64,7 @@ export default function ChatUI({ botName, chatWidth = DEFAULT_CHAT_WIDTH }: Chat
     let disposed = false;
     setIsDeploying(true);
     setError(null);
+    setBotErrors([]);
     let unsubscribe: (() => void) | null = null;
     let bot: ChatBiomebot | null = null;
 
@@ -80,6 +82,14 @@ export default function ChatUI({ botName, chatWidth = DEFAULT_CHAT_WIDTH }: Chat
         }
 
         setDeployment(prev => (prev ? { ...prev, displayName } : prev));
+      };
+      // 起動時の設定ファイルの誤りなど。チャットログには保存せずセリフとして表示する
+      bot.errorCallbackFunction = (errorBotName: string, botError: { text: string; displayName: string }) => {
+        if (disposed || errorBotName !== botName) {
+          return;
+        }
+
+        setBotErrors(prev => [...prev, { id: makeId(), text: botError.text, displayName: botError.displayName }]);
       };
       bot.replyCallbackFunction = async (_replyBotName: string, reply: ChatLogMessage & { messageId?: string }) => {
         if (disposed) {
@@ -214,6 +224,15 @@ export default function ChatUI({ botName, chatWidth = DEFAULT_CHAT_WIDTH }: Chat
               </article>
             );
           })}
+          {botErrors.map(botError => (
+            <article key={botError.id} className="mb-4 flex items-end gap-2">
+              <img className="h-11 w-11 shrink-0 object-contain" src={`/static/bots/${botName}/avatar/${botAvatarFileName('neutral', deployment?.avatarFiles)}`} alt="" />
+              <div className="max-w-[78%]">
+                <p className="mb-1 text-xs font-semibold text-gray-700">{botError.displayName}</p>
+                <p className="chat-bubble--bot relative whitespace-pre-wrap break-words text-left text-red-700">{botError.text}</p>
+              </div>
+            </article>
+          ))}
         </div>
         <div className="flex shrink-0 items-end justify-between">
           {latestBotMessage ? (

@@ -8,60 +8,44 @@ import { FeatureExtractor } from '../FeatureExtractor.js';
 
 describe('FeatureExtractor', () => {
   
-  describe('_buildEmotionToAngle', () => {
-    test('should build emotion map from feature_emo.embed.json format', () => {
+  describe('_buildEmotionToVector', () => {
+    test('should build emotion vector map from feature_emo.embed.json format', () => {
       const emotionData = [
         {
           surfaces: ['joy', '喜び', '嬉しい'],
           embeddings: { '{emo_joy_sin}': 0, '{emo_joy_cos}': 1.0 },
-          comment: '角度0度'
         },
         {
           surfaces: ['anger', '怒り', '怒ってる'],
           embedding: { '{emo_anger_sin}': -1.0, '{emo_anger_cos}': 0 },
-          comment: '角度270度'
-        }
+        },
       ];
 
       const extractor = new FeatureExtractor(emotionData);
 
-      // 全ての surfaces が登録されていることを確認
-      expect(extractor.emotionToAngle['joy']).toBeCloseTo(0, 1);
-      expect(extractor.emotionToAngle['喜び']).toBeCloseTo(0, 1);
-      expect(extractor.emotionToAngle['嬉しい']).toBeCloseTo(0, 1);
-
-      expect(extractor.emotionToAngle['anger']).toBeCloseTo(270, 1);
-      expect(extractor.emotionToAngle['怒り']).toBeCloseTo(270, 1);
-      expect(extractor.emotionToAngle['怒ってる']).toBeCloseTo(270, 1);
+      ['joy', '喜び', '嬉しい'].forEach((k) => {
+        expect(extractor.emotionToVector[k]).toEqual([0, 1]);
+      });
+      ['anger', '怒り', '怒ってる'].forEach((k) => {
+        expect(extractor.emotionToVector[k]).toEqual([-1, 0]);
+      });
     });
 
-    test('should use default emotionToAngle when emotionEmbeddings is null', () => {
+    test('should use an empty map when emotionEmbeddings is null', () => {
       const extractor = new FeatureExtractor(null);
-
-      // デフォルト値が存在することを確認
-      expect(extractor.emotionToAngle['joy']).toBe(0);
-      expect(extractor.emotionToAngle['happy']).toBe(0);
-      expect(extractor.emotionToAngle['anger']).toBe(270);
-      expect(extractor.emotionToAngle['怒り']).toBe(270);
+      expect(extractor.emotionToVector).toEqual({});
     });
 
     test('should handle both embeddings and embedding keys', () => {
       const emotionData = [
-        {
-          surfaces: ['sad'],
-          embeddings: { '{emo_sad_sin}': 0, '{emo_sad_cos}': -1.0 }
-        },
-        {
-          surfaces: ['fear'],
-          embedding: { '{emo_fear_sin}': 1.0, '{emo_fear_cos}': 0 }
-        }
+        { surfaces: ['sad'], embeddings: { '{emo_sad_sin}': 0, '{emo_sad_cos}': -1.0 } },
+        { surfaces: ['fear'], embedding: { '{emo_fear_sin}': 1.0, '{emo_fear_cos}': 0 } },
       ];
 
       const extractor = new FeatureExtractor(emotionData);
 
-      // 180度と90度を期待
-      expect(extractor.emotionToAngle['sad']).toBeCloseTo(180, 1);
-      expect(extractor.emotionToAngle['fear']).toBeCloseTo(90, 1);
+      expect(extractor.emotionToVector['sad']).toEqual([0, -1]);
+      expect(extractor.emotionToVector['fear']).toEqual([1, 0]);
     });
   });
 
@@ -143,16 +127,12 @@ describe('FeatureExtractor', () => {
       expect(okori[1]).toBeCloseTo(0, 1);
     });
 
-    test('should return neutral [0, 1] for unknown emotion', () => {
+    test('should return [0, 0] for unknown emotion', () => {
       const extractor = new FeatureExtractor();
-      const result = extractor.extractEmotion('unknown_emotion_xyz');
-
-      // 中立：0度 → sin=0, cos=1
-      expect(result[0]).toBeCloseTo(0, 1);
-      expect(result[1]).toBeCloseTo(1, 1);
+      expect(extractor.extractEmotion('unknown_emotion_xyz')).toEqual([0, 0]);
     });
 
-    test('should handle lowercase and original case for English emotions', () => {
+    test('should register lowercase variants of English surfaces', () => {
       const emotionData = [
         {
           surfaces: ['Joy', 'JOY'],
@@ -167,7 +147,6 @@ describe('FeatureExtractor', () => {
       expect(vec1[0]).toBeCloseTo(0, 1);
       expect(vec1[1]).toBeCloseTo(1, 1);
 
-      // 小文字版も登録
       const vec2 = extractor.extractEmotion('joy');
       expect(vec2[0]).toBeCloseTo(0, 1);
       expect(vec2[1]).toBeCloseTo(1, 1);

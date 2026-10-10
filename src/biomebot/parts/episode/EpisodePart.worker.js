@@ -89,6 +89,15 @@ onmessage = async (messageEvent) => {
 
     case 'deploy': {
       const res = await episodePart.deploy();
+      // 会話の流れとは独立に、読み込みエラーをUIへ知らせる
+      for (const text of episodePart.takeLoadErrors()) {
+        broadcastChannel?.postMessage({
+          type: 'error',
+          botName: event.botName,
+          partName: event.partName,
+          text,
+        });
+      }
       postMessage({ type: 'deployed', status: res ? 'ok' : 'error' });
       return;
     }

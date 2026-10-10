@@ -21,7 +21,7 @@
   ],
   "factor": {
     "amplitude": 1,
-    "precision": 0.4,
+    "precision": 0.6,
     "reactivity": 0.7,
     "weight": {
       "role": 0.1, "text": 0.3, "target": 0.2, "date": 0.1,
@@ -164,6 +164,12 @@
     null,
     ["user", "こんばんは",null, "13:00", "joy", "other", "face", "public"],
     ["bot", "ていうか、今お昼だよ？", null, "13:00", "joy", "other", "face", "public"],
-    ["user", "あ、そうか。{you}は今何してるの？", null, "13:01", "trust", "other", "face", "public"]
+    ["user", "あ、そうか。{you}は今何してるの？", null, "13:01", "trust", "other", "face", "public"],
+    null,
+    ["user", "こんばんは", null, "21:00", "neutral", "other", "face", "public"],
+    ["bot", "こんばんは！もうすっかり夜だね", null, "20:00", "joy", "other", "face", "public"],
+    ["user", "夜だね。{you}は今日何してた？", null, "20:01", "trust", "other", "face", "public"],
+    ["bot", "私は空気を良くするお仕事してたよ。{you}もお疲れさま", null, "20:01", "joy", "other", "face", "public"],
+    ["user", "うん", null, "20:02", "trust", "other", "face", "public"]
   ]
 }
