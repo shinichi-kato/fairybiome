@@ -1,5 +1,9 @@
 Change log
 ===========
+# v0.36.0
+## Added
+* 同じ話題を繰り返すことを抑制するため、refractoryとpenalty.repetationというパラメータを導入した。refractoryは0より大かつ1より小さい値で値が大きいほど長期に渡って同じ話題が抑制される。penalty.repetationは抑制の強さ
+
 # v0.35.1
 ## Fixed
 * ユーザ返答の時刻が特徴量に反映されていない問題の対処

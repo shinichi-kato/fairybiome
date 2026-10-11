@@ -88,6 +88,7 @@ export class EpisodePart extends Part {
           episode: {
             partName: this.partName,
             rowIndex: result.index ?? null,
+            matchedRowIndex: result.matchedRowIndex ?? null,
             role: rowRole,
             slotCaptures: result.slotCaptures ?? {},
             inputText: typeof message?.text === "string" ? message.text : "",
@@ -113,6 +114,7 @@ export class EpisodePart extends Part {
       index: episode.rowIndex,
       slotCaptures: episode.slotCaptures,
       inputText: episode.inputText,
+      matchedRowIndex: episode.matchedRowIndex,
     });
     if (!resolved) {
       return null;

@@ -129,6 +129,7 @@ describe('EpisodeStorage build cache and matrix', () => {
       row: ['user', '今日はどう？', '10/12', '12:24', '', 'face', 'private'],
       index: 1,
       slotCaptures: {},
+      matchedRowIndex: 0,
       score: expect.any(Number),
     });
   });
@@ -242,6 +243,7 @@ describe('EpisodeStorage build cache and matrix', () => {
       row: ['user', '今日はどう？', '10/12', '12:24', '', 'face', 'private'],
       index: 1,
       slotCaptures: {},
+      matchedRowIndex: 0,
       score: expect.any(Number),
     });
 
