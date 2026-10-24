@@ -43,4 +43,30 @@ describe('EpisodePart', () => {
 
     expect(message.emo).toBe('joy');
   });
+
+  it('expands outputTags recursively and keeps each tag value fixed', () => {
+    const part = new EpisodePart();
+    part._loadOutputTags({
+      '{animal}': ['柴犬', '白猫'],
+      '{where}': ['公園'],
+      '{card}': ['{animal}が{where}にいる'],
+    });
+    part.rng = () => 0.99;
+    expect(part.expandOutputTags('{card}と{animal}')).toBe('白猫が公園にいると白猫');
+    part.rng = () => 0;
+    expect(part.expandOutputTags('{animal}')).toBe('白猫');
+  });
+
+  it('stops expanding self-referencing tags at the depth limit', () => {
+    const part = new EpisodePart();
+    part._loadOutputTags({ '{a}': ['{a}の'] });
+    expect(() => part.expandOutputTags('{a}')).not.toThrow();
+  });
+
+  it('reports invalid outputTags', () => {
+    const part = new EpisodePart();
+    part._loadOutputTags({ '{x}': [] });
+    expect(part.outputTags).toEqual({});
+    expect(part.engine.loadErrors?.length).toBe(1);
+  });
 });
