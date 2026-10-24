@@ -37,6 +37,6 @@
       ["bot","はーい。今日は・・・{card}",null,"8:30","期待","private"],
       null,
       ["user","おはよう",null,"8:30","anticipation","private"],
-      ["bot","おはよー！。なんか・・・{dream}って夢見たよ", null,"8:30","anticipation","private"],
+      ["bot","おはよー！。なんか・・・{dream}って夢見たよ", null,"8:30","anticipation","private"]
   ]
 }
