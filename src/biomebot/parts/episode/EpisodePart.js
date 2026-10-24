@@ -2,6 +2,8 @@ import { Part } from "../part.js";
 import { Message } from "../../../Message.js";
 import { EpisodeStorage } from "../../../EpisodeStorage/EpisodeStorage.js";
 
+const MAX_TAG_DEPTH = 10;
+
 export class EpisodePart extends Part {
   constructor() {
     super();
@@ -10,6 +12,53 @@ export class EpisodePart extends Part {
     this.columns = [];
     this.data = [];
     this.factor = {};
+    this.outputTags = {};
+    this.tagChoices = new Map();
+    this.rng = Math.random;
+  }
+
+  // outputTagsの値は空でない文字列配列のみ有効とする
+  _loadOutputTags(raw) {
+    this.outputTags = {};
+    this.tagChoices = new Map();
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) return;
+    for (const [key, values] of Object.entries(raw)) {
+      if (
+        key &&
+        Array.isArray(values) &&
+        values.length > 0 &&
+        values.every((v) => typeof v === "string")
+      ) {
+        this.outputTags[key] = [...values];
+      } else {
+        this.engine.loadErrors?.push(`outputTags: "${key}" は空でない文字列配列である必要があります`);
+      }
+    }
+  }
+
+  // outputTagsのキーを再帰的に展開する。同じキーはインスタンスの生存中は同じ値に固定される。
+  expandOutputTags(text, depth = 0) {
+    const keys = Object.keys(this.outputTags);
+    if (!keys.length || typeof text !== "string" || depth >= MAX_TAG_DEPTH) {
+      return text;
+    }
+    const pattern = new RegExp(
+      keys
+        .sort((a, b) => b.length - a.length)
+        .map((k) => k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+        .join("|"),
+      "g"
+    );
+    let replaced = false;
+    const out = text.replace(pattern, (key) => {
+      replaced = true;
+      if (!this.tagChoices.has(key)) {
+        const values = this.outputTags[key];
+        this.tagChoices.set(key, values[Math.floor(this.rng() * values.length) % values.length]);
+      }
+      return this.tagChoices.get(key);
+    });
+    return replaced ? this.expandOutputTags(out, depth + 1) : out;
   }
 
   async init(botName, partName, firestoreToken = null) {
@@ -24,6 +73,7 @@ export class EpisodePart extends Part {
     this.columns = Array.isArray(data.columns) ? [...data.columns] : [];
     this.data = Array.isArray(data.data) ? [...data.data] : [];
     this.factor = { ...(data.factor ?? {}) };
+    this._loadOutputTags(data.outputTags);
 
     return true;
   }
@@ -124,7 +174,7 @@ export class EpisodePart extends Part {
     return new Message({
       ...candidate,
       role: "bot",
-      text: resolved.row[1] ?? "",
+      text: this.expandOutputTags(resolved.row[1] ?? ""),
       emo: emoIndex >= 0 ? resolved.row[emoIndex] : candidate.emo,
       props: {
         ...candidate.props,

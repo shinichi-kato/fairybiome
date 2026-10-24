@@ -154,6 +154,28 @@ BroadcastChannel post
 orchestrator が収集
 ```
 
+### OutputCandidate → Output
+
+Orchestrator が選んだ返答候補が Episode の `user` 行の想起だった場合、そのまま発話せず、担当する EpisodePart に解決を依頼する。従来の `output` の代わりに `outputCandidate` を通知する。
+
+```
+Orchestrator
+  └─ outputCandidate { turnId, botName, message, props }
+       ↓ BroadcastChannel
+担当 EpisodePart（message.props.episode.partName が一致）
+  ├─ turnId を完了済みとして記録
+  ├─ resolveCandidate(message) で次の bot 行に解決
+  └─ output { turnId, botName, message, props } を配信
+       ↓
+Orchestrator / 各 EpisodePart が採用出力を受信
+```
+
+- `outputCandidate` を受け取った worker は `turnId` を完了済みとして扱い、同じターンの innerVoice が後から処理されないようにする。
+- `message.props.episode.partName` が自身のパート名と一致する場合だけ候補を解決する。解決できたメッセージは Episode の次の `bot` 行を内容にして `output` として配信する。
+- `output` は候補が採用された通知でもある。受信した EpisodePart はターンを完了済みにし、`getOutput(message)` に採用内容を渡してログ記録のフックを呼び出す。
+- 現在の `getOutput()` はメッセージを返すだけで、ログへの永続化は行わない。実際の会話ログ保存が必要な場合は、この処理を別途実装する。
+- 担当パートからの解決通知がない場合は、Orchestrator.worker がタイムアウト後に空の `output` を配信してターンを終了する。
+
 ---
 
 ## 📦 辞書ファイル形式

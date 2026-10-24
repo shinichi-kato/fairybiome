@@ -1,0 +1,42 @@
+{
+  "description": "メッセージカード(ランダム文生成)",
+  "author":"skato",
+  "tags": [
+    {
+      "surfaces": ["しまりすさん", "シマリスさん"],
+      "embedding": {"{you}": 1.0}
+    },
+    {
+      "surfaces": ["おーい","お〜い","聞こえる〜","やっほー","やっほ〜！","もしもし","こんにちは","誰かいる？","だれかいる"],
+      "embedding": {"{hello}": 1.0}
+    }
+  ],
+  "outputTags": {
+    "{animal}":["柴犬","ハスキー犬","白猫","黒猫","恐竜","うさぎ","金魚","鶏","雀","ミジンコ"],
+    "{where}": ["公園","学校","家","図書館","海","月","宇宙船","キャンプ場","博物館","中学校"],
+    "{when}": ["朝","昼","夕方","夜"],
+    "{doing}": ["散歩している","勉強している","遊んでいる","寝ている","笑っている"],
+    "{card}": ["{animal}が{where}で{do}"],
+    "{attr1}": ["{where}にいる"],
+    "{who}": ["お父さん","お母さん","{you}","{animal}","{doing}{animal}"],
+    "{dream}": ["{who}が{where}で飛行機","宇宙船","魔法の杖"]
+  },
+  "factor": {
+    "amplitude": 1,
+    "precision": 0.4,
+    "refractory": 0.7,
+    "weight": {
+      "role": 0.3, "text": 0.3, "target": 0.2, "date": 0.1,
+      "time": 0.1, "emo": 0.1, "facing": 0.1, "location": 0.1
+    },
+    "penalty": {"role": -2.0, "repetition": 0.4}
+  },
+  "columns": ["role","text","date","time","emo","location"],
+  "data": [
+      ["user","今日の運勢は",null,"8:30","期待","private"],
+      ["bot","はーい。今日は・・・{card}",null,"8:30","期待","private"],
+      null,
+      ["user","おはよう",null,"8:30","anticipation","private"],
+      ["bot","おはよー！。なんか・・・{dream}って夢見たよ", null,"8:30","anticipation","private"]
+  ]
+}

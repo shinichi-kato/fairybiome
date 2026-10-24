@@ -1,5 +1,13 @@
 Change log
 ===========
+# 0.37.1
+## Changed
+* nodejsのバージョンを22.23.4に更新
+
+# v0.37.0
+## Added
+* EpisodePartにoutputTagsを使ったランダム文生成機能を追加
+
 # v0.36.0
 ## Added
 * 同じ話題を繰り返すことを抑制するため、refractoryとpenalty.repetationというパラメータを導入した。refractoryは0より大かつ1より小さい値で値が大きいほど長期に渡って同じ話題が抑制される。penalty.repetationは抑制の強さ
