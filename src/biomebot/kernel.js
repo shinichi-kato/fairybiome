@@ -753,6 +753,10 @@ function toPartName(path) {
  * Biomebot API until the remaining part protocol has been migrated.
  */
 export class ChatBiomebot {
+  /**
+   * @param {Record<string, string[]>} [botPaths]
+   * @param {string | null} [userId]
+   */
   constructor(botPaths = {}, userId = null) {
     this.botPaths = botPaths;
     this.userId = userId;
