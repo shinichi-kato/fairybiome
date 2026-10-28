@@ -15,6 +15,8 @@ let broadcastChannel = null;
 let currentTurnId = null;
 const closedTurns = [];
 const MAX_CLOSED_TURNS = 20;
+const channelName = (botName, userId) =>
+  userId ? `biomebot-${botName}-${userId}` : `biomebot-${botName}`;
 
 const getMaxHops = () => {
   const value = episodePart.factor?.maxHops;
@@ -33,7 +35,7 @@ onmessage = async (messageEvent) => {
   switch (event.type) {
     case 'init': {
       await episodePart.init(event.botName, event.partName, event.firestoreToken ?? null);
-      broadcastChannel = new BroadcastChannel(`biomebot-${event.botName}`);
+      broadcastChannel = new BroadcastChannel(channelName(event.botName, event.userId));
       broadcastChannel.onmessage = (channelEvent) => {
         const payload = channelEvent.data ?? {};
 
