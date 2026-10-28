@@ -74,7 +74,7 @@ export default function ChatUI({ botName, chatWidth = DEFAULT_CHAT_WIDTH }: Chat
       }
 
       unsubscribe = subscribeToChatLog(userId, botName, conversationId, setMessages, snapshotError => setError(snapshotError.message));
-      bot = new ChatBiomebot(manifest.bots);
+      bot = new ChatBiomebot(manifest.bots, userId);
       botRef.current = bot;
       bot.displayNameCallbackFunction = (replyBotName: string, displayName: string) => {
         if (disposed || replyBotName !== botName) {

@@ -9,8 +9,9 @@
  import { OrchestratorPart } from './OrchestratorPart.js';
 
  const orchestratorPart = new OrchestratorPart();
-
  let broadcastChannel = null;
+ const channelName = (botName, userId) =>
+   userId ? `biomebot-${botName}-${userId}` : `biomebot-${botName}`;
  let currentTurnId = null;
  const RESOLVE_TIMEOUT_MSEC = 1000;
  const pendingCandidates = new Map();
@@ -18,7 +19,7 @@
     const event = messageEvent.data;
     switch (event.type) {
         case 'init': {
-            broadcastChannel = new BroadcastChannel(`biomebot-${event.botName}`);
+            broadcastChannel = new BroadcastChannel(channelName(event.botName, event.userId));
 
             await orchestratorPart.init(event.botName, event.partName, event.firestoreToken);
             broadcastChannel.onmessage = (channelEvent) => {

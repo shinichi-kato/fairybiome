@@ -30,6 +30,7 @@ const workerRoot = "/src/biomebot/parts";
 // ファイル名で起動するworkerを切り替える
 const workerURL = {
   episode: `${workerRoot}/episode/EpisodePart.worker.js`,
+  emogeology: `${workerRoot}/emogeology/EmoGeologyPart.worker.js`,
   orchestator: `${workerRoot}/orchestrator/OrcehstratorPart.worker.js`,
   stageOrchestrator: `${workerRoot}/orchestrator/StageOrchestratorPart.worker.js`,
 };
@@ -79,7 +80,7 @@ export class Biomebot {
   */
   _generatePathDict(botPaths) {
     // 有効に使われているか怪しい
-    const validParts = ["episode", "concept", "orchestrator", "stageOrchestrator"];
+    const validParts = ["episode", "concept", "emogeology", "orchestrator", "stageOrchestrator"];
 
     for (const botName in botPaths) {
       this.botPartMap[botName] = [];
@@ -752,8 +753,9 @@ function toPartName(path) {
  * Biomebot API until the remaining part protocol has been migrated.
  */
 export class ChatBiomebot {
-  constructor(botPaths = {}) {
+  constructor(botPaths = {}, userId = null) {
     this.botPaths = botPaths;
+    this.userId = userId;
     this.broadcastChannels = new Map();
     this.botWorkers = new Map();
     this.botStates = new Map();
@@ -813,7 +815,7 @@ export class ChatBiomebot {
     }
 
     const partPaths = this.botPaths[botName].filter((path) =>
-      /\.(episode|orchestrator|stageOrchestrator)\.json$/i.test(path),
+      /\.(episode|emogeology|orchestrator|stageOrchestrator)\.json$/i.test(path),
     );
     if (!Array.isArray(partPaths)) {
       throw new Error(`invalid botName ${botName}`);
@@ -821,7 +823,7 @@ export class ChatBiomebot {
 
     if (!this.broadcastChannels.has(botName)) {
       console.log(`[ChatBiomebot] Starting ${botName}`);
-      const channel = new BroadcastChannel(`biomebot-${botName}`);
+      const channel = new BroadcastChannel(this._channelName(botName));
       channel.onmessage = (event) => this._handleBroadcast(botName, event.data);
       this.broadcastChannels.set(botName, channel);
       this.botStates.set(botName, {
@@ -873,7 +875,9 @@ export class ChatBiomebot {
   }
 
   _createWorker(botName, partName) {
-    const workerUrl = partName.includes("orchestrator")
+    const workerUrl = partName.includes("emogeology")
+      ? "/biomebot-workers/EmoGeologyPart.worker.js"
+      : partName.includes("orchestrator")
       ? "/biomebot-workers/Orchestrator.worker.js"
       : "/biomebot-workers/EpisodePart.worker.js";
     const worker = new Worker(workerUrl, { type: "module" });
@@ -908,8 +912,17 @@ export class ChatBiomebot {
         console.log(`[ChatBiomebot] Activated ${botName}:${partName}`);
       }
     };
-    worker.postMessage({ type: "init", botName, partName });
+    worker.postMessage({
+      type: "init",
+      botName,
+      partName,
+      ...(this.userId ? { userId: this.userId } : {}),
+    });
     return worker;
+  }
+
+  _channelName(botName) {
+    return this.userId ? `biomebot-${botName}-${this.userId}` : `biomebot-${botName}`;
   }
 
   _markWorkerInitialized(botName) {

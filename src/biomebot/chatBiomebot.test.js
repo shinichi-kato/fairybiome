@@ -49,12 +49,37 @@ describe('ChatBiomebot', () => {
       backgroundColor: '#DDDDDD',
       avatarFiles: {},
     });
+
     expect(worker.postMessage).toHaveBeenNthCalledWith(1, { type: 'init', botName: 'aurula', partName: 'greeting.episode' });
     expect(worker.postMessage).toHaveBeenNthCalledWith(2, { type: 'deploy', botName: 'aurula', partName: 'greeting.episode' });
     expect(worker.postMessage).toHaveBeenNthCalledWith(3, { type: 'activate', botName: 'aurula', partName: 'greeting.episode' });
     expect(console.log).toHaveBeenCalledWith('[ChatBiomebot] Starting aurula');
     expect(console.log).toHaveBeenCalledWith('[ChatBiomebot] Started aurula');
     expect(console.log).toHaveBeenCalledWith('[ChatBiomebot] Activated aurula:greeting.episode');
+  });
+
+  it('starts the EmoGeology worker and logs its lifecycle', async () => {
+    const bot = new ChatBiomebot({
+      aurula: ['static/bots/aurula/basic.emogeology.json'],
+    }, 'user-1');
+
+    await expect(bot.deploy('aurula')).resolves.toMatchObject({ botName: 'aurula' });
+
+    expect(worker.postMessage).toHaveBeenNthCalledWith(1, {
+      type: 'init',
+      botName: 'aurula',
+      partName: 'basic.emogeology',
+      userId: 'user-1',
+    });
+    expect(console.log).toHaveBeenCalledWith(
+      '[ChatBiomebot] Initialized aurula:basic.emogeology',
+    );
+    expect(console.log).toHaveBeenCalledWith(
+      '[ChatBiomebot] Deployed aurula:basic.emogeology',
+    );
+    expect(console.log).toHaveBeenCalledWith(
+      '[ChatBiomebot] Activated aurula:basic.emogeology',
+    );
   });
 
   it('reports Worker startup errors', async () => {
