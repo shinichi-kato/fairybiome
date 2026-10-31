@@ -1,18 +1,22 @@
 # FairyBiome - A Chat Application with Chatbots
 
-version 0.37.1
+version 0.38.2
 
 * ブラウザ内で完結動作可能な軽量チャットボット
 * 専用のチャットルーム
 
 # 会話エンジンの特徴
 
-* 雑談向けに会話テキスト以外の
+## Episode
+* 雑談向けに会話テキストに加え日時、表情、会話シーン、向き合い状況など会話の周辺状況も特徴量化したログ再現型会話
+
+## EmoGeology
+*
 
 # Requirements
 
 * Firebase sparkアカウント(無料)
-* node.js v22.20.0
+* node v22.23.4 (npm v10.9.9)
 
 # 特徴量行列のダンプ
 

@@ -57,6 +57,14 @@ describe('EpisodePart', () => {
     expect(part.expandOutputTags('{animal}')).toBe('白猫');
   });
 
+  it('expands outputTags in bot rows returned directly by input()', () => {
+    const part = new EpisodePart();
+    part._loadOutputTags({ '{dream}': ['{who}の夢'], '{who}': ['お父さん'] });
+    part.columns = ['role', 'text'];
+    part.receive = () => ({ status: 'ok', row: ['bot', '{dream}を見た'], score: 1, index: 0 });
+    expect(part.input({ text: 'おはよう' })[0].text).toBe('お父さんの夢を見た');
+  });
+
   it('stops expanding self-referencing tags at the depth limit', () => {
     const part = new EpisodePart();
     part._loadOutputTags({ '{a}': ['{a}の'] });

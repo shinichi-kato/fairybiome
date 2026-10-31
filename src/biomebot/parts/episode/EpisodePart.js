@@ -122,7 +122,7 @@ export class EpisodePart extends Part {
     return [
       new Message({
         role: rowRole,
-        text: row[1] ?? "",
+        text: rowRole === "bot" ? this.expandOutputTags(row[1] ?? "") : (row[1] ?? ""),
         target: "other",
         timestamp: new Date().toISOString(),
         emo: emoIndex >= 0 ? row[emoIndex] : null,

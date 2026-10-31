@@ -90,4 +90,24 @@ describe("EmoGeologyPart", () => {
     expect(await part._db.strata.where("userId").equals("user-1").count()).toBe(1);
     expect(await part._db.strata.where("userId").equals("user-2").count()).toBe(1);
   });
+
+  it("rolls back a question that was not adopted by the orchestrator", async () => {
+    await part.input({ text: "開始" });
+    expect(part.pending).not.toBeNull();
+    expect(part.handleOutput(["other"])).toBe(true);
+    expect(part.pending).toBeNull();
+  });
+
+  it("keeps the pending state when the question was adopted", async () => {
+    await part.input({ text: "開始" });
+    expect(part.handleOutput([part.partName])).toBe(false);
+    expect(part.pending).not.toBeNull();
+  });
+
+  it("lowers the question score as strata accumulate", () => {
+    expect(part._score(0, false)).toBeCloseTo(0.7);
+    expect(part._score(1, false)).toBeCloseTo(0.42);
+    expect(part._score(2, false)).toBe(0);
+    expect(part._score(1, true)).toBeCloseTo(0.9);
+  });
 });

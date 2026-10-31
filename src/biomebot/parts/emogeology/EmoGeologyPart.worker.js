@@ -29,7 +29,9 @@ onmessage = async (messageEvent) => {
       broadcastChannel = new BroadcastChannel(channelName(event.botName, event.userId));
       broadcastChannel.onmessage = (channelEvent) => {
         const payload = channelEvent.data ?? {};
-        if (payload.type === "input") {
+        if (payload.type === "output") {
+          emoGeologyPart.handleOutput(payload.props?.partNames ?? payload.message?.props?.partNames ?? []);
+        } else if (payload.type === "input") {
           currentTurnId = payload.turnId ?? null;
           Promise.resolve(emoGeologyPart.input(payload.message))
             .then((messages) => postInnerVoices(messages, currentTurnId))
