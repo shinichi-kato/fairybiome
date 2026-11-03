@@ -1,6 +1,11 @@
 Change log
 ===========
+# v0.38.3
+## Changed
+* EpisodePart内でメッセージの履歴に未採択のinnerVoiceを残さない変更
+
 # v0.38.2
+### Fixed
 * 認証UIの内製化(zod依存を外す)
 * チャット画面でのUI修正
 * テキスト展開周辺のデバッグ

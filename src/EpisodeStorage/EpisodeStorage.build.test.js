@@ -124,7 +124,8 @@ describe('EpisodeStorage build cache and matrix', () => {
     expect(storage.retriever).toBeDefined();
     expect(storage.WordTags).toBe(storage.wordEmbedding);
 
-    const response = storage.retrieve({ text: 'こんにちは' });
+    const userInput = { text: 'こんにちは' };
+    const response = storage.retrieve(userInput);
     expect(response).toEqual({
       row: ['user', '今日はどう？', '10/12', '12:24', '', 'face', 'private'],
       index: 1,
@@ -132,6 +133,18 @@ describe('EpisodeStorage build cache and matrix', () => {
       matchedRowIndex: 0,
       score: expect.any(Number),
     });
+    expect(storage.messageHistory).toEqual([
+      expect.objectContaining({ role: 'user', text: 'こんにちは' }),
+    ]);
+
+    storage.retrieve({ role: 'bot', text: 'innerVoice' }, false, { recordInput: false });
+    expect(storage.messageHistory).toHaveLength(1);
+
+    storage.recordMessage({ role: 'bot', text: '確定した返答' });
+    expect(storage.messageHistory).toHaveLength(2);
+    expect(storage.messageHistory[1]).toEqual(
+      expect.objectContaining({ role: 'bot', text: '確定した返答' })
+    );
   });
 
   it('applies factor.penalty.role to a candidate whose role differs from the message role', async () => {

@@ -65,6 +65,33 @@ describe('EpisodePart', () => {
     expect(part.input({ text: 'おはよう' })[0].text).toBe('お父さんの夢を見た');
   });
 
+  it('records user input and final output but not innerVoice input', () => {
+    const part = new EpisodePart();
+    part.engine = {
+      retrieve: vi.fn(() => null),
+      recordMessage: vi.fn(),
+    };
+
+    part.input({ role: 'user', text: 'ユーザー入力' });
+    part.inputinnerVoice({ role: 'bot', text: '中間発言' });
+    const output = { role: 'bot', text: '確定した返答' };
+    expect(part.getOutput(output)).toBe(output);
+
+    expect(part.engine.retrieve).toHaveBeenNthCalledWith(
+      1,
+      { role: 'user', text: 'ユーザー入力' },
+      false,
+      { recordInput: true }
+    );
+    expect(part.engine.retrieve).toHaveBeenNthCalledWith(
+      2,
+      { role: 'bot', text: '中間発言' },
+      false,
+      { recordInput: false }
+    );
+    expect(part.engine.recordMessage).toHaveBeenCalledWith(output, 'bot');
+  });
+
   it('stops expanding self-referencing tags at the depth limit', () => {
     const part = new EpisodePart();
     part._loadOutputTags({ '{a}': ['{a}の'] });

@@ -1,3 +1,10 @@
+/*
+## 会話履歴を確定した発言に限定する
+EpisodeStorage.messageHistoryには、次の想起に使う会話履歴を保存する。
+innerVoiceや、innerVoiceを受けて各EpisodePartが想起した中間結果は保存せず、
+ユーザー入力とorchestratorが確定した最終outputだけを保存する。
+これにより、未採択の発言が履歴を占めて有用な会話履歴を押し出すのを防ぐ。
+*/
 import { Part } from "../part.js";
 import { Message } from "../../../Message.js";
 import { EpisodeStorage } from "../../../EpisodeStorage/EpisodeStorage.js";
@@ -96,16 +103,16 @@ export class EpisodePart extends Part {
     };
   }
 
-  receive(message) {
+  receive(message, { recordInput = true } = {}) {
     if (!this.engine || typeof this.engine.retrieve !== "function") {
       return { status: "error", message: "engine not ready" };
     }
     
-    return this.engine.retrieve(message);
+    return this.engine.retrieve(message, false, { recordInput });
   }
 
-  input(message) {
-    const result = this.receive(message);
+  input(message, { recordInput = true } = {}) {
+    const result = this.receive(message, { recordInput });
     if (!result || result.status === "error") {
       return [];
     }
@@ -184,10 +191,11 @@ export class EpisodePart extends Part {
   }
 
   inputinnerVoice(message) {
-    return this.input(message);
+    return this.input(message, { recordInput: false });
   }
 
   getOutput(message) {
+    this.engine.recordMessage(message, "bot");
     return message ?? null;
   }
 }
