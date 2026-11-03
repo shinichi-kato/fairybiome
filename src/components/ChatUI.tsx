@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowLeft, Send } from 'lucide-react';
+import { ArrowLeft, Send, X } from 'lucide-react';
 import { type CSSProperties, type KeyboardEvent, useEffect, useRef, useState } from 'react';
 import { useAuth } from '../auth/AuthProvider';
 import { ChatBiomebot } from '../biomebot/kernel.js';
@@ -258,15 +258,22 @@ export default function ChatUI({ botName, chatWidth = DEFAULT_CHAT_WIDTH }: Chat
 
 
         <form className="flex shrink-0 items-end gap-2 border-t border-gray-300 pt-3" onSubmit={event => { event.preventDefault(); void sendMessage(); }}>
-          <textarea aria-label="メッセージ" className="min-h-11 flex-1 resize-none border border-gray-500 bg-white px-3 py-2 text-base focus:outline-2 focus:outline-primary"
-            maxLength={200}
-            onChange={event => setInput(event.target.value)}
-            onKeyDown={handleInputKeyDown}
-            rows={2}
-            value={input}
-            placeholder="メッセージを入力..."
-          />
-          <button type="submit" aria-label="送信" className="flex h-11 w-11 shrink-0 items-center justify-center bg-primary text-white disabled:opacity-50" disabled={!input.trim()}>
+          <div className="relative flex-1">
+            <textarea aria-label="メッセージ" className="min-h-11 w-full resize-none rounded-2xl border border-gray-500 bg-white py-2 pl-4 pr-11 text-base focus:outline-2 focus:outline-primary"
+              maxLength={200}
+              onChange={event => setInput(event.target.value)}
+              onKeyDown={handleInputKeyDown}
+              rows={2}
+              value={input}
+              placeholder="メッセージを入力..."
+            />
+            {input && (
+              <button type="button" aria-label="入力をクリア" className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full text-gray-600 hover:bg-gray-200" onClick={() => setInput('')}>
+                <X aria-hidden="true" size={18} />
+              </button>
+            )}
+          </div>
+          <button type="submit" aria-label="送信" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-white disabled:opacity-50" disabled={!input.trim()}>
             <Send aria-hidden="true" size={20} />
           </button>
         </form>

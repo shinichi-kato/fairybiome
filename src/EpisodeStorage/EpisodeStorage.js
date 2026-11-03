@@ -1,10 +1,14 @@
 /*
- * Unknown-word slots:
+EpisodePart
+===========
+## Unknown-word slots:
  * - Use the same {UNKNOWN_n} marker in the saved prompt and paired reply.
  * - Retrieval captures the input substring between the prompt's surrounding
  *   literal text. A matching slot contributes one wildcard dimension.
  * - Literal unknown tokens remain lexical features outside declared slots.
- */
+ *
+
+*/
 
 
 import Dexie from 'dexie';
@@ -324,7 +328,7 @@ export class EpisodeStorage {
     return true;
   }
 
-  retrieve(message, verbose=false) {
+  retrieve(message, verbose = false, { recordInput = true } = {}) {
     this.messageHistory = Array.isArray(this.messageHistory) ? this.messageHistory : [];
 
     const text = typeof message === 'string'
@@ -354,23 +358,14 @@ export class EpisodeStorage {
     this.WordTagsCache = this.retriever.buildWordTagSubstitutionMap(text, this.wordEmbedding);
     this.vector = messageVector;
 
-    this._pushHistory(message);
+    if (recordInput) {
+      this.recordMessage(message, 'user');
+    }
 
     if (result && result.status === 'ok') {
       const amplitude = typeof this.factor?.amplitude === 'number' ? this.factor.amplitude : 1;
       
-      const textIndex = this._getTextIndex();
-      const text = Array.isArray(result.row) && typeof result.row[textIndex] === 'string' ? result.row[textIndex] : '';
-      // console.log(`${this.partName} score=${result.score} text=${text} `);
       console.log(`${this.partName} score=${result.score} result=${JSON.stringify(result)}`);
-
-      const roleIndex = this._getColumns().indexOf('role');
-      const rowRole = roleIndex >= 0 && result.row[roleIndex] === 'user' ? 'user' : 'bot';
-      this._pushHistory({
-        role: rowRole,
-        text: text,
-        timestamp: new Date().toISOString(),
-      });
 
       return {
         row: result.row,
@@ -400,9 +395,21 @@ export class EpisodeStorage {
       return null;
     }
 
-    const text = typeof resolved.row[textIndex] === 'string' ? resolved.row[textIndex] : '';
-    this._pushHistory({ role: 'bot', text, timestamp: new Date().toISOString() });
     return resolved;
+  }
+
+  recordMessage(message, defaultRole = 'bot') {
+    const text = typeof message === 'string' ? message : message?.text;
+    if (typeof text !== 'string' || !text.trim()) {
+      return false;
+    }
+
+    this._pushHistory({
+      role: typeof message?.role === 'string' && message.role ? message.role : defaultRole,
+      text,
+      timestamp: message?.timestamp ?? new Date().toISOString(),
+    });
+    return true;
   }
 
   // 直近の採用発言のうち新しいものを Δt=1,2,... として返す

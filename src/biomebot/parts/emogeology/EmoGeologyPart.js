@@ -6,6 +6,9 @@ const EMOTIONS = ["joy", "sadness", "anger", "fear", "trust", "disgust", "antici
 const SLOT_NAMES = ["event", "emo", "importance"];
 const MAX_STRATA_PER_RESPONSE = 2;
 const DAILY_MEMORY_LIMIT = 2;
+const BASE_SCORE = 0.7;
+const SCORE_DECAY = 0.6;
+const PENDING_SCORE = 0.9;
 const NEGATIVE_EMOTIONS = new Set(["sadness", "anger", "fear", "disgust"]);
 
 const isEmptyAnswer = (text) => !text || /^(うーん|うーむ|特にない|ないかな|わからない|分からない|答えたくない|言いたくない|秘密|パス|skip)$/i.test(text.trim());
@@ -175,7 +178,16 @@ export class EmoGeologyPart extends Part {
     return (parts.length ? parts : [event.trim()]).slice(0, MAX_STRATA_PER_RESPONSE);
   }
 
-  _buildQuestionMessage(question) {
+  // 新規質問のスコアは本日のstratum数に応じて baseScore * decay^件数 で下がり、上限で0になる。
+  // 質問の最中は会話の連続性のため高く保つ。baseScore,decay,pendingScoreは辞書のfactorで変更できる。
+  _score(dailyCount, continuing) {
+    const factor = this.factor ?? {};
+    if (continuing) return factor.pendingScore ?? PENDING_SCORE;
+    if (dailyCount >= DAILY_MEMORY_LIMIT) return 0;
+    return (factor.baseScore ?? BASE_SCORE) * (factor.decay ?? SCORE_DECAY) ** dailyCount;
+  }
+
+  _buildQuestionMessage(question, score) {
     const text = question.text.replace(/\{recently\}/g, "最近");
     return new Message({
       role: "bot",
@@ -189,7 +201,7 @@ export class EmoGeologyPart extends Part {
       props: {
         botName: this.botName,
         partNames: [this.partName],
-        score: 1,
+        score,
         emoGeology: { type: "question" },
       },
     });
@@ -205,7 +217,18 @@ export class EmoGeologyPart extends Part {
       .count();
   }
 
+  // outputに自分のpartが採用されなかった質問は、ユーザに届いていないので取り消す
+  handleOutput(partNames) {
+    const proposal = this._proposal;
+    this._proposal = null;
+    if (!proposal) return false;
+    if (Array.isArray(partNames) && partNames.includes(this.partName)) return false;
+    this.pending = proposal.before;
+    return true;
+  }
+
   async input(message) {
+    this._proposal = null;
     const text = typeof message?.text === "string" ? message.text : "";
     if (this.pending) {
       this._applyAnswer(text);
@@ -219,18 +242,22 @@ export class EmoGeologyPart extends Part {
     }
 
     if (!this.pending) {
+      const dailyCount = await this._dailyCount();
+      if (dailyCount >= DAILY_MEMORY_LIMIT) return [];
       const question = this._chooseQuestion(SLOT_NAMES);
       if (!question) return [];
+      this._proposal = { before: null };
       this._createPending(question);
-      return [this._buildQuestionMessage(question)];
+      return [this._buildQuestionMessage(question, this._score(dailyCount, false))];
     }
 
     const missing = this._missingSlots();
     if (missing.length) {
       const question = this._chooseQuestion(missing);
       if (question) {
+        this._proposal = { before: { ...this.pending } };
         Object.assign(this.pending, question.assign);
-        return [this._buildQuestionMessage(question)];
+        return [this._buildQuestionMessage(question, this._score(0, true))];
       }
     }
 
