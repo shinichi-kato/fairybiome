@@ -1,5 +1,10 @@
 Change log
 ===========
+# v0.39.0
+* ログ出力機能
+
+## Added
+* 
 # v0.38.3
 ## Changed
 * EpisodePart内でメッセージの履歴に未採択のinnerVoiceを残さない変更
