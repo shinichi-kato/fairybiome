@@ -9,9 +9,16 @@ Orchestraotor
     "description": "説明",
     "factor": {
         "intervals_msec": [300,200,250,200],
+        "refractory": 0.7,
+        "penalty": {
+            "repetition": 0.4
+        }
     }
 }
 ```
+* `factor.refractory` (α, 0 < α < 1): 採用されたEpisodePartを候補履歴上で減衰させる係数。大きいほど抑制が長く続く。
+* `factor.penalty.repetition` (λ ≥ 0): 直近に採用されたEpisodePartと同じパートの候補に対する順位ペナルティ。ペナルティは `λ × α^Δt` で、Δtは採用からの出力回数（直近=1）。順位にのみ使い、候補の元scoreは変更しない。
+* この設定はOrchestratorの候補選択に適用される。episode JSON内の同名設定は、EpisodeStorage内の発言候補を対象とする別の仕組み。
 
 ## deploy
 全てのpartをactivateするkernel向け司令を送信する。
@@ -43,5 +50,4 @@ participant PartWorkers@{ "type" : "collections" }
 ## 競合状態の対処
 ### input受信後インターバルタイマ動作中にinputを受信したら
 各パートではinnerVoice出力がどのinputに紐づくか管理していないし、管理は複雑なので、kernel側でinput処理中のinput追加は禁止する。
-
 

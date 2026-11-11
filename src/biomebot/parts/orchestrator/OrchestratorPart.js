@@ -10,11 +10,14 @@ OrchestratorPart
 import { Part } from '../part.js';
 import { Message } from '../../../Message.js';
 
+const MAX_REPETITION_MEMORY = 8;
+
 export class OrchestratorPart extends Part {
   constructor() {
     super();
     this.innerVoicePool = [];
     this.inputQueue = [];
+    this.repetitionMemory = [];
     // orchestratorはEpisodeStorage等のengineを持たないため_checkEngineを通す
     this.engineName = 'Orchestrator';
     this.engine = this;
@@ -26,6 +29,7 @@ export class OrchestratorPart extends Part {
     const factor = data?.factor ?? {};
     const intervals = factor.intervals_msec ?? [300];
     this.factor = { ...factor, intervals_msec: intervals };
+    this.repetitionMemory = [];
     this.botName = botName;
     this.partName = partName;
     this.displayName = typeof data?.displayName === 'string' && data.displayName ? data.displayName : botName;
@@ -72,14 +76,14 @@ export class OrchestratorPart extends Part {
       return true;
     });
 
-    const otherCandidates = pool
+    const otherCandidates = this._applyRepetitionPenalty(pool
       .filter((message) => message.target === 'other')
-      .sort((a, b) => (b.props?.score ?? 0) - (a.props?.score ?? 0))
+    )
       .slice(0, 3);
 
-    const selfCandidates = pool
+    const selfCandidates = this._applyRepetitionPenalty(pool
       .filter((message) => message.target === 'self')
-      .sort((a, b) => (b.props?.score ?? 0) - (a.props?.score ?? 0))
+    )
       .slice(0, 3);
 
     const chosenOther = otherCandidates[0] ?? null;
@@ -91,6 +95,53 @@ export class OrchestratorPart extends Part {
     this.inputQueue = [];
 
     return output;
+  }
+
+  _applyRepetitionPenalty(candidates) {
+    const alpha = this.factor?.refractory;
+    const lambda = this.factor?.penalty?.repetition;
+    if (
+      !(typeof alpha === 'number' && alpha > 0 && alpha < 1) ||
+      !(typeof lambda === 'number' && lambda > 0) ||
+      this.repetitionMemory.length === 0
+    ) {
+      return candidates.sort((a, b) => (b.props?.score ?? 0) - (a.props?.score ?? 0));
+    }
+
+    const memoryCount = this.repetitionMemory.length;
+    return candidates
+      .map((message) => {
+        const partNames = this._getTopicPartNames(message);
+        let penalty = 0;
+        this.repetitionMemory.forEach((memoryPartNames, index) => {
+          if (partNames.some((partName) => memoryPartNames.includes(partName))) {
+            const dt = memoryCount - index;
+            penalty = Math.max(penalty, alpha ** dt);
+          }
+        });
+        const score = message.props?.score ?? 0;
+        return { message, adjustedScore: score - lambda * penalty };
+      })
+      .sort((a, b) => b.adjustedScore - a.adjustedScore)
+      .map(({ message }) => message);
+  }
+
+  _getTopicPartNames(message) {
+    return [...new Set(
+      (message?.props?.partNames ?? [])
+        .filter((partName) => typeof partName === 'string' && partName && partName !== this.partName)
+    )];
+  }
+
+  recordOutput(message) {
+    const partNames = this._getTopicPartNames(message);
+    if (partNames.length === 0) {
+      return;
+    }
+    this.repetitionMemory.push(partNames);
+    while (this.repetitionMemory.length > MAX_REPETITION_MEMORY) {
+      this.repetitionMemory.shift();
+    }
   }
 
   _buildOutput(chosenOther, chosenSelf) {

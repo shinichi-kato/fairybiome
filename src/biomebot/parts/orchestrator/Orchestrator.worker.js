@@ -38,6 +38,9 @@
                                 message: output.message,
                                 props: output.props,
                             };
+                            if (message.type === 'output' && message.message) {
+                                orchestratorPart.recordOutput(message.message);
+                            }
                             if (broadcastChannel) {
                                 broadcastChannel.postMessage(message);
                             }
@@ -59,8 +62,14 @@
                         break;
                     }
                     case 'output': {
-                        clearTimeout(pendingCandidates.get(payload.turnId));
-                        pendingCandidates.delete(payload.turnId);
+                        const timeout = pendingCandidates.get(payload.turnId);
+                        if (timeout) {
+                            clearTimeout(timeout);
+                            pendingCandidates.delete(payload.turnId);
+                            if (payload.message) {
+                                orchestratorPart.recordOutput(payload.message);
+                            }
+                        }
                         break;
                     }
                     case 'innerVoice': {
