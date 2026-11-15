@@ -6,6 +6,7 @@ AuthProviderで認証後、以下のメニューを表示
 * ユーザプロファイルの編集
 * チャットボットの指定→UIへの遷移
 * サインアウト(firebaseのサインアウト)
+* ログのダウンロード(firestoreのログをjsonで保存)
 
 */
 'use client';
@@ -13,10 +14,13 @@ AuthProviderで認証後、以下のメニューを表示
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useAuth } from '../auth/AuthProvider';
+import { fetchChatLogExport } from '../lib/chatLog';
 import { loadStaticFiles } from '../lib/staticFiles';
 
 export default function Main() {
-  const { profile, signOut } = useAuth();
+  const { user, profile, signOut } = useAuth();
+  const [downloading, setDownloading] = useState(false);
+  const [downloadError, setDownloadError] = useState('');
   const [botNames, setBotNames] = useState<string[]>([]);
   const [versionNumber, setVersionNumber] = useState('');
   const [selectedBot, setSelectedBot] = useState('');
@@ -46,6 +50,28 @@ export default function Main() {
       await signOut();
     } finally {
       setSigningOut(false);
+    }
+  }
+
+  async function handleDownloadLog() {
+    if (!user) {
+      return;
+    }
+    setDownloading(true);
+    setDownloadError('');
+    try {
+      const log = await fetchChatLogExport(user.uid);
+      const blob = new Blob([JSON.stringify(log, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = `fairybiome-log-${new Date().toISOString().slice(0, 10)}.episode.json`;
+      anchor.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      setDownloadError('ログのダウンロードに失敗しました');
+    } finally {
+      setDownloading(false);
     }
   }
 
@@ -100,6 +126,15 @@ export default function Main() {
         >
           サインアウト
         </button>
+        <button
+          type="button"
+          onClick={() => void handleDownloadLog()}
+          disabled={downloading}
+          className="text-xs text-gray-400 underline hover:text-gray-600 disabled:opacity-50"
+        >
+          ログのダウンロード(最近200件)
+        </button>
+        {downloadError && <p className="text-xs text-red-500">{downloadError}</p>}
         <div>version: {versionNumber}</div>
       </div>
     </main>

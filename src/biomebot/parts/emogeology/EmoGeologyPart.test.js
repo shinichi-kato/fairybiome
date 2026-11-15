@@ -3,6 +3,7 @@ import "fake-indexeddb/auto";
 import EmoGeologyPart from "./EmoGeologyPart.js";
 
 const dictionary = {
+  emptyAnswers: ["うーん", "思いつかない", "別にないかも"],
   emotion: {
     word: { joy: ["楽しかった"], anger: ["腹が立った"] },
     question: {
@@ -60,6 +61,21 @@ describe("EmoGeologyPart", () => {
     expect(record).toMatchObject({ event: null, emo: "joy", importance: null });
     expect(record.userId).toBe("user-1");
   });
+
+  it.each(["特に思いつかないよ", "別にないかも", "思いつかない"])(
+    "stores null rather than the decline phrase for %s",
+    async (answer) => {
+      await part.input({ text: "開始" });
+      await part.input({ text: answer });
+
+      const [record] = await part._db.strata.toArray();
+      expect(record).toMatchObject({
+        event: null,
+        emo: "joy",
+        importance: null,
+      });
+    },
+  );
 
   it("splits a response into at most two strata", async () => {
     await part.input({ text: "開始" });

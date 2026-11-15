@@ -69,4 +69,54 @@ describe('OrchestratorPart', () => {
 
     expect(result.message.emo).toBe('joy');
   });
+
+  it('penalizes recently selected episode parts when ranking candidates', () => {
+    const part = new OrchestratorPart();
+    part.partName = 'orchestrator';
+    part.factor = {
+      refractory: 0.5,
+      penalty: { repetition: 6 },
+    };
+    part.recordOutput(new Message({
+      role: 'bot',
+      text: 'greeting',
+      props: { partNames: ['greeting.episode', 'orchestrator'] },
+    }));
+    part.innerVoicePool = [
+      new Message({
+        role: 'bot',
+        text: 'greeting again',
+        target: 'other',
+        props: { score: 10, partNames: ['greeting.episode'] },
+      }),
+      new Message({
+        role: 'bot',
+        text: 'fortune',
+        target: 'other',
+        props: { score: 8, partNames: ['fortune.episode'] },
+      }),
+    ];
+
+    const result = part.integrate();
+
+    expect(result.message.text).toBe('fortune');
+  });
+
+  it('records only topic parts and keeps the most recent eight outputs', () => {
+    const part = new OrchestratorPart();
+    part.partName = 'orchestrator';
+
+    for (let index = 0; index < 9; index += 1) {
+      part.recordOutput(new Message({
+        props: { partNames: [`episode-${index}`, 'orchestrator'] },
+      }));
+    }
+    part.recordOutput(new Message({
+      props: { partNames: ['orchestrator'] },
+    }));
+
+    expect(part.repetitionMemory).toHaveLength(8);
+    expect(part.repetitionMemory[0]).toEqual(['episode-1']);
+    expect(part.repetitionMemory.at(-1)).toEqual(['episode-8']);
+  });
 });

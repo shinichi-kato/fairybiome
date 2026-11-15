@@ -2,7 +2,11 @@
     "description": "Orchestrator",
     "factor": {
         "intervals": [600,400,300],
-        "attenuation": 0.7
+        "attenuation": 0.7,
+        "refractory": 0.7,
+        "penalty": {
+            "repetition": 0.4
+        }
     },
     "displayName": "アウルラ"
 

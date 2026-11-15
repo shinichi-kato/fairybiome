@@ -97,6 +97,28 @@ export async function pruneChatLog(userId: string, botName: string): Promise<voi
   await batch.commit();
 }
 
+export const CHAT_LOG_EXPORT_COLUMNS = ['createdAt', 'emo', 'displayName', 'text'];
+export const CHAT_LOG_EXPORT_LIMIT = 200;
+
+export async function fetchChatLogExport(
+  userId: string
+): Promise<{ columns: string[]; data: (string | null)[][] }> {
+  const snapshot = await getDocs(
+    query(
+      collection(getDb(), 'users', userId, 'log'),
+      orderBy('createdAtClient', 'desc'),
+      limit(CHAT_LOG_EXPORT_LIMIT)
+    )
+  );
+  const data = snapshot.docs.reverse().map(item => {
+    const doc = item.data();
+    const createdAt = doc.createdAt?.toDate?.().toISOString()
+      ?? (typeof doc.createdAtClient === 'number' ? new Date(doc.createdAtClient).toISOString() : null);
+    return [createdAt, doc.emo ?? null, doc.displayName ?? null, doc.text ?? null];
+  });
+  return { columns: CHAT_LOG_EXPORT_COLUMNS, data };
+}
+
 export function createConversationId(): string {
   return globalThis.crypto.randomUUID();
 }
