@@ -11,7 +11,15 @@ const SCORE_DECAY = 0.6;
 const PENDING_SCORE = 0.9;
 const NEGATIVE_EMOTIONS = new Set(["sadness", "anger", "fear", "disgust"]);
 
-const isEmptyAnswer = (text) => !text || /^(うーん|うーむ|特にない|ないかな|わからない|分からない|答えたくない|言いたくない|秘密|パス|skip)$/i.test(text.trim());
+const isEmptyAnswer = (text, candidates) => {
+  if (!text || typeof text !== "string") return true;
+  const answer = text.trim().toLowerCase();
+  return candidates.some((candidate) =>
+    typeof candidate === "string" &&
+    candidate.trim() &&
+    answer.includes(candidate.trim().toLowerCase())
+  );
+};
 
 export class EmoGeologyPart extends Part {
   constructor() {
@@ -41,6 +49,9 @@ export class EmoGeologyPart extends Part {
     this.userId = userId;
     this.firestoreToken = firestoreToken;
     this.dictionary = data;
+    this.emptyAnswers = Array.isArray(data.emptyAnswers)
+      ? data.emptyAnswers.filter((candidate) => typeof candidate === "string" && candidate.trim())
+      : [];
     this.factor = { ...(data.factor ?? {}) };
     return true;
   }
@@ -137,7 +148,7 @@ export class EmoGeologyPart extends Part {
 
   _applyAnswer(text) {
     const pending = this.pending;
-    const empty = isEmptyAnswer(text);
+    const empty = isEmptyAnswer(text, this.emptyAnswers);
     if (pending.event === undefined) pending.event = empty ? null : text.trim();
     if (pending.emo === undefined) {
       const emotion = this._extractEmotion(text);
@@ -232,7 +243,7 @@ export class EmoGeologyPart extends Part {
     const text = typeof message?.text === "string" ? message.text : "";
     if (this.pending) {
       this._applyAnswer(text);
-      if (isEmptyAnswer(text)) {
+      if (isEmptyAnswer(text, this.emptyAnswers)) {
         for (const slot of SLOT_NAMES) {
           if (this.pending[slot] === undefined) this.pending[slot] = null;
         }
